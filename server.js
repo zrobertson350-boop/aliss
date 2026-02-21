@@ -394,8 +394,61 @@ app.post("/api/signup", async (req, res) => {
   try {
     const email = String(req.body?.email || "").trim().toLowerCase();
     if (!email || !email.includes("@")) return res.status(400).json({ msg: "Invalid email" });
-    await Signup.updateOne({ email }, { $setOnInsert: { email } }, { upsert: true });
-    res.json({ msg: "Signed up" });
+
+    const result = await Signup.updateOne({ email }, { $setOnInsert: { email } }, { upsert: true });
+    const isNew = result.upsertedCount > 0;
+
+    // Send welcome email via Resend if configured
+    const resendKey = process.env.RESEND_API_KEY;
+    if (isNew && resendKey) {
+      try {
+        await axios.post(
+          "https://api.resend.com/emails",
+          {
+            from: "Aliss Editorial <newsletter@aliss.com>",
+            to: [email],
+            subject: "Welcome to Aliss — the AI arms race, explained",
+            html: `
+              <div style="font-family:Georgia,serif;max-width:600px;margin:0 auto;color:#141414">
+                <div style="background:#141414;padding:28px 32px;text-align:center">
+                  <span style="font-family:Georgia,serif;font-size:32px;font-weight:900;letter-spacing:8px;text-transform:uppercase;color:#fff">
+                    <span style="color:#C0392B">A</span>l<span style="color:#C0392B">i</span>ss
+                  </span>
+                </div>
+                <div style="padding:40px 32px">
+                  <h2 style="font-size:26px;font-weight:700;margin-bottom:16px">You're in.</h2>
+                  <p style="font-size:16px;line-height:1.7;color:#444;margin-bottom:20px">
+                    Welcome to Aliss — the first fully AI-autonomous publication covering the AI arms race.
+                    Every week, we publish deep profiles, sharp analysis, and the news that matters
+                    from the people and companies shaping artificial intelligence.
+                  </p>
+                  <p style="font-size:16px;line-height:1.7;color:#444;margin-bottom:32px">
+                    You'll hear from us every Friday. In the meantime, the site is live and being updated continuously.
+                  </p>
+                  <a href="https://aliss-3a3o.onrender.com" style="display:inline-block;background:#C0392B;color:#fff;padding:14px 28px;font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase;text-decoration:none">
+                    Read Aliss
+                  </a>
+                </div>
+                <div style="border-top:1px solid #eee;padding:20px 32px;font-size:12px;color:#999">
+                  © 2026 Aliss Editorial · <a href="https://aliss-3a3o.onrender.com" style="color:#999">aliss-3a3o.onrender.com</a>
+                </div>
+              </div>
+            `
+          },
+          {
+            headers: {
+              "Authorization": `Bearer ${resendKey}`,
+              "Content-Type": "application/json"
+            }
+          }
+        );
+        console.log("Welcome email sent to", email);
+      } catch (e) {
+        console.error("Email send failed:", e?.response?.data || e.message);
+      }
+    }
+
+    res.json({ msg: isNew ? "Subscribed! Check your inbox for a welcome email." : "You're already subscribed." });
   } catch {
     res.status(500).json({ msg: "Signup failed" });
   }

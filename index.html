@@ -176,11 +176,11 @@ a{color:inherit;text-decoration:none}
 <header class="masthead"><a class="masthead-logo" onclick="navigate('home');return false"><span class="logo-accent">A</span>l<span class="logo-accent">i</span>ss</a><div class="masthead-tagline">Editorial — AI News, Profiles & Analysis</div></header>
 
 <nav class="main-nav"><ul>
-<li><a href="#" class="active" data-nav="home" onclick="navigate('home');return false">Home</a></li>
-<li><a href="#" data-nav="profiles" onclick="navigate('home');return false">Profiles</a></li>
-<li><a href="#" data-nav="research" onclick="navigate('home');return false">Research</a></li>
-<li><a href="#" data-nav="industry" onclick="navigate('home');return false">Industry</a></li>
-<li><a href="#" data-nav="opinion" onclick="navigate('home');return false">Opinion</a></li>
+<li><a href="#" class="active" data-nav="home" onclick="filterCategory(null,'home');return false">Home</a></li>
+<li><a href="#" data-nav="profiles" onclick="filterCategory('Profile','profiles');return false">Profiles</a></li>
+<li><a href="#" data-nav="research" onclick="filterCategory('Research','research');return false">Research</a></li>
+<li><a href="#" data-nav="industry" onclick="filterCategory('Industry','industry');return false">Industry</a></li>
+<li><a href="#" data-nav="opinion" onclick="filterCategory('Opinion','opinion');return false">Opinion</a></li>
 <li><a href="#" data-nav="about" onclick="navigate('about');return false">About</a></li>
 </ul></nav>
 
@@ -785,16 +785,18 @@ signupForm?.addEventListener('submit',async function(e){
     signupStatus.textContent='Please enter a valid email address.';
     return;
   }
-  const existing=JSON.parse(localStorage.getItem('alissSignups')||'[]');
-  if(!existing.includes(email)){
-    existing.push(email);
-    localStorage.setItem('alissSignups',JSON.stringify(existing));
-  }
+  const btn=document.getElementById('subBtn');
+  if(btn){btn.disabled=true;btn.textContent='...';}
   try{
-    await fetch('/api/signup',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email})});
-  }catch{}
-  signupStatus.textContent='Thanks for signing up.';
-  signupEmail.value='';
+    const r=await fetch('/api/signup',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email})});
+    const data=await r.json();
+    signupStatus.textContent=data.msg||'You\'re subscribed.';
+    signupEmail.value='';
+  }catch{
+    signupStatus.textContent='Something went wrong. Try again.';
+  }finally{
+    if(btn){btn.disabled=false;btn.textContent='Subscribe';}
+  }
 });
 
 const aliceToggle=document.getElementById('aliceToggle');
@@ -986,6 +988,51 @@ searchClear?.addEventListener('click',()=>{
   const lbl=document.getElementById('searchResultsLabel');
   if(lbl) lbl.remove();
 });
+
+/* ======================
+   NAV CATEGORY FILTER
+====================== */
+function filterCategory(category, navKey){
+  // Update nav active state
+  document.querySelectorAll('.main-nav a').forEach(a=>a.classList.remove('active'));
+  const navEl=document.querySelector(`.main-nav a[data-nav="${navKey}"]`);
+  if(navEl) navEl.classList.add('active');
+
+  // Show home page
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-home')?.classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+
+  if(!category){
+    loadDynamicArticles();
+    const lbl=document.getElementById('searchResultsLabel');
+    if(lbl) lbl.remove();
+    return;
+  }
+
+  const grid=document.getElementById('latestStoriesGrid');
+  if(!grid) return;
+  const lowerCat=category.toLowerCase();
+
+  ensureArticlesCache().then(()=>{
+    const filtered=allArticlesCache.filter(a=>{
+      const cat=(a.category||'').toLowerCase();
+      const tags=(a.tags||[]).map(t=>t.toLowerCase());
+      return cat===lowerCat||cat.includes(lowerCat)||tags.includes(lowerCat)||tags.includes(category.toLowerCase());
+    });
+
+    let lbl=document.getElementById('searchResultsLabel');
+    if(!lbl){lbl=document.createElement('div');lbl.id='searchResultsLabel';lbl.className='search-results-label';grid.parentNode.insertBefore(lbl,grid);}
+    lbl.textContent=`${category} — ${filtered.length} article${filtered.length!==1?'s':''}`;
+
+    grid.innerHTML='';
+    if(!filtered.length){
+      grid.innerHTML=`<p style="color:var(--muted);padding:20px 0;grid-column:1/-1">No ${category.toLowerCase()} articles yet — check back soon.</p>`;
+      return;
+    }
+    filtered.slice(0,9).forEach((a,i)=>grid.appendChild(buildCard(a,i)));
+  });
+}
 </script>
 </body>
 </html>
