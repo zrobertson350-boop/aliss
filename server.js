@@ -24,7 +24,6 @@ app.use(helmet({ contentSecurityPolicy: false }));
 const limiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 200 });
 app.use(limiter);
 
-// Support both ANTHROPIC_API_KEY (Render) and CLAUDE_API_KEY (legacy)
 const ANTHROPIC_KEY = process.env.ANTHROPIC_API_KEY || process.env.CLAUDE_API_KEY;
 
 const mongoUri = process.env.MONGO_URI;
@@ -32,7 +31,12 @@ if (mongoUri && (mongoUri.startsWith("mongodb://") || mongoUri.startsWith("mongo
   mongoose.connect(mongoUri)
     .then(() => {
       console.log("MongoDB Connected");
-      setTimeout(() => { seedOriginalArticles(); seedGeneratedArticles(); }, 8000);
+      setTimeout(async () => {
+        await seedOriginalArticles();
+        await seedGeneratedArticles();
+        fetchHNNews();
+        refreshTicker();
+      }, 5000);
     })
     .catch(err => console.error("MongoDB error:", err));
 } else {
@@ -47,9 +51,9 @@ const ArticleSchema = new mongoose.Schema({
   slug:        { type: String, unique: true, sparse: true },
   title:       { type: String, required: true },
   subtitle:    String,
-  content:     String,   // External URL or short text for HN articles
-  summary:     String,   // 2-3 sentence card preview
-  body:        String,   // Full HTML for generated articles
+  content:     String,
+  summary:     String,
+  body:        String,
   tags:        [String],
   category:    { type: String, default: "News" },
   source:      String,
@@ -60,6 +64,7 @@ const ArticleSchema = new mongoose.Schema({
 });
 ArticleSchema.index({ title: 1, source: 1 }, { unique: true });
 ArticleSchema.index({ slug: 1 }, { unique: true, sparse: true });
+ArticleSchema.index({ title: "text", summary: "text", tags: "text" });
 
 const UserSchema = new mongoose.Schema({
   email:    { type: String, unique: true },
@@ -72,9 +77,15 @@ const SignupSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now }
 });
 
+const TickerSchema = new mongoose.Schema({
+  headlines: [String],
+  updatedAt: { type: Date, default: Date.now }
+});
+
 const Article = mongoose.model("Article", ArticleSchema);
 const User    = mongoose.model("User", UserSchema);
 const Signup  = mongoose.model("Signup", SignupSchema);
+const Ticker  = mongoose.model("Ticker", TickerSchema);
 
 /* ======================
    HELPERS
@@ -84,24 +95,27 @@ function isMongoReady() {
   return mongoose.connection.readyState === 1;
 }
 
-function slugify(value) {
-  return String(value || "")
-    .toLowerCase().trim()
-    .replace(/[^a-z0-9\s-]/g, "")
-    .replace(/\s+/g, "-")
-    .replace(/-+/g, "-")
-    .replace(/^-|-$/g, "");
+function slugify(v) {
+  return String(v || "").toLowerCase().trim()
+    .replace(/[^a-z0-9\s-]/g, "").replace(/\s+/g, "-")
+    .replace(/-+/g, "-").replace(/^-|-$/g, "");
 }
 
 function cleanSummary(v) {
-  return String(v || "").replace(/\s+/g, " ").trim().slice(0, 260);
+  return String(v || "").replace(/\s+/g, " ").trim().slice(0, 280);
 }
 
-// Deterministic beautiful photos via picsum.photos
-function getImageUrl(seed) {
-  const s = (seed || "artificial-intelligence")
-    .toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 50);
-  return `https://picsum.photos/seed/${s}/800/450`;
+function strHash(s) {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = (Math.imul(31, h) + s.charCodeAt(i)) | 0;
+  return Math.abs(h);
+}
+
+// AI-generated images via Pollinations (free, no key required)
+function getImageUrl(prompt, seed) {
+  const p = String(prompt || "artificial intelligence technology futuristic dark").slice(0, 200);
+  const s = seed !== undefined ? seed : strHash(p);
+  return `https://image.pollinations.ai/prompt/${encodeURIComponent(p)}?width=800&height=450&nologo=true&seed=${s}`;
 }
 
 /* ======================
@@ -109,8 +123,8 @@ function getImageUrl(seed) {
 ====================== */
 
 async function callClaude(system, userMsg, maxTokens = 2000) {
-  if (!ANTHROPIC_KEY) throw new Error("No Anthropic API key configured");
-  const response = await axios.post(
+  if (!ANTHROPIC_KEY) throw new Error("No Anthropic API key");
+  const res = await axios.post(
     "https://api.anthropic.com/v1/messages",
     {
       model: "claude-sonnet-4-6",
@@ -127,7 +141,7 @@ async function callClaude(system, userMsg, maxTokens = 2000) {
       timeout: 90000
     }
   );
-  return response.data?.content?.[0]?.text || "";
+  return res.data?.content?.[0]?.text || "";
 }
 
 /* ======================
@@ -149,23 +163,28 @@ const AI_TOPICS = [
   "Fei-Fei Li and the ImageNet moment that changed AI history",
   "Arthur Mensch and Mistral AI: Europe's bid to stay in the race",
   "Satya Nadella's billion-dollar bet on OpenAI — and what he got in return",
-  "The AGI timeline debate: who is right and what it means for humanity"
+  "The AGI timeline debate: who is right and what it means for humanity",
+  "Sam Altman's 2026 roadmap: enterprise AI, ads in ChatGPT, and the path to $280B",
+  "The model context window wars: why Gemini's 1M tokens is a bigger deal than it sounds",
+  "AI agents in 2026: what's actually shipping vs. what's still vaporware",
+  "The open-source AI rebellion: how Meta and Mistral are fighting the closed-model cartel",
+  "Agentic coding tools: how Cursor, Windsurf, and Claude Code are replacing the IDE"
 ];
 
 async function generateArticleWithClaude(topic) {
-  const system = `You are a senior journalist at Aliss, an independent editorial publication covering the AI arms race. Your writing is authoritative, nuanced, and intellectually serious — like The Atlantic meets MIT Technology Review. Write accurate, factually grounded journalism about real people and companies shaping artificial intelligence.`;
+  const system = `You are a senior journalist at Aliss, the first fully AI-autonomous news publication. You cover the AI arms race with the authority of The Atlantic and the speed of Reuters. Write accurate, factually grounded, long-form journalism about real people and companies shaping artificial intelligence. Your writing is witty, sharp, and intellectually serious.`;
 
   const userMsg = `Write a compelling long-form article about: ${topic}
 
-Return ONLY a raw JSON object — no markdown code fences, no extra commentary, just valid JSON. Fields:
+Return ONLY a raw JSON object — no markdown fences, no extra text. Fields:
 {
-  "title": "Headline under 80 characters",
-  "subtitle": "One compelling sentence expanding on the headline",
-  "summary": "2-3 sentence summary for card previews",
+  "title": "Headline under 80 characters — punchy and specific",
+  "subtitle": "One sharp sentence expanding on the headline",
+  "summary": "2-3 sentence summary for card previews — make it compelling",
   "category": "Profile OR Analysis OR Opinion OR Research OR Industry OR News",
   "tags": ["tag1", "tag2", "tag3", "tag4"],
-  "imageSeed": "2-3 lowercase words for image, e.g. neural network, silicon chip",
-  "body": "Full article HTML. Rules: <p> for paragraphs; <h2> for section headers (at least 5 sections); <div class=\\"pull-quote\\">quote text<cite>— Attribution, Source, Year</cite></div> for pull quotes (include at least 2); first <p> must have class=\\"drop-cap\\"; do NOT include the title. Minimum 900 words."
+  "imagePrompt": "Descriptive Stable Diffusion prompt for a relevant image — be specific and vivid, e.g. 'professional portrait of a tech CEO in dark server room, dramatic blue lighting, photorealistic' or 'NVIDIA GPU chips glowing neon green on circuit board, macro photography, dark background'",
+  "body": "Full article HTML. Rules: <p> for paragraphs (use class=\\"drop-cap\\" on the first); <h2> for section headers (5+ sections); <div class=\\"pull-quote\\">quote<cite>— Attribution, Source, Year</cite></div> for pull quotes (2+ minimum); do NOT include the title. Minimum 900 words. Be specific with facts, dates, and figures."
 }`;
 
   const raw = await callClaude(system, userMsg, 4000);
@@ -174,6 +193,7 @@ Return ONLY a raw JSON object — no markdown code fences, no extra commentary, 
 
   const data = JSON.parse(match[0]);
   const title = String(data.title || topic).trim();
+  const imagePrompt = String(data.imagePrompt || `${topic} artificial intelligence technology`);
 
   const doc = {
     slug:        slugify(title),
@@ -185,7 +205,7 @@ Return ONLY a raw JSON object — no markdown code fences, no extra commentary, 
     tags:        Array.isArray(data.tags) ? data.tags.map(String) : ["AI"],
     category:    String(data.category   || "Analysis"),
     source:      "Aliss",
-    imageUrl:    getImageUrl(data.imageSeed || "artificial intelligence"),
+    imageUrl:    getImageUrl(imagePrompt, strHash(title)),
     isExternal:  false,
     isGenerated: true,
     publishedAt: new Date()
@@ -204,136 +224,129 @@ Return ONLY a raw JSON object — no markdown code fences, no extra commentary, 
 }
 
 /* ======================
-   SEED FUNCTIONS
+   WITTY TICKER GENERATION
+====================== */
+
+let cachedTicker = null;
+
+async function generateWittyTicker() {
+  if (!ANTHROPIC_KEY) return null;
+  try {
+    // Get recent article headlines for context
+    let recent = [];
+    if (isMongoReady()) {
+      recent = await Article.find().sort({ publishedAt: -1 }).limit(10).select("title").lean();
+    }
+    const context = recent.map(a => a.title).join("; ");
+
+    const raw = await callClaude(
+      `You write witty, sharp, slightly sardonic one-liner ticker headlines for Aliss, an AI news publication. Think dry wit meets tech journalism — like a smarter version of tech Twitter. Keep each headline under 100 characters. Be specific, topical, and clever. No hashtags, no emoji.`,
+      `Write exactly 10 witty, sharp ticker headlines about current AI developments. Make them specific and clever — not generic. Reference real companies, people, and trends where possible. Recent articles for context: ${context || "AI arms race, OpenAI, Anthropic, Nvidia, Mistral"}
+
+Return ONLY a JSON array of 10 strings, no other text. Example format: ["headline 1", "headline 2", ...]`,
+      800
+    );
+
+    const match = raw.match(/\[[\s\S]*\]/);
+    if (!match) return null;
+    const headlines = JSON.parse(match[0]);
+    return Array.isArray(headlines) ? headlines.filter(h => typeof h === "string" && h.trim()) : null;
+  } catch (e) {
+    console.error("Ticker generation failed:", e.message);
+    return null;
+  }
+}
+
+async function refreshTicker() {
+  console.log("Refreshing ticker headlines...");
+  const headlines = await generateWittyTicker();
+  if (!headlines || !headlines.length) return;
+
+  cachedTicker = headlines;
+
+  if (isMongoReady()) {
+    await Ticker.deleteMany({});
+    await Ticker.create({ headlines, updatedAt: new Date() });
+  }
+
+  io.emit("tickerUpdate", { headlines });
+  console.log("Ticker refreshed:", headlines[0]);
+}
+
+/* ======================
+   SEEDING
 ====================== */
 
 const ORIGINAL_ARTICLES = [
-  // Static profile pages — slugs route to embedded HTML pages in index.html
   {
     title:    "Sam Altman: The Architect of the AI Gold Rush",
     subtitle: "From Stanford dropout to Y Combinator president to CEO of the most valuable AI company on Earth.",
-    summary:  "How one man bet everything on AGI — and won. Sam Altman's journey from Loopt to OpenAI, ChatGPT, and a $300B empire.",
+    summary:  "How one man bet everything on AGI — and, so far, won. Sam Altman's journey from Loopt to OpenAI, ChatGPT, and a $300B empire.",
     tags:     ["Profile", "OpenAI"],
     source:   "Aliss Editorial",
     category: "Profile",
     slug:     "article-altman",
-    imageUrl: getImageUrl("sam-altman-openai"),
+    imageUrl: getImageUrl("tech CEO boardroom silicon valley dark dramatic lighting professional portrait", strHash("altman")),
     isExternal: false
   },
   {
     title:    "Ilya Sutskever: The Scientist Who Walked Away",
     subtitle: "He helped build ChatGPT, tried to fire Sam Altman, then vanished. Now he's back with $3 billion.",
-    summary:  "Co-creator of AlexNet. OpenAI's chief scientist. The man who voted to fire Sam Altman. Now running Safe Superintelligence Inc.",
+    summary:  "Co-creator of AlexNet. OpenAI's chief scientist. The man who voted to fire Sam Altman. Now running Safe Superintelligence Inc. with $3B and no product.",
     tags:     ["Profile", "Safety"],
     source:   "Aliss Editorial",
     category: "Profile",
     slug:     "article-sutskever",
-    imageUrl: getImageUrl("ilya-sutskever-ai"),
+    imageUrl: getImageUrl("AI researcher neural network abstract blue light dark background photorealistic", strHash("sutskever")),
     isExternal: false
   },
   {
     title:    "Andrej Karpathy: The Teacher Who Shaped Modern AI",
     subtitle: "From Rubik's cube tutorials to Tesla Autopilot to reimagining education with AI.",
-    summary:  "From OpenAI founding member to Tesla AI director to educator — a look at one of AI's most trusted voices.",
+    summary:  "From OpenAI founding member to Tesla AI director to educator — a look at one of AI's most trusted and insightful voices in the field.",
     tags:     ["Profile", "Education"],
     source:   "Aliss Editorial",
     category: "Profile",
     slug:     "article-karpathy",
     imageUrl: "/assets/andrej-karpathy.jpg",
     isExternal: false
-  },
-  {
-    title:    "The New AI Product Stack in 2026",
-    summary:  "Why orchestration, retrieval, and evaluation layers are becoming the real moat in AI products.",
-    content:  "The first AI wave rewarded model access. The second rewards product architecture. In 2026, the most durable teams are not simply wrapping a model endpoint — they are building resilient stacks with retrieval controls, evaluation loops, and domain workflows that improve with every user interaction.",
-    tags:     ["Industry", "Architecture"],
-    source:   "Aliss Editorial",
-    category: "Analysis",
-    imageUrl: getImageUrl("product-stack-ai"),
-    isExternal: false
-  },
-  {
-    title:    "Why LLM Evaluation Is Finally Going Production-Grade",
-    summary:  "Benchmarks are useful, but real products now need task-level reliability and continuous eval pipelines.",
-    content:  "Static benchmarks helped compare models, but production systems expose a different truth: reliability is contextual. Teams now run evaluation suites tied to their own tasks — customer support, research synthesis, legal drafting, and code generation — then gate releases with pass/fail thresholds.",
-    tags:     ["Research", "LLMs"],
-    source:   "Aliss Editorial",
-    category: "Research",
-    imageUrl: getImageUrl("llm-evaluation"),
-    isExternal: false
-  },
-  {
-    title:    "AI Infrastructure Economics: The Margin Battle Has Begun",
-    summary:  "As usage explodes, cost control and model routing decide who survives.",
-    content:  "The unit economics of AI products are no longer theoretical. As request volumes increase, infrastructure decisions directly shape margins. Teams that route intelligently across model tiers, cache aggressively, and trim unnecessary context windows can cut serving costs dramatically without hurting user quality.",
-    tags:     ["Analysis", "Infrastructure"],
-    source:   "Aliss Editorial",
-    category: "Industry",
-    imageUrl: getImageUrl("infrastructure-economics"),
-    isExternal: false
-  },
-  {
-    title:    "Multimodal Agents Are Real, but Narrowly Useful",
-    summary:  "Agent systems are improving quickly when tasks are constrained and verifiable.",
-    content:  "The broad promise of autonomous agents remains ahead of reality, but constrained agents are already useful. Workflows like structured data extraction, incident triage, and document-heavy QA now benefit from multimodal models that reason across text, tables, screenshots, and logs.",
-    tags:     ["Opinion", "Agents"],
-    source:   "Aliss Editorial",
-    category: "Opinion",
-    imageUrl: getImageUrl("multimodal-agents"),
-    isExternal: false
-  },
-  {
-    title:    "Safety and Governance Moves From Policy to Product",
-    summary:  "Governance is becoming embedded in release workflows, not just written in policy docs.",
-    content:  "Safety has moved from high-level principle to implementation detail. Leading teams now attach policy checks to deployment pipelines, maintain model behavior audits, and track refusal quality alongside latency and cost.",
-    tags:     ["Policy", "Safety"],
-    source:   "Aliss Editorial",
-    category: "Analysis",
-    imageUrl: getImageUrl("ai-safety-governance"),
-    isExternal: false
-  },
-  {
-    title:    "Developer Platform Updates: The Rise of AI-Native Tooling",
-    summary:  "The best developer platforms now treat AI as a first-class runtime, not a plugin.",
-    content:  "Developer tooling is being rebuilt around AI primitives: structured prompts, eval suites, model routing, and observability for prompts and completions. The strongest platforms reduce cognitive load by giving teams versioned prompts, replayable test cases, and traceability across entire AI workflows.",
-    tags:     ["Developers", "Platforms"],
-    source:   "Aliss Editorial",
-    category: "Industry",
-    imageUrl: getImageUrl("developer-platform-ai"),
-    isExternal: false
   }
 ];
 
 async function seedOriginalArticles() {
   if (!isMongoReady()) return;
-  const originals = ORIGINAL_ARTICLES.map(a => ({ ...a, slug: slugify(a.title), publishedAt: new Date() }));
-  for (const article of originals) {
-    await Article.updateOne({ slug: article.slug }, { $setOnInsert: article }, { upsert: true });
+  for (const article of ORIGINAL_ARTICLES) {
+    await Article.updateOne(
+      { slug: article.slug },
+      { $setOnInsert: { ...article, publishedAt: new Date() } },
+      { upsert: true }
+    );
   }
-  console.log("Original articles seeded.");
+  console.log("Profile articles seeded.");
 }
 
-const SEED_TOPICS = AI_TOPICS.slice(0, 4);
+const SEED_TOPICS = AI_TOPICS.slice(0, 6);
 let seeding = false;
 
 async function seedGeneratedArticles() {
   if (seeding || !isMongoReady() || !ANTHROPIC_KEY) return;
   const count = await Article.countDocuments({ isGenerated: true });
-  if (count > 0) return;
+  if (count >= 4) return;
 
   seeding = true;
-  console.log("Seeding initial Claude-generated articles...");
-  for (const topic of SEED_TOPICS) {
+  console.log("Seeding Claude-generated articles...");
+  for (const topic of SEED_TOPICS.slice(0, 4 - count)) {
     try {
       const article = await generateArticleWithClaude(topic);
       console.log(`Seeded: ${article?.title?.slice(0, 60)}`);
-      await new Promise(r => setTimeout(r, 3000));
+      io.emit("newArticle", article);
+      await new Promise(r => setTimeout(r, 4000));
     } catch (e) {
       console.error(`Seed failed: ${e.message}`);
     }
   }
-  console.log("Seeding complete.");
   seeding = false;
+  console.log("Seeding complete.");
 }
 
 /* ======================
@@ -392,26 +405,23 @@ app.post("/api/alice-chat", async (req, res) => {
   const message = String(req.body?.message || "").trim();
   if (!message) return res.status(400).json({ msg: "Message is required" });
 
-  // Build context from recent articles
-  let contextBlock = "";
+  let context = "";
   try {
     let recent = [];
-    if (isMongoReady()) {
-      recent = await Article.find().sort({ publishedAt: -1 }).limit(6).lean();
-    }
-    if (!recent.length) recent = ORIGINAL_ARTICLES.slice(0, 6);
-    contextBlock = recent.map(a => `- ${a.title}: ${String(a.summary || "").slice(0, 180)}`).join("\n");
+    if (isMongoReady()) recent = await Article.find().sort({ publishedAt: -1 }).limit(8).select("title summary").lean();
+    if (!recent.length) recent = ORIGINAL_ARTICLES;
+    context = recent.map(a => `- ${a.title}: ${String(a.summary || "").slice(0, 150)}`).join("\n");
   } catch {}
 
   if (!ANTHROPIC_KEY) {
-    return res.json({ reply: "Alice is ready — add ANTHROPIC_API_KEY to enable live responses." });
+    return res.json({ reply: "Alice is ready — add ANTHROPIC_API_KEY to connect." });
   }
 
   try {
     const reply = await callClaude(
-      `You are Alice, the AI assistant for Aliss — an editorial publication covering the AI arms race. Be concise, sharp, and accurate. Recent site context:\n${contextBlock}`,
+      `You are Alice, the AI assistant for Aliss — the first fully autonomous AI news publication covering the AI arms race. You are concise, witty, and sharp. You have strong opinions and back them up. Never use markdown formatting — no asterisks, no bold, no bullet points with dashes, no headers. Write in plain conversational prose only. Recent Aliss coverage:\n${context}`,
       message,
-      600
+      700
     );
     res.json({ reply });
   } catch {
@@ -425,68 +435,99 @@ app.post("/api/alice-chat", async (req, res) => {
 
 app.get("/api/articles", async (req, res) => {
   try {
-    if (!isMongoReady()) {
-      return res.json(ORIGINAL_ARTICLES.map(a => ({ ...a, slug: slugify(a.title), publishedAt: new Date() })));
-    }
-    const articles = await Article.find().sort({ publishedAt: -1 }).select("-body").limit(50);
-    if (!articles.length) {
-      return res.json(ORIGINAL_ARTICLES.map(a => ({ ...a, slug: slugify(a.title), publishedAt: new Date() })));
-    }
+    const fallback = ORIGINAL_ARTICLES.map(a => ({ ...a, publishedAt: new Date() }));
+    if (!isMongoReady()) return res.json(fallback);
+    const articles = await Article.find().sort({ publishedAt: -1 }).select("-body").limit(60);
+    if (!articles.length) return res.json(fallback);
     res.json(articles);
   } catch {
-    res.json(ORIGINAL_ARTICLES.map(a => ({ ...a, slug: slugify(a.title), publishedAt: new Date() })));
+    res.json(ORIGINAL_ARTICLES.map(a => ({ ...a, publishedAt: new Date() })));
   }
 });
 
-// Fetch by slug (existing articles) OR MongoDB ObjectId (generated articles)
 app.get("/api/articles/:slugOrId", async (req, res) => {
   const param = String(req.params.slugOrId || "").trim();
   if (!param) return res.status(400).json({ msg: "Identifier required" });
-
   try {
     if (isMongoReady()) {
-      // Try ObjectId first (24-char hex)
       if (/^[a-f0-9]{24}$/i.test(param)) {
         const byId = await Article.findById(param).lean();
         if (byId) return res.json(byId);
       }
-      // Try slug
       const bySlug = await Article.findOne({ slug: param }).lean();
       if (bySlug) return res.json(bySlug);
     }
-
-    // Fallback to in-memory originals
-    const slug = slugify(param);
-    const local = ORIGINAL_ARTICLES.find(a => slugify(a.title) === slug);
-    if (local) return res.json({ ...local, slug, publishedAt: new Date() });
-
-    res.status(404).json({ msg: "Article not found" });
+    const local = ORIGINAL_ARTICLES.find(a => a.slug === slugify(param));
+    if (local) return res.json({ ...local, publishedAt: new Date() });
+    res.status(404).json({ msg: "Not found" });
   } catch {
     res.status(500).json({ msg: "Failed to load article" });
   }
 });
 
+app.get("/api/search", async (req, res) => {
+  const q = String(req.query.q || "").trim();
+  if (!q) return res.json([]);
+  try {
+    if (!isMongoReady()) {
+      const lower = q.toLowerCase();
+      return res.json(ORIGINAL_ARTICLES.filter(a =>
+        a.title.toLowerCase().includes(lower) || (a.summary || "").toLowerCase().includes(lower)
+      ).map(a => ({ ...a, publishedAt: new Date() })));
+    }
+    // Try full-text search first, fall back to regex
+    let results = [];
+    try {
+      results = await Article.find(
+        { $text: { $search: q } },
+        { score: { $meta: "textScore" } }
+      ).sort({ score: { $meta: "textScore" } }).select("-body").limit(20).lean();
+    } catch {
+      results = await Article.find({
+        $or: [
+          { title: { $regex: q, $options: "i" } },
+          { summary: { $regex: q, $options: "i" } },
+          { tags: { $regex: q, $options: "i" } }
+        ]
+      }).sort({ publishedAt: -1 }).select("-body").limit(20).lean();
+    }
+    res.json(results);
+  } catch {
+    res.status(500).json({ msg: "Search failed" });
+  }
+});
+
 app.get("/api/live-updates", async (_req, res) => {
   const fallback = [
-    "Dario Amodei: Anthropic's safety-first approach may define the next era of AI",
-    "Nvidia's Jensen Huang: the GPU shortage is over — the AI race is just beginning",
-    "DeepSeek continues to challenge frontier labs on reasoning benchmarks",
-    "Meta's Llama 4 set to release with 400B parameter multimodal capabilities",
-    "xAI's Colossus supercomputer now hosts 200,000 H100 GPUs"
+    "OpenAI's next model is either revolutionary or vaporware — we'll know Thursday",
+    "Nvidia's stock is now worth more than the GDP of most countries that don't have GPUs",
+    "Andrej Karpathy explained something brilliantly and 50,000 engineers reconsidered their careers",
+    "Anthropic raised more money. Again. Yes, really.",
+    "DeepSeek trained a frontier model for less than your team's AWS bill last quarter",
+    "The AI arms race has entered its 'everyone is hiring safety researchers and ignoring them' phase"
   ];
+
   try {
-    if (!isMongoReady()) return res.json({ headlines: fallback, updatedAt: new Date().toISOString() });
-    const articles = await Article.find().sort({ publishedAt: -1 }).limit(12).lean();
-    const headlines = articles.length
-      ? articles.map(a => {
-          const title = String(a.title || "").trim();
-          const tag = Array.isArray(a.tags) && a.tags[0] ? String(a.tags[0]) : "AI";
-          return `${tag}: ${title.length > 100 ? title.slice(0, 97) + "..." : title}`;
-        })
-      : fallback;
-    res.json({ headlines, updatedAt: new Date().toISOString() });
+    // Try cached ticker first
+    if (cachedTicker && cachedTicker.length) {
+      return res.json({ headlines: cachedTicker, updatedAt: new Date().toISOString() });
+    }
+    if (isMongoReady()) {
+      const ticker = await Ticker.findOne().sort({ updatedAt: -1 }).lean();
+      if (ticker?.headlines?.length) {
+        cachedTicker = ticker.headlines;
+        return res.json({ headlines: ticker.headlines, updatedAt: ticker.updatedAt });
+      }
+      // Fall back to article titles
+      const articles = await Article.find().sort({ publishedAt: -1 }).limit(8).lean();
+      if (articles.length) {
+        const h = articles.map(a => `${a.category || "AI"}: ${a.title}`);
+        return res.json({ headlines: h, updatedAt: new Date().toISOString() });
+      }
+    }
+    res.json({ headlines: fallback, updatedAt: new Date().toISOString() });
   } catch {
-    res.status(500).json({ headlines: fallback, updatedAt: new Date().toISOString() });
+    res.json({ headlines: fallback, updatedAt: new Date().toISOString() });
   }
 });
 
@@ -502,7 +543,6 @@ app.delete("/api/articles/:id", auth, async (req, res) => {
   res.json({ msg: "Deleted" });
 });
 
-// Trigger Claude article generation
 app.post("/api/generate", async (req, res) => {
   const topic = String(req.body?.topic || "").trim();
   if (!topic) return res.status(400).json({ msg: "Topic required" });
@@ -520,6 +560,8 @@ app.post("/api/generate", async (req, res) => {
 ====================== */
 
 io.on("connection", socket => {
+  // Send cached ticker on connect
+  if (cachedTicker) socket.emit("tickerUpdate", { headlines: cachedTicker });
   console.log("Client connected:", socket.id);
 });
 
@@ -532,7 +574,7 @@ async function fetchHNNews() {
   console.log("Fetching AI news from Hacker News...");
   try {
     const { data } = await axios.get(
-      "https://hn.algolia.com/api/v1/search?query=artificial+intelligence+OR+LLM+OR+Claude+OR+OpenAI+OR+Anthropic&tags=story&hitsPerPage=12",
+      "https://hn.algolia.com/api/v1/search?query=artificial+intelligence+OR+LLM+OR+Claude+OR+OpenAI+OR+Anthropic+OR+Nvidia+OR+Gemini&tags=story&hitsPerPage=15",
       { timeout: 20000 }
     );
     const hits = Array.isArray(data?.hits) ? data.hits : [];
@@ -540,15 +582,16 @@ async function fetchHNNews() {
     for (const item of hits) {
       const title = String(item.title || item.story_title || "").trim();
       if (!title) continue;
+      const summary = cleanSummary(item.story_text || item._highlightResult?.title?.value || "");
       const doc = {
         slug:        slugify(title),
         title,
         content:     item.url || item.story_url || "",
-        summary:     cleanSummary(item.story_text || item._highlightResult?.title?.value || "Latest AI news."),
+        summary:     summary || "Latest AI news from Hacker News.",
         tags:        ["AI", "News"],
         category:    "News",
         source:      "Hacker News",
-        imageUrl:    getImageUrl("tech-news"),
+        imageUrl:    getImageUrl("AI technology news silicon valley computers dark blue abstract", strHash(title)),
         isExternal:  true,
         publishedAt: item.created_at_i ? new Date(item.created_at_i * 1000) : new Date()
       };
@@ -559,7 +602,7 @@ async function fetchHNNews() {
       );
       if (result.upsertedCount > 0) {
         added++;
-        const saved = await Article.findOne({ title: doc.title, source: doc.source });
+        const saved = await Article.findOne({ title: doc.title, source: doc.source }).lean();
         if (saved) io.emit("newArticle", saved);
       }
     }
@@ -570,10 +613,10 @@ async function fetchHNNews() {
 }
 
 /* ======================
-   AUTO GENERATE (EVERY 6H)
+   AUTO GENERATE (EVERY 2H)
 ====================== */
 
-let topicIndex = 0;
+let topicIndex = 4; // Start after seed topics
 async function autoGenerateArticle() {
   if (!isMongoReady() || !ANTHROPIC_KEY) return;
   const topic = AI_TOPICS[topicIndex % AI_TOPICS.length];
@@ -581,17 +624,18 @@ async function autoGenerateArticle() {
   console.log(`Auto-generating: ${topic.slice(0, 60)}...`);
   try {
     const article = await generateArticleWithClaude(topic);
-    if (article) io.emit("newArticle", article);
-    console.log("Auto-generation done:", article?.title?.slice(0, 60));
+    if (article) {
+      io.emit("newArticle", article);
+      console.log("Done:", article?.title?.slice(0, 60));
+    }
   } catch (e) {
-    console.error("Auto-generation failed:", e.message);
+    console.error("Auto-gen failed:", e.message);
   }
 }
 
-cron.schedule("0 * * * *",   fetchHNNews);
-cron.schedule("0 */6 * * *", autoGenerateArticle);
-
-setTimeout(fetchHNNews, 10000);
+cron.schedule("0 * * * *",    fetchHNNews);
+cron.schedule("0 */2 * * *",  autoGenerateArticle);
+cron.schedule("*/30 * * * *", refreshTicker);
 
 /* ======================
    STATIC FRONTEND
@@ -604,8 +648,8 @@ app.get(["/", "/aliss"], (_req, res) => {
 });
 
 /* ======================
-   START SERVER
+   START
 ====================== */
 
 const PORT = process.env.PORT || 5000;
-server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+server.listen(PORT, () => console.log(`Aliss running on port ${PORT}`));

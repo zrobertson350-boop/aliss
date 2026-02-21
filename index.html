@@ -29,9 +29,19 @@ a{color:inherit;text-decoration:none}
 @keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
 
 .ticker{border-top:1px solid var(--divider);border-bottom:1px solid var(--divider);margin-top:12px;background:var(--cream);overflow:hidden}
-.ticker__track{display:inline-block;white-space:nowrap;padding:10px 0;font-family:var(--mono);font-size:12px;letter-spacing:.4px;color:var(--muted);animation:tickerScroll 34s linear infinite;min-width:100%}
-.ticker__item{margin-right:28px}
+.ticker__track{display:inline-block;white-space:nowrap;padding:10px 0;font-family:var(--mono);font-size:12px;letter-spacing:.4px;color:var(--muted);animation:tickerScroll 50s linear infinite;min-width:100%}
+.ticker__item{margin-right:36px}
 @keyframes tickerScroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+
+.search-wrap{border-bottom:1px solid var(--divider);background:var(--paper);padding:10px 0}
+.search-wrap .container{display:flex;align-items:center;gap:10px}
+.search-input-wrap{display:flex;align-items:center;flex:1;max-width:520px;margin:0 auto;border:1px solid var(--divider);border-radius:2px;background:#fff;transition:border-color .2s}
+.search-input-wrap:focus-within{border-color:var(--accent)}
+.search-input-wrap input{flex:1;padding:9px 14px;font-size:14px;font-family:var(--sans);border:none;outline:none;background:transparent;color:var(--ink)}
+.search-input-wrap input::placeholder{color:var(--muted-light)}
+.search-input-wrap .search-icon{padding:0 12px;color:var(--muted-light);font-size:15px;user-select:none}
+.search-clear{padding:0 12px;color:var(--muted);cursor:pointer;font-size:16px;border:none;background:none;display:none}
+.search-results-label{font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:20px}
 
 .featured-hero{margin-top:48px;margin-bottom:56px;cursor:pointer;position:relative;overflow:hidden;border-radius:2px;min-height:420px;display:flex;align-items:flex-end;transition:transform .3s}
 .featured-hero:hover{transform:translateY(-2px)}
@@ -174,6 +184,16 @@ a{color:inherit;text-decoration:none}
 <li><a href="#" data-nav="about" onclick="navigate('about');return false">About</a></li>
 </ul></nav>
 
+<div class="search-wrap">
+  <div class="container">
+    <div class="search-input-wrap">
+      <span class="search-icon">&#9906;</span>
+      <input type="search" id="searchInput" placeholder="Search articles, people, topics…" autocomplete="off">
+      <button class="search-clear" id="searchClear" type="button">&#10005;</button>
+    </div>
+  </div>
+</div>
+
 <div class="ticker">
   <div class="container">
     <div class="ticker__track" id="liveTickerTrack">
@@ -189,7 +209,7 @@ a{color:inherit;text-decoration:none}
 
 <div id="page-home" class="page active"><div class="container">
 
-<div class="featured-hero hero-bg-1" onclick="navigate('article-karpathy')">
+<div class="featured-hero hero-bg-1" id="dynamicFeaturedHero" onclick="navigate('article-karpathy')" style="background-image:url('/assets/andrej-karpathy.jpg');background-size:cover;background-position:center top">
 <div class="featured-hero-content">
 <div class="tag-label">Featured Profile</div>
 <h2>Andrej Karpathy: <em>The Teacher</em> Who Shaped Modern AI</h2>
@@ -604,6 +624,14 @@ Right now, we just focus on the research, and then the answer to the business qu
 
 <button class="scroll-top" id="scrollTop" onclick="window.scrollTo({top:0,behavior:'smooth'})">&#8593;</button>
 
+<script src="/socket.io/socket.io.js"></script>
+<script>
+// Live socket for real-time updates
+const socket=io();
+socket.on('tickerUpdate',data=>{if(data?.headlines?.length)renderTickerItems(data.headlines)});
+socket.on('newArticle',()=>loadDynamicArticles());
+</script>
+
 <script>
 function getPageFromUrl(){
   const params=new URLSearchParams(window.location.search);
@@ -823,41 +851,31 @@ async function loadDynamicArticles(){
     if(!response.ok) return;
     const articles=await response.json();
     if(!Array.isArray(articles)||!articles.length) return;
+    allArticlesCache=articles;
+
+    // Update featured hero with the first generated article that has an image
+    const featured=articles.find(a=>a.isGenerated&&a.imageUrl&&!STATIC_ARTICLE_PAGES.includes(a.slug));
+    if(featured) updateFeaturedHero(featured);
 
     grid.innerHTML='';
-    const topArticles=articles.slice(0,6);
-    topArticles.forEach((article,index)=>{
-      const title=escapeHtml(article.title||'Untitled');
-      const summary=escapeHtml(article.summary||article.content||'No summary available.');
-      const source=escapeHtml(article.source||'Aliss');
-      const tag=escapeHtml((article.tags&&article.tags[0])||'News');
-      const dateText=article.publishedAt ? new Date(article.publishedAt).toLocaleDateString() : 'Recent';
-      const gradient=['ci-1','ci-2','ci-3','ci-4','ci-5','ci-6'][index%6];
-
-      const card=document.createElement('div');
-      card.className='card';
-      const imgHtml=article.imageUrl
-        ?`<img src="${escapeHtml(article.imageUrl)}" alt="${title}" loading="lazy" style="width:100%;height:100%;object-fit:cover">`
-        :`<div class="card-img-inner ${gradient}"></div>`;
-      card.innerHTML=`
-        <div class="card-img">${imgHtml}</div>
-        <div class="card-body">
-          <div class="card-tag">${tag}</div>
-          <h4>${title}</h4>
-          <p>${summary}</p>
-          <div class="card-meta">${dateText} · ${source}</div>
-        </div>
-      `;
-
-      const slug=String(article?.slug||article?._id||'').trim();
-      if(article.isExternal&&article.content){
-        card.addEventListener('click',()=>window.open(article.content,'_blank','noopener,noreferrer'));
-      }else if(slug){
-        card.addEventListener('click',()=>openDynamicArticle(slug));
-      }
-      grid.appendChild(card);
-    });
+    articles.slice(0,9).forEach((article,index)=>grid.appendChild(buildCard(article,index)));
   }catch{}
+}
+
+function updateFeaturedHero(article){
+  const hero=document.getElementById('dynamicFeaturedHero');
+  if(!hero) return;
+  const slug=String(article.slug||article._id||'');
+  hero.style.cssText=article.imageUrl?`background-image:url(${article.imageUrl});background-size:cover;background-position:center`:'';
+  hero.onclick=()=>openDynamicArticle(slug);
+  const tag=hero.querySelector('.tag-label');
+  const h2=hero.querySelector('h2');
+  const p=hero.querySelector('p');
+  const meta=hero.querySelector('.hero-meta-home');
+  if(tag) tag.textContent=article.category||'Analysis';
+  if(h2) h2.innerHTML=escapeHtml(article.title||'');
+  if(p) p.textContent=article.subtitle||article.summary||'';
+  if(meta) meta.innerHTML=`By <strong>Aliss Editorial</strong> · ${article.publishedAt?new Date(article.publishedAt).toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}):'Recent'}`;
 }
 
 loadDynamicArticles();
@@ -888,6 +906,86 @@ async function loadLiveTicker(){
 
 loadLiveTicker();
 setInterval(loadLiveTicker,180000);
+
+/* ======================
+   SEARCH
+====================== */
+let allArticlesCache=[];
+
+async function ensureArticlesCache(){
+  if(allArticlesCache.length) return;
+  try{
+    const r=await fetch('/api/articles');
+    if(r.ok) allArticlesCache=await r.json();
+  }catch{}
+}
+
+function buildCard(article,index){
+  const title=escapeHtml(article.title||'Untitled');
+  const summary=escapeHtml(article.summary||article.content||'');
+  const source=escapeHtml(article.source||'Aliss');
+  const tag=escapeHtml(article.category||(article.tags&&article.tags[0])||'News');
+  const dateText=article.publishedAt?new Date(article.publishedAt).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):'Recent';
+  const gradient=['ci-1','ci-2','ci-3','ci-4','ci-5','ci-6'][index%6];
+  const imgHtml=article.imageUrl
+    ?`<img src="${escapeHtml(article.imageUrl)}" alt="${title}" loading="lazy" style="width:100%;height:100%;object-fit:cover">`
+    :`<div class="card-img-inner ${gradient}"></div>`;
+  const card=document.createElement('div');
+  card.className='card';
+  card.innerHTML=`<div class="card-img">${imgHtml}</div><div class="card-body"><div class="card-tag">${tag}</div><h4>${title}</h4><p>${summary}</p><div class="card-meta">${dateText} · ${source}</div></div>`;
+  const slug=String(article?.slug||article?._id||'').trim();
+  if(article.isExternal&&article.content){
+    card.addEventListener('click',()=>window.open(article.content,'_blank','noopener,noreferrer'));
+  }else if(slug){
+    card.addEventListener('click',()=>openDynamicArticle(slug));
+  }
+  return card;
+}
+
+const searchInput=document.getElementById('searchInput');
+const searchClear=document.getElementById('searchClear');
+const grid=document.getElementById('latestStoriesGrid');
+
+let searchDebounce=null;
+searchInput?.addEventListener('input',async function(){
+  const q=this.value.trim();
+  searchClear.style.display=q?'block':'none';
+  clearTimeout(searchDebounce);
+  if(!q){
+    loadDynamicArticles();
+    const lbl=document.getElementById('searchResultsLabel');
+    if(lbl) lbl.remove();
+    return;
+  }
+  searchDebounce=setTimeout(async()=>{
+    await ensureArticlesCache();
+    const lower=q.toLowerCase();
+    const results=allArticlesCache.filter(a=>
+      (a.title||'').toLowerCase().includes(lower)||
+      (a.summary||'').toLowerCase().includes(lower)||
+      (a.tags||[]).some(t=>t.toLowerCase().includes(lower))||
+      (a.category||'').toLowerCase().includes(lower)
+    );
+    if(!grid) return;
+    let lbl=document.getElementById('searchResultsLabel');
+    if(!lbl){lbl=document.createElement('div');lbl.id='searchResultsLabel';lbl.className='search-results-label';grid.parentNode.insertBefore(lbl,grid);}
+    lbl.textContent=`${results.length} result${results.length!==1?'s':''} for "${q}"`;
+    grid.innerHTML='';
+    if(!results.length){
+      grid.innerHTML='<p style="color:var(--muted);padding:20px 0;grid-column:1/-1">No articles found.</p>';
+      return;
+    }
+    results.slice(0,9).forEach((a,i)=>grid.appendChild(buildCard(a,i)));
+  },280);
+});
+
+searchClear?.addEventListener('click',()=>{
+  searchInput.value='';
+  searchClear.style.display='none';
+  loadDynamicArticles();
+  const lbl=document.getElementById('searchResultsLabel');
+  if(lbl) lbl.remove();
+});
 </script>
 </body>
 </html>
