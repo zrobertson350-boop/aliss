@@ -43,9 +43,10 @@ a{color:inherit;text-decoration:none}
 .search-clear{padding:0 12px;color:var(--muted);cursor:pointer;font-size:16px;border:none;background:none;display:none}
 .search-results-label{font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:20px}
 
-.featured-hero{margin-top:20px;margin-bottom:28px;cursor:pointer;position:relative;overflow:hidden;border-radius:2px;min-height:300px;display:flex;align-items:flex-end;transition:transform .3s}
-.featured-hero:hover{transform:translateY(-2px)}
-.featured-hero::before{content:'';position:absolute;inset:0;background:linear-gradient(0deg,rgba(0,0,0,.75) 0%,rgba(0,0,0,.15) 60%,transparent 100%);z-index:1}
+.featured-hero{margin-top:20px;margin-bottom:28px;cursor:pointer;position:relative;overflow:hidden;border-radius:4px;min-height:320px;display:flex;align-items:flex-end;transition:transform .4s cubic-bezier(.25,.46,.45,.94),box-shadow .4s}
+.featured-hero:hover{transform:translateY(-3px);box-shadow:0 20px 60px rgba(0,0,0,.2)}
+.featured-hero::before{content:'';position:absolute;inset:0;background:linear-gradient(0deg,rgba(0,0,0,.82) 0%,rgba(0,0,0,.3) 50%,transparent 100%);z-index:1;transition:opacity .4s}
+.featured-hero::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(192,57,43,.12) 0%,transparent 60%);z-index:1;pointer-events:none}
 .hero-bg-1{background:linear-gradient(135deg,#1a1a2e 0%,#16213e 40%,#0f3460 100%)}
 .featured-hero-content{position:relative;z-index:2;padding:28px 36px;max-width:640px;animation:fadeUp .7s ease-out}
 .featured-hero-content .tag-label{font-size:10px;letter-spacing:3px;text-transform:uppercase;font-weight:700;color:var(--accent);background:rgba(192,57,43,.15);padding:4px 12px;display:inline-block;margin-bottom:16px}
@@ -59,21 +60,29 @@ a{color:inherit;text-decoration:none}
 .section-header h3{font-family:var(--serif);font-size:22px;font-weight:700;white-space:nowrap}
 .section-header::after{content:'';flex:1;height:1px;background:var(--divider)}
 
-.cards-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:36px}
-.card{background:var(--card-bg);border:1px solid var(--divider);border-radius:2px;overflow:hidden;cursor:pointer;transition:all .3s;display:flex;flex-direction:column}
-.card:hover{transform:translateY(-3px);box-shadow:0 12px 32px rgba(0,0,0,.08)}
-.card-img{height:120px;overflow:hidden}.card-img-inner{width:100%;height:100%;transition:transform .4s}
-.card:hover .card-img-inner{transform:scale(1.04)}
-.ci-1{background:linear-gradient(135deg,#1a1a2e,#0f3460)}
-.ci-2{background:linear-gradient(135deg,#2C3E50,#3498DB,#1ABC9C)}
-.ci-3{background:linear-gradient(135deg,#4a1942,#c74b50)}
-.ci-4{background:linear-gradient(135deg,#E74C3C,#F39C12)}
-.ci-5{background:linear-gradient(135deg,#2d6a4f,#52b788)}
-.ci-6{background:linear-gradient(135deg,#34495e,#2c3e50)}
-.card-body{padding:14px 16px 12px;flex:1;display:flex;flex-direction:column}
-.card-tag{font-size:10px;letter-spacing:2px;text-transform:uppercase;font-weight:700;color:var(--accent);margin-bottom:8px}
-.card-body h4{font-family:var(--serif);font-size:16px;font-weight:700;line-height:1.25;margin-bottom:7px}
-.card-body p{font-size:13px;color:var(--muted);line-height:1.5;flex:1}
+.cards-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:36px}
+
+/* Artistic card design: image-first, overlay text on hover */
+.card{background:var(--card-bg);border:0;border-radius:4px;overflow:hidden;cursor:pointer;transition:all .35s cubic-bezier(.25,.46,.45,.94);display:flex;flex-direction:column;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.card:hover{transform:translateY(-4px);box-shadow:0 16px 40px rgba(0,0,0,.14)}
+.card-img{height:160px;overflow:hidden;position:relative;flex-shrink:0}
+.card-img::after{content:'';position:absolute;inset:0;background:linear-gradient(0deg,rgba(0,0,0,.45) 0%,transparent 60%);z-index:1;transition:opacity .3s}
+.card:hover .card-img::after{opacity:.7}
+.card-img-inner{width:100%;height:100%;transition:transform .5s cubic-bezier(.25,.46,.45,.94);background-size:cover;background-position:center}
+.card:hover .card-img-inner{transform:scale(1.07)}
+.card-img img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .5s cubic-bezier(.25,.46,.45,.94)}
+.card:hover .card-img img{transform:scale(1.07)}
+.ci-1{background:linear-gradient(135deg,#0d1b2a,#1b4f72,#2e86ab)}
+.ci-2{background:linear-gradient(135deg,#1a0533,#6a0572,#d63af9)}
+.ci-3{background:linear-gradient(135deg,#0d0d0d,#7b2d00,#e05c00)}
+.ci-4{background:linear-gradient(135deg,#0a0f0a,#1a3a1a,#2d6a2d)}
+.ci-5{background:linear-gradient(135deg,#1a0d2e,#4a1fa8,#7b68ee)}
+.ci-6{background:linear-gradient(135deg,#1a1209,#5c3d11,#c8922a)}
+.card-body{padding:14px 16px 12px;flex:1;display:flex;flex-direction:column;border-top:3px solid transparent;transition:border-color .3s}
+.card:hover .card-body{border-top-color:var(--accent)}
+.card-tag{font-size:10px;letter-spacing:2px;text-transform:uppercase;font-weight:700;color:var(--accent);margin-bottom:6px}
+.card-body h4{font-family:var(--serif);font-size:15px;font-weight:700;line-height:1.25;margin-bottom:6px}
+.card-body p{font-size:12.5px;color:var(--muted);line-height:1.5;flex:1}
 .card-meta{font-size:11px;color:var(--muted-light);margin-top:10px;padding-top:8px;border-top:1px solid var(--divider)}
 
 .newsletter-banner{background:var(--ink);color:#fff;padding:28px 36px;display:flex;align-items:center;justify-content:space-between;gap:24px;margin-bottom:36px;border-radius:2px;position:relative;overflow:hidden}
@@ -932,8 +941,8 @@ function buildCard(article,index){
   const dateText=article.publishedAt?new Date(article.publishedAt).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):'Recent';
   const gradient=['ci-1','ci-2','ci-3','ci-4','ci-5','ci-6'][index%6];
   const imgHtml=article.imageUrl
-    ?`<img src="${escapeHtml(article.imageUrl)}" alt="${title}" loading="lazy" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display='none';this.parentNode.innerHTML='<div class=\\"card-img-inner ${gradient}\\"></div>'">`
-    :`<div class="card-img-inner ${gradient}"></div>`;
+    ?`<img src="${escapeHtml(article.imageUrl)}" alt="${title}" loading="lazy" onerror="this.parentNode.innerHTML='<div class=\\"card-img-inner ${gradient}\\" style=\\"width:100%;height:100%\\"></div>'">`
+    :`<div class="card-img-inner ${gradient}" style="width:100%;height:100%"></div>`;
   const card=document.createElement('div');
   card.className='card';
   card.innerHTML=`<div class="card-img">${imgHtml}</div><div class="card-body"><div class="card-tag">${tag}</div><h4>${title}</h4><p>${summary}</p><div class="card-meta">${dateText} · ${source}</div></div>`;

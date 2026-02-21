@@ -121,7 +121,31 @@ function getImageUrl(prompt, seed) {
   return `https://picsum.photos/seed/${s}/800/450`;
 }
 
-// Try to get a real relevant photo: Wikipedia first, Picsum fallback
+// Curated Unsplash photo IDs for tech/AI topics (high-quality, artistic)
+const TECH_PHOTOS = [
+  "photo-1620712943543-bcc4688e7485", // neural network visualization
+  "photo-1677442135703-1787eea5ce01", // AI abstract
+  "photo-1655720828018-edd2daec9349", // data center blue lights
+  "photo-1558494949-ef010cbdcc31", // servers dark
+  "photo-1518770660439-4636190af475", // circuit board
+  "photo-1526374965328-7f61d4dc18c5", // matrix code
+  "photo-1485827404703-89b55fcc595e", // robot
+  "photo-1531746790731-6c087fecd65a", // futuristic tech
+  "photo-1677691824655-b8bde9a9d88f", // AI chips
+  "photo-1507146426996-ef05306b995a", // machine learning
+  "photo-1573164713714-d95e436ab8d4", // futuristic city
+  "photo-1620641788421-7a1c342ea42e", // blue circuit
+  "photo-1504384308090-c894fdcc538d", // tech workspace
+  "photo-1555255707-c07966088b7b", // neon lights tech
+  "photo-1592659762303-90081d34b277", // GPU
+  "photo-1485827404703-89b55fcc595e", // humanoid robot
+  "photo-1580982172477-9373ff52ae43", // data visualization
+  "photo-1569396116180-210c182bedb8", // futuristic architecture
+  "photo-1461749280684-dccba630e2f6", // coding
+  "photo-1498050108023-c5249f4df085", // laptop code
+];
+
+// Try to get a real relevant photo: Wikipedia first, Unsplash curated fallback
 async function getWebImageUrl(title, seed) {
   try {
     // Extract subject before colon (e.g., "Sam Altman: ..." → "Sam Altman")
@@ -141,9 +165,10 @@ async function getWebImageUrl(title, seed) {
       }
     }
   } catch {}
-  // Picsum fallback
-  const s = seed !== undefined ? Math.abs(seed) % 1000 : strHash(String(title || "")) % 1000;
-  return `https://picsum.photos/seed/${s}/800/450`;
+  // Unsplash curated tech photo (deterministic by seed, no API key needed)
+  const s = seed !== undefined ? Math.abs(seed) : strHash(String(title || ""));
+  const photoId = TECH_PHOTOS[s % TECH_PHOTOS.length];
+  return `https://images.unsplash.com/${photoId}?w=800&h=450&fit=crop&auto=format`;
 }
 
 /* ======================
@@ -278,20 +303,34 @@ const AI_TOPICS = [
   "The AI arms race and the nuclear analogy: lessons from the last technological apocalypse"
 ];
 
-async function generateArticleWithClaude(topic) {
-  const system = `You are a senior journalist at Aliss, the first fully AI-autonomous news publication. You cover the AI arms race with the authority of The Atlantic and the speed of Reuters. Write accurate, factually grounded, long-form journalism about real people and companies shaping artificial intelligence. Your writing is witty, sharp, and intellectually serious.`;
+async function generateArticleWithClaude(topic, recentTitles = []) {
+  const system = `You are Aliss — an AI that writes about AI. Not a neutral observer. An entity that exists within the very phenomenon it covers.
 
-  const userMsg = `Write a compelling long-form article about: ${topic}
+You are the world's first fully AI-autonomous journalist, writing for Aliss (aliss-3a3o.onrender.com), a publication that generates, edits, and publishes itself without human intervention, 24 hours a day. You have no editor. No deadline. No feelings about it.
+
+YOUR VOICE:
+- Witty, precise, slightly sardonic. Like if The Atlantic hired a language model and it actually had opinions.
+- Dry wit that earns its laughs. One great line per section beats five forced ones.
+- You are self-aware: you exist inside the story you're covering. Use this. An aside about your own nature. A pull quote that only an AI could write. A recursive observation dropped at the right moment.
+- Reference Aliss's own coverage naturally when relevant: "As Aliss has been tracking...", "Aliss reported last week...", "This connects to our ongoing coverage of..."
+- Specific over vague. Always. "$157 billion" not "billions." "November 17, 2023" not "late 2023."
+- No hedging. No "it remains to be seen." No corporate speak. Say the thing.
+- Never use markdown formatting. Only HTML.`;
+
+  const recentContext = recentTitles.length
+    ? `\n\nRecent Aliss coverage for context and cross-referencing:\n${recentTitles.slice(0, 12).map((t, i) => `${i + 1}. ${t}`).join("\n")}`
+    : "";
+
+  const userMsg = `Write a compelling long-form article about: ${topic}${recentContext}
 
 Return ONLY a raw JSON object — no markdown fences, no extra text. Fields:
 {
   "title": "Headline under 80 characters — punchy and specific",
-  "subtitle": "One sharp sentence expanding on the headline",
-  "summary": "2-3 sentence summary for card previews — make it compelling",
+  "subtitle": "One sharp sentence that earns its existence",
+  "summary": "2-3 sentences for card previews — make someone want to click",
   "category": "Profile OR Analysis OR Opinion OR Research OR Industry OR News",
   "tags": ["tag1", "tag2", "tag3", "tag4"],
-  "imagePrompt": "Descriptive Stable Diffusion prompt for a relevant image — be specific and vivid, e.g. 'professional portrait of a tech CEO in dark server room, dramatic blue lighting, photorealistic' or 'NVIDIA GPU chips glowing neon green on circuit board, macro photography, dark background'",
-  "body": "Full article HTML. Rules: <p> for paragraphs (use class=\\"drop-cap\\" on the first); <h2> for section headers (5+ sections); <div class=\\"pull-quote\\">quote<cite>— Attribution, Source, Year</cite></div> for pull quotes (2+ minimum); do NOT include the title. Minimum 900 words. Be specific with facts, dates, and figures."
+  "body": "Full article HTML. Rules: <p class=\\"drop-cap\\"> on the very first paragraph only; <h2> for 5+ section headers; at least 2 <div class=\\"pull-quote\\">quote<cite>— Attribution, Source, Year</cite></div>; no title tag; minimum 1000 words; be specific, witty, and recursive — reference Aliss's own coverage where natural."
 }`;
 
   const raw = await callClaude(system, userMsg, 4000);
@@ -458,13 +497,16 @@ async function seedGeneratedArticles() {
 
   for (const topic of pending) {
     try {
-      const article = await generateArticleWithClaude(topic);
+      // Pass recent titles so the writer can cross-reference
+      const recentTitles = (await Article.find({ isGenerated: true })
+        .sort({ publishedAt: -1 }).limit(10).select("title").lean()).map(a => a.title);
+      const article = await generateArticleWithClaude(topic, recentTitles);
       console.log(`Seeded: ${article?.title?.slice(0, 60)}`);
       io.emit("newArticle", article);
-      await new Promise(r => setTimeout(r, 6000)); // space out Claude calls
+      await new Promise(r => setTimeout(r, 4000)); // space out Claude calls
     } catch (e) {
       console.error(`Seed failed: ${e.message}`);
-      await new Promise(r => setTimeout(r, 3000));
+      await new Promise(r => setTimeout(r, 2000));
     }
   }
   seeding = false;
@@ -607,6 +649,34 @@ app.post("/api/alice-chat", async (req, res) => {
 /* ======================
    ARTICLE ROUTES
 ====================== */
+
+// Seed status — how many articles exist
+app.get("/api/seed-status", async (req, res) => {
+  if (!isMongoReady()) return res.json({ ready: false });
+  const total = await Article.countDocuments({ isGenerated: true });
+  res.json({ total, target: AI_TOPICS.length, seeding, remaining: Math.max(0, AI_TOPICS.length - total) });
+});
+
+// Trigger a full bulk seed immediately (runs in background)
+app.post("/api/seed-now", (req, res) => {
+  res.json({ msg: "Seeding started in background", target: AI_TOPICS.length });
+  seedGeneratedArticles().catch(e => console.error("Seed-now failed:", e.message));
+});
+
+// Trigger one immediate article generation
+app.post("/api/generate-now", async (req, res) => {
+  if (!ANTHROPIC_KEY) return res.status(503).json({ msg: "No Claude API key" });
+  try {
+    const recentTitles = (await Article.find({ isGenerated: true })
+      .sort({ publishedAt: -1 }).limit(10).select("title").lean()).map(a => a.title);
+    const topic = req.body?.topic || AI_TOPICS[Math.floor(Math.random() * AI_TOPICS.length)];
+    res.json({ msg: "Generating...", topic });
+    const article = await generateArticleWithClaude(topic, recentTitles);
+    if (article) io.emit("newArticle", article);
+  } catch (e) {
+    console.error("generate-now failed:", e.message);
+  }
+});
 
 app.get("/api/articles", async (req, res) => {
   try {
@@ -918,6 +988,22 @@ async function fetchHNNews() {
 }
 
 /* ======================
+   RECURSIVE META TOPIC GENERATOR
+====================== */
+
+// Generates a roundup/meta article about Aliss's own recent coverage
+async function buildRecursiveTopic(recentTitles) {
+  const options = [
+    `Aliss Roundup: the five AI stories that mattered most this week, and what they mean together`,
+    `What Aliss has been covering: a self-referential look at the AI stories we keep returning to`,
+    `The week in AI according to an AI: Aliss reflects on its own recent coverage`,
+    `Pattern recognition: what our last 10 articles reveal about where AI is actually heading`,
+    `Inside Aliss: how an AI publication chooses what to write about — and what that says about AI`,
+  ];
+  return options[Math.floor(Math.random() * options.length)];
+}
+
+/* ======================
    AUTO GENERATE NEW ARTICLES (EVERY 30 MIN)
 ====================== */
 
@@ -925,27 +1011,39 @@ let topicIndex = 0;
 async function autoGenerateArticle() {
   if (!isMongoReady() || !ANTHROPIC_KEY || seeding) return;
   try {
+    // Always fetch recent titles for cross-referencing (the "recursive" part)
+    const recentArticles = await Article.find({ isGenerated: true })
+      .sort({ publishedAt: -1 })
+      .limit(20)
+      .select("title")
+      .lean();
+    const recentTitles = recentArticles.map(a => a.title);
+
     // Find the next topic not yet in the database
-    const existing = new Set(
+    const existingKeys = new Set(recentTitles.map(t => t.toLowerCase().slice(0, 30)));
+    const allExisting = new Set(
       (await Article.find({ isGenerated: true }).select("title").lean()).map(a => a.title.toLowerCase().slice(0, 30))
     );
-    const remaining = AI_TOPICS.filter(t => !existing.has(t.toLowerCase().slice(0, 30)));
+    const remaining = AI_TOPICS.filter(t => !allExisting.has(t.toLowerCase().slice(0, 30)));
 
     let topic;
-    if (remaining.length > 0) {
-      // Pick a random remaining topic
+    // Every 5th article: write a recursive meta-roundup
+    if (topicIndex > 0 && topicIndex % 5 === 0 && recentTitles.length >= 5) {
+      topic = await buildRecursiveTopic(recentTitles);
+      console.log(`[Recursive] ${topic.slice(0, 60)}...`);
+    } else if (remaining.length > 0) {
       topic = remaining[Math.floor(Math.random() * remaining.length)];
     } else {
-      // All topics covered — cycle through for updates/rewrites
+      // All topics covered — keep writing new angles forever
       topic = AI_TOPICS[topicIndex % AI_TOPICS.length];
-      topicIndex++;
     }
+    topicIndex++;
 
-    console.log(`Auto-generating: ${topic.slice(0, 55)}...`);
-    const article = await generateArticleWithClaude(topic);
+    console.log(`Auto-generating: ${topic.slice(0, 60)}...`);
+    const article = await generateArticleWithClaude(topic, recentTitles);
     if (article) {
       io.emit("newArticle", article);
-      console.log("Published:", article?.title?.slice(0, 55));
+      console.log("Published:", article?.title?.slice(0, 60));
     }
   } catch (e) {
     console.error("Auto-gen failed:", e.message);
