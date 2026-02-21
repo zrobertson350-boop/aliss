@@ -33,6 +33,7 @@ if (mongoUri && (mongoUri.startsWith("mongodb://") || mongoUri.startsWith("mongo
       console.log("MongoDB Connected");
       setTimeout(async () => {
         await migrateSourceToAliss();
+        await migrateImages();
         await seedOriginalArticles();
         await seedGeneratedArticles();
         fetchHNNews();
@@ -114,11 +115,35 @@ function strHash(s) {
   return Math.abs(h);
 }
 
-// AI-generated images via Pollinations (free, no key required)
+// Fast, reliable images via Picsum (deterministic by seed, always loads)
 function getImageUrl(prompt, seed) {
-  const p = String(prompt || "artificial intelligence technology futuristic dark").slice(0, 200);
-  const s = seed !== undefined ? seed : strHash(p);
-  return `https://image.pollinations.ai/prompt/${encodeURIComponent(p)}?width=800&height=450&nologo=true&seed=${s}`;
+  const s = seed !== undefined ? Math.abs(seed) % 1000 : strHash(String(prompt || "")) % 1000;
+  return `https://picsum.photos/seed/${s}/800/450`;
+}
+
+// Try to get a real relevant photo: Wikipedia first, Picsum fallback
+async function getWebImageUrl(title, seed) {
+  try {
+    // Extract subject before colon (e.g., "Sam Altman: ..." → "Sam Altman")
+    const subject = String(title || "")
+      .split(/[:\-–|]/)[0]
+      .replace(/[^\w\s]/g, " ")
+      .trim();
+    if (subject.length > 3) {
+      const url = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(subject.replace(/\s+/g, "_"))}`;
+      const res = await axios.get(url, {
+        timeout: 5000,
+        headers: { "User-Agent": "Aliss-News/1.0 (https://aliss-3a3o.onrender.com)" }
+      });
+      if (res.data?.thumbnail?.source) {
+        // Upgrade to larger image size
+        return res.data.thumbnail.source.replace(/\/\d+px-/, "/800px-");
+      }
+    }
+  } catch {}
+  // Picsum fallback
+  const s = seed !== undefined ? Math.abs(seed) % 1000 : strHash(String(title || "")) % 1000;
+  return `https://picsum.photos/seed/${s}/800/450`;
 }
 
 /* ======================
@@ -152,26 +177,105 @@ async function callClaude(system, userMsg, maxTokens = 2000) {
 ====================== */
 
 const AI_TOPICS = [
+  // Profiles
   "Dario Amodei and Anthropic: the safety-first bet that may define the AI era",
-  "Demis Hassabis: how DeepMind built AlphaFold — and what comes next for science AI",
+  "Demis Hassabis: how DeepMind built AlphaFold and what comes next for science AI",
   "Yann LeCun vs. the scaling crowd: Meta's world-model heresy",
   "Jensen Huang and Nvidia: the arms dealer powering every side of the AI war",
   "Elon Musk's xAI: Grok, the Colossus supercomputer, and the bid for AGI",
-  "Geoffrey Hinton: the godfather who built deep learning — and now fears it",
-  "The China AI race: how DeepSeek shocked Silicon Valley",
+  "Geoffrey Hinton: the godfather who built deep learning and now fears it",
   "Mustafa Suleyman: from DeepMind co-founder to Microsoft's AI chief",
   "Yoshua Bengio: the safety activist who helped spark the revolution he now warns against",
-  "The inference scaling wars: why reasoning models are rewriting the rules",
-  "OpenAI vs. Anthropic: the great AI safety schism explained",
   "Fei-Fei Li and the ImageNet moment that changed AI history",
   "Arthur Mensch and Mistral AI: Europe's bid to stay in the race",
-  "Satya Nadella's billion-dollar bet on OpenAI — and what he got in return",
+  "Satya Nadella's billion-dollar bet on OpenAI and what he got in return",
+  "Greg Brockman: the engineer who built OpenAI from the ground up",
+  "Mira Murati: the CTO who knew too much and left OpenAI",
+  "Noam Shazeer: the transformer architect who quit Google and built Character.AI",
+  "Clement Delangue and Hugging Face: the open-source empire fighting Big AI",
+  "Jack Clark: from OpenAI policy chief to Anthropic co-founder",
+  "Chris Olah: the interpretability visionary trying to understand AI's mind",
+  "John Schulman: the reinforcement learning architect who left OpenAI for Anthropic",
+  "Aidan Gomez and Cohere: the enterprise AI bet that isn't ChatGPT",
+  "Liang Wenfeng and DeepSeek: how a quant fund built China's most feared AI",
+  "Nat Friedman and Daniel Gross: the duo backing the next wave of AI companies",
+  "Mark Zuckerberg's AI bet: Llama, $65B capex, and the open-source gambit",
+  "Sundar Pichai and Google's AI war: Gemini, TPUs, and the search for relevance",
+  "Jeff Dean: the Google Brain legend who shaped modern AI infrastructure",
+  "Alec Radford: the OpenAI researcher whose GPT papers changed everything",
+  // AI Arms Race Analysis
+  "The China AI race: how DeepSeek shocked Silicon Valley and what comes next",
+  "The inference scaling wars: why reasoning models are rewriting the rules",
+  "OpenAI vs. Anthropic: the great AI safety schism explained",
   "The AGI timeline debate: who is right and what it means for humanity",
   "Sam Altman's 2026 roadmap: enterprise AI, ads in ChatGPT, and the path to $280B",
   "The model context window wars: why Gemini's 1M tokens is a bigger deal than it sounds",
   "AI agents in 2026: what's actually shipping vs. what's still vaporware",
   "The open-source AI rebellion: how Meta and Mistral are fighting the closed-model cartel",
-  "Agentic coding tools: how Cursor, Windsurf, and Claude Code are replacing the IDE"
+  "Agentic coding tools: how Cursor, Windsurf, and Claude Code are replacing the IDE",
+  "The compute shortage: why GPU scarcity is the chokepoint of the AI arms race",
+  "AI alignment: what it is, why it's hard, and whether anyone is actually solving it",
+  "The benchmark problem: why AI leaderboards are broken and what to do about it",
+  "Scaling laws: the empirical gospel that bet billions on bigger models",
+  "RLHF: the technique that made ChatGPT usable and why it's now being replaced",
+  "The Transformer: inside the 2017 paper that launched the modern AI era",
+  "Constitutional AI: Anthropic's bet that you can make models safe by design",
+  "Retrieval-Augmented Generation: why LLMs are getting their own search engines",
+  "The AI safety debate: effective altruism, x-risk, and the movement behind the movement",
+  "Synthetic data: how AI is training on AI-generated data and what that means",
+  "Mixture of Experts: the architecture behind GPT-4 that no one was supposed to know about",
+  "Multimodal AI: from GPT-4V to Gemini — why seeing is believing for LLMs",
+  "AI memory: why current LLMs forget everything and the race to fix it",
+  "The token economy: how context windows became the new currency of AI capability",
+  "AI in science: how models are accelerating drug discovery, materials science, and physics",
+  // Industry
+  "The AI data center boom: Microsoft, Google, Amazon and the $500B infrastructure bet",
+  "AI and the job market: what actually happened to knowledge workers in 2025",
+  "AI in healthcare: the promise, the peril, and the FDA's impossible task",
+  "AI in education: from ChatGPT cheating scandals to Karpathy's Eureka Labs vision",
+  "AI and national security: how the Pentagon, NSA, and DARPA are adopting LLMs",
+  "The AI startup wave: which companies will survive the hyperscaler squeeze",
+  "AI venture capital in 2025: who invested, who won, and who got burned",
+  "AI and copyright: the lawsuits, the licensing deals, and the future of creative work",
+  "AI and privacy: what happens when your data becomes training data",
+  "Enterprise AI adoption: why most companies are still struggling to deploy LLMs",
+  "AI chips beyond Nvidia: AMD, Intel, Groq, and the race to dethrone Jensen Huang",
+  "Robotics and embodied AI: Figure, Physical Intelligence, and the humanoid moment",
+  "AI in finance: how hedge funds, banks, and quant firms are deploying LLMs",
+  "AI and disinformation: deepfakes, synthetic media, and the 2026 information crisis",
+  "The AI regulation landscape: EU AI Act, US executive orders, and the global patchwork",
+  "AI and energy: the power consumption crisis threatening to slow the AI boom",
+  "The AI talent war: why every big tech company is paying $1M+ for ML engineers",
+  "AI browser agents: how Claude, ChatGPT, and Gemini are learning to use the internet",
+  "AI voice: ElevenLabs, OpenAI's Voice Mode, and the coming audio revolution",
+  "AI search: Perplexity, SearchGPT, and the war for the query box",
+  // Research
+  "AlphaFold 3: how DeepMind's latest model is reshaping drug discovery",
+  "GPT-4o and multimodality: what really changed and what the benchmarks don't show",
+  "Claude 3 Opus vs. GPT-4: the great 2024 model war and what we learned from it",
+  "Gemini Ultra: Google's comeback model and why it's still playing catch-up",
+  "The o1 and o3 breakthrough: OpenAI's reasoning models and the new scaling paradigm",
+  "Chain-of-thought prompting: the simple technique that unlocked AI reasoning",
+  "AI interpretability: what we know about how LLMs think — and what terrifies researchers",
+  "Emergent capabilities in LLMs: are sudden jumps in ability real or a measurement artifact",
+  "AI and mathematics: from IMO gold to automated proof assistants",
+  "Reinforcement learning from AI feedback: the successor to RLHF and why it matters",
+  "World models: the grand unified theory of AI that Yann LeCun is betting everything on",
+  "Sparse autoencoders: the interpretability breakthrough that lets us read AI's mind",
+  "Long-context models: how 1M-token windows are changing what AI can do",
+  "AI coding benchmarks: SWE-bench, HumanEval, and why they may be gamed",
+  "Neurosymbolic AI: the hybrid approach trying to bridge LLMs and formal reasoning",
+  // Opinion
+  "Why the AI safety movement is losing and what it would take to turn the tide",
+  "The hype cycle: a sober accounting of what AI can and cannot do in 2026",
+  "Open source AI: is it a gift to democracy or a gift to bad actors",
+  "AI and democracy: how large language models will reshape politics, elections, and power",
+  "The alignment tax: does making AI safer make it less capable and does it matter",
+  "AGI or bust: why the AI industry's obsession with superintelligence is a distraction",
+  "The AI winter that wasn't: a history of hype, despair, and why this time is different",
+  "Can AI be creative: a rigorous analysis of what originality means for language models",
+  "AI and inequality: who actually benefits from the productivity gains of the AI era",
+  "The AI arms race and the nuclear analogy: lessons from the last technological apocalypse"
 ];
 
 async function generateArticleWithClaude(topic) {
@@ -196,7 +300,9 @@ Return ONLY a raw JSON object — no markdown fences, no extra text. Fields:
 
   const data = JSON.parse(match[0]);
   const title = String(data.title || topic).trim();
-  const imagePrompt = String(data.imagePrompt || `${topic} artificial intelligence technology`);
+
+  // Try to fetch a real web image (Wikipedia portrait or topic photo)
+  const imageUrl = await getWebImageUrl(title, strHash(title));
 
   const doc = {
     slug:        slugify(title),
@@ -208,7 +314,7 @@ Return ONLY a raw JSON object — no markdown fences, no extra text. Fields:
     tags:        Array.isArray(data.tags) ? data.tags.map(String) : ["AI"],
     category:    String(data.category   || "Analysis"),
     source:      "Aliss",
-    imageUrl:    getImageUrl(imagePrompt, strHash(title)),
+    imageUrl,
     isExternal:  false,
     isGenerated: true,
     publishedAt: new Date()
@@ -328,24 +434,37 @@ async function seedOriginalArticles() {
   console.log("Profile articles seeded.");
 }
 
-const SEED_TOPICS = AI_TOPICS.slice(0, 6);
 let seeding = false;
 
+// Seed up to 100 articles from AI_TOPICS on first boot
 async function seedGeneratedArticles() {
   if (seeding || !isMongoReady() || !ANTHROPIC_KEY) return;
   const count = await Article.countDocuments({ isGenerated: true });
-  if (count >= 4) return;
+  if (count >= AI_TOPICS.length) return;
 
   seeding = true;
-  console.log("Seeding Claude-generated articles...");
-  for (const topic of SEED_TOPICS.slice(0, 4 - count)) {
+  console.log(`Seeding generated articles (have ${count}, target ${AI_TOPICS.length})...`);
+
+  // Find topics not yet written
+  const existingTitles = new Set(
+    (await Article.find({ isGenerated: true }).select("title").lean()).map(a => a.title.toLowerCase())
+  );
+
+  const pending = AI_TOPICS.filter(t => {
+    // Check if a similar title exists (rough match on first 40 chars)
+    const key = t.toLowerCase().slice(0, 40);
+    return ![...existingTitles].some(e => e.includes(key.slice(0, 20)));
+  });
+
+  for (const topic of pending) {
     try {
       const article = await generateArticleWithClaude(topic);
       console.log(`Seeded: ${article?.title?.slice(0, 60)}`);
       io.emit("newArticle", article);
-      await new Promise(r => setTimeout(r, 4000));
+      await new Promise(r => setTimeout(r, 6000)); // space out Claude calls
     } catch (e) {
       console.error(`Seed failed: ${e.message}`);
+      await new Promise(r => setTimeout(r, 3000));
     }
   }
   seeding = false;
@@ -638,6 +757,21 @@ async function migrateSourceToAliss() {
   }
 }
 
+async function migrateImages() {
+  if (!isMongoReady()) return;
+  try {
+    // Replace any Pollinations URLs with real Wikipedia/Picsum images
+    const articles = await Article.find({ imageUrl: /pollinations\.ai/i }).lean();
+    for (const a of articles) {
+      const newUrl = await getWebImageUrl(a.title || "", strHash(a.slug || a.title || String(a._id)));
+      await Article.updateOne({ _id: a._id }, { $set: { imageUrl: newUrl } });
+    }
+    if (articles.length > 0) console.log(`Migrated ${articles.length} Pollinations image URLs to web images`);
+  } catch (e) {
+    console.error("Image migration failed:", e.message);
+  }
+}
+
 /* ======================
    POLISH SHORT ARTICLES
 ====================== */
@@ -697,7 +831,7 @@ Return ONLY raw JSON:
               tags:        Array.isArray(data.tags) ? data.tags.map(String) : (article.tags || ["AI"]),
               category:    String(data.category || article.category || "Analysis"),
               source:      "Aliss",
-              imageUrl:    getImageUrl(data.imagePrompt || article.title, strHash(article.title)),
+              imageUrl:    await getWebImageUrl(String(data.title || article.title), strHash(article.title)),
               isGenerated: true,
               isExternal:  false
             }
@@ -768,7 +902,7 @@ async function fetchHNNews() {
             tags:        ["AI", "News"],
             category:    "News",
             source:      "Aliss",
-            imageUrl:    getImageUrl("AI technology news breaking story dark cinematic", strHash(title)),
+            imageUrl:    getImageUrl("AI technology", strHash(title)),
             isExternal:  false,
             isGenerated: false,
             publishedAt: item.created_at_i ? new Date(item.created_at_i * 1000) : new Date()
@@ -787,13 +921,27 @@ async function fetchHNNews() {
    AUTO GENERATE NEW ARTICLES (EVERY 30 MIN)
 ====================== */
 
-let topicIndex = 4;
+let topicIndex = 0;
 async function autoGenerateArticle() {
-  if (!isMongoReady() || !ANTHROPIC_KEY) return;
-  const topic = AI_TOPICS[topicIndex % AI_TOPICS.length];
-  topicIndex++;
-  console.log(`Auto-generating [${topicIndex}]: ${topic.slice(0, 55)}...`);
+  if (!isMongoReady() || !ANTHROPIC_KEY || seeding) return;
   try {
+    // Find the next topic not yet in the database
+    const existing = new Set(
+      (await Article.find({ isGenerated: true }).select("title").lean()).map(a => a.title.toLowerCase().slice(0, 30))
+    );
+    const remaining = AI_TOPICS.filter(t => !existing.has(t.toLowerCase().slice(0, 30)));
+
+    let topic;
+    if (remaining.length > 0) {
+      // Pick a random remaining topic
+      topic = remaining[Math.floor(Math.random() * remaining.length)];
+    } else {
+      // All topics covered — cycle through for updates/rewrites
+      topic = AI_TOPICS[topicIndex % AI_TOPICS.length];
+      topicIndex++;
+    }
+
+    console.log(`Auto-generating: ${topic.slice(0, 55)}...`);
     const article = await generateArticleWithClaude(topic);
     if (article) {
       io.emit("newArticle", article);

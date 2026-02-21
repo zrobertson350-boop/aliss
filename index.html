@@ -932,7 +932,7 @@ function buildCard(article,index){
   const dateText=article.publishedAt?new Date(article.publishedAt).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):'Recent';
   const gradient=['ci-1','ci-2','ci-3','ci-4','ci-5','ci-6'][index%6];
   const imgHtml=article.imageUrl
-    ?`<img src="${escapeHtml(article.imageUrl)}" alt="${title}" loading="lazy" style="width:100%;height:100%;object-fit:cover">`
+    ?`<img src="${escapeHtml(article.imageUrl)}" alt="${title}" loading="lazy" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display='none';this.parentNode.innerHTML='<div class=\\"card-img-inner ${gradient}\\"></div>'">`
     :`<div class="card-img-inner ${gradient}"></div>`;
   const card=document.createElement('div');
   card.className='card';
