@@ -657,8 +657,15 @@ function formatArticleBodyText(content){
     .join('');
 }
 
+const STATIC_ARTICLE_PAGES=['article-altman','article-sutskever','article-karpathy'];
+
 async function openDynamicArticle(slug,{replace=false}={}){
   if(!slug) return;
+  // Route known profiles to their embedded static HTML pages
+  if(STATIC_ARTICLE_PAGES.includes(slug)){
+    navigate(slug,{replace});
+    return;
+  }
   navigate('article',{replace,slug});
 
   const titleEl=document.getElementById('dynamicArticleTitle');

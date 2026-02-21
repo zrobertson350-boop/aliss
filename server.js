@@ -208,6 +208,40 @@ Return ONLY a raw JSON object — no markdown code fences, no extra commentary, 
 ====================== */
 
 const ORIGINAL_ARTICLES = [
+  // Static profile pages — slugs route to embedded HTML pages in index.html
+  {
+    title:    "Sam Altman: The Architect of the AI Gold Rush",
+    subtitle: "From Stanford dropout to Y Combinator president to CEO of the most valuable AI company on Earth.",
+    summary:  "How one man bet everything on AGI — and won. Sam Altman's journey from Loopt to OpenAI, ChatGPT, and a $300B empire.",
+    tags:     ["Profile", "OpenAI"],
+    source:   "Aliss Editorial",
+    category: "Profile",
+    slug:     "article-altman",
+    imageUrl: getImageUrl("sam-altman-openai"),
+    isExternal: false
+  },
+  {
+    title:    "Ilya Sutskever: The Scientist Who Walked Away",
+    subtitle: "He helped build ChatGPT, tried to fire Sam Altman, then vanished. Now he's back with $3 billion.",
+    summary:  "Co-creator of AlexNet. OpenAI's chief scientist. The man who voted to fire Sam Altman. Now running Safe Superintelligence Inc.",
+    tags:     ["Profile", "Safety"],
+    source:   "Aliss Editorial",
+    category: "Profile",
+    slug:     "article-sutskever",
+    imageUrl: getImageUrl("ilya-sutskever-ai"),
+    isExternal: false
+  },
+  {
+    title:    "Andrej Karpathy: The Teacher Who Shaped Modern AI",
+    subtitle: "From Rubik's cube tutorials to Tesla Autopilot to reimagining education with AI.",
+    summary:  "From OpenAI founding member to Tesla AI director to educator — a look at one of AI's most trusted voices.",
+    tags:     ["Profile", "Education"],
+    source:   "Aliss Editorial",
+    category: "Profile",
+    slug:     "article-karpathy",
+    imageUrl: "/assets/andrej-karpathy.jpg",
+    isExternal: false
+  },
   {
     title:    "The New AI Product Stack in 2026",
     summary:  "Why orchestration, retrieval, and evaluation layers are becoming the real moat in AI products.",
