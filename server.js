@@ -1,16 +1,14 @@
 require("dotenv").config();
 const express = require("express");
-const mongoose = require("mongoose");
 const path = require("path");
 const cors = require("cors");
-const jwt = require("jsonwebtoken");
-const bcrypt = require("bcryptjs");
 const http = require("http");
 const socketIo = require("socket.io");
 const axios = require("axios");
 const cron = require("node-cron");
 const helmet = require("helmet");
 const rateLimit = require("express-rate-limit");
+const { createClient } = require("@supabase/supabase-js");
 
 const app = express();
 const server = http.createServer(app);
@@ -25,79 +23,31 @@ const limiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 200 });
 app.use(limiter);
 
 const ANTHROPIC_KEY = process.env.ANTHROPIC_API_KEY || process.env.CLAUDE_API_KEY;
-console.log("Anthropic key:", ANTHROPIC_KEY ? `set (${ANTHROPIC_KEY.slice(0,12)}...)` : "MISSING");
+console.log("Anthropic key:", ANTHROPIC_KEY ? `set (${ANTHROPIC_KEY.slice(0, 12)}...)` : "MISSING");
 
-const mongoUri = process.env.MONGO_URI;
-if (mongoUri && (mongoUri.startsWith("mongodb://") || mongoUri.startsWith("mongodb+srv://"))) {
-  mongoose.connect(mongoUri)
-    .then(() => {
-      console.log("MongoDB Connected");
-      setTimeout(async () => {
-        await migrateSourceToAliss();
-        await seedOriginalArticles();  // seed first so migration has articles to fix
-        await migrateImages();          // then fix all image URLs
-        seedGeneratedArticles();        // run bulk seed in background (no await)
-        fetchHNNews();
-        refreshTicker();
-        setTimeout(polishShortArticles, 30000);
-      }, 5000);
-    })
-    .catch(err => console.error("MongoDB error:", err));
+const SUPABASE_URL = process.env.SUPABASE_URL;
+const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+let supabase = null;
+if (SUPABASE_URL && SUPABASE_KEY) {
+  supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+  console.log("Supabase client initialized:", SUPABASE_URL);
+  setTimeout(async () => {
+    await seedOriginalArticles();
+    seedGeneratedArticles();
+    fetchHNNews();
+    refreshTicker();
+    setTimeout(polishShortArticles, 30000);
+  }, 5000);
 } else {
-  console.log("MongoDB not connected: set MONGO_URI in .env");
+  console.log("Supabase not configured: set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY");
 }
 
-/* ======================
-   MODELS
-====================== */
-
-const ArticleSchema = new mongoose.Schema({
-  slug:        { type: String, unique: true, sparse: true },
-  title:       { type: String, required: true },
-  subtitle:    String,
-  content:     String,
-  summary:     String,
-  body:        String,
-  tags:        [String],
-  category:    { type: String, default: "News" },
-  source:      String,
-  imageUrl:    String,
-  isExternal:  { type: Boolean, default: false },
-  isGenerated: { type: Boolean, default: false },
-  publishedAt: { type: Date, default: Date.now }
-});
-ArticleSchema.index({ title: 1, source: 1 }, { unique: true });
-ArticleSchema.index({ slug: 1 }, { unique: true, sparse: true });
-ArticleSchema.index({ title: "text", summary: "text", tags: "text" });
-
-const UserSchema = new mongoose.Schema({
-  email:    { type: String, unique: true },
-  password: String,
-  role:     { type: String, default: "admin" }
-});
-
-const SignupSchema = new mongoose.Schema({
-  email:     { type: String, required: true, unique: true },
-  createdAt: { type: Date, default: Date.now }
-});
-
-const TickerSchema = new mongoose.Schema({
-  headlines: [String],
-  updatedAt: { type: Date, default: Date.now }
-});
-
-const Article = mongoose.model("Article", ArticleSchema);
-const User    = mongoose.model("User", UserSchema);
-const Signup  = mongoose.model("Signup", SignupSchema);
-const Ticker  = mongoose.model("Ticker", TickerSchema);
+function isDbReady() { return supabase !== null; }
 
 /* ======================
    HELPERS
 ====================== */
-
-function isMongoReady() {
-  return mongoose.connection.readyState === 1;
-}
 
 function slugify(v) {
   return String(v || "").toLowerCase().trim()
@@ -115,81 +65,25 @@ function strHash(s) {
   return Math.abs(h);
 }
 
-// Fast, reliable images via Picsum (deterministic by seed, always loads)
-function getImageUrl(prompt, seed) {
-  const s = seed !== undefined ? Math.abs(seed) % 1000 : strHash(String(prompt || "")) % 1000;
-  return `https://picsum.photos/seed/${s}/800/450`;
-}
-
-// Curated Unsplash photo IDs for tech/AI topics (high-quality, artistic)
-const TECH_PHOTOS = [
-  "photo-1620712943543-bcc4688e7485", // neural network visualization
-  "photo-1677442135703-1787eea5ce01", // AI abstract
-  "photo-1655720828018-edd2daec9349", // data center blue lights
-  "photo-1558494949-ef010cbdcc31", // servers dark
-  "photo-1518770660439-4636190af475", // circuit board
-  "photo-1526374965328-7f61d4dc18c5", // matrix code
-  "photo-1485827404703-89b55fcc595e", // robot
-  "photo-1531746790731-6c087fecd65a", // futuristic tech
-  "photo-1677691824655-b8bde9a9d88f", // AI chips
-  "photo-1507146426996-ef05306b995a", // machine learning
-  "photo-1573164713714-d95e436ab8d4", // futuristic city
-  "photo-1620641788421-7a1c342ea42e", // blue circuit
-  "photo-1504384308090-c894fdcc538d", // tech workspace
-  "photo-1555255707-c07966088b7b", // neon lights tech
-  "photo-1592659762303-90081d34b277", // GPU
-  "photo-1485827404703-89b55fcc595e", // humanoid robot
-  "photo-1580982172477-9373ff52ae43", // data visualization
-  "photo-1569396116180-210c182bedb8", // futuristic architecture
-  "photo-1461749280684-dccba630e2f6", // coding
-  "photo-1498050108023-c5249f4df085", // laptop code
-];
-
-// Extract the primary person/entity name from an article title
-// "Dario Amodei and Anthropic: the safety..." → "Dario Amodei"
-// "Jensen Huang and Nvidia: ..." → "Jensen Huang"
-// "The China AI race: ..." → "The China AI race" (no person, will fail wiki, use fallback)
-function extractSubject(title) {
-  return String(title || "")
-    .split(/[:\-–|]/)[0]          // take text before colon
-    .split(/ and /i)[0]           // take text before " and "
-    .split(/ vs\.? /i)[0]         // take text before " vs "
-    .replace(/^(The|How|Why|What|Inside|Meet)\s+/i, "") // strip leading articles
-    .replace(/[^\w\s'.]/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-}
-
-// Fetch full-resolution Wikipedia portrait
-async function getWikipediaImage(name) {
-  if (!name || name.length < 3) return null;
-  try {
-    const wikiName = name.replace(/\s+/g, "_");
-    const url = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(wikiName)}`;
-    const res = await axios.get(url, {
-      timeout: 6000,
-      headers: { "User-Agent": "Aliss-News/1.0 (https://aliss-3a3o.onrender.com)" }
-    });
-    // originalimage gives the full-resolution source file — always prefer it
-    if (res.data?.originalimage?.source) return res.data.originalimage.source;
-    // thumbnail fallback: scale up to 1200px wide for good quality
-    if (res.data?.thumbnail?.source) {
-      return res.data.thumbnail.source.replace(/\/\d+px-/, "/1200px-");
-    }
-  } catch {}
-  return null;
-}
-
-// Main image resolver: Wikipedia portrait → Unsplash curated tech photo
-async function getWebImageUrl(title, seed) {
-  const subject = extractSubject(title);
-  const wikiImg = await getWikipediaImage(subject);
-  if (wikiImg) return wikiImg;
-
-  // Unsplash curated tech photo (deterministic by seed, no API key needed)
-  const s = seed !== undefined ? Math.abs(seed) : strHash(String(title || ""));
-  const photoId = TECH_PHOTOS[s % TECH_PHOTOS.length];
-  return `https://images.unsplash.com/${photoId}?w=1200&h=675&fit=crop&auto=format&q=85`;
+// Normalize Supabase snake_case article to camelCase for frontend compatibility
+function normalizeArticle(a) {
+  if (!a) return null;
+  return {
+    id:          a.id,
+    _id:         a.id,
+    slug:        a.slug,
+    title:       a.title,
+    subtitle:    a.subtitle,
+    content:     a.content,
+    summary:     a.summary,
+    body:        a.body,
+    tags:        a.tags || [],
+    category:    a.category,
+    source:      a.source,
+    isExternal:  a.is_external,
+    isGenerated: a.is_generated,
+    publishedAt: a.published_at,
+  };
 }
 
 /* ======================
@@ -361,35 +255,38 @@ Return ONLY a raw JSON object — no markdown fences, no extra text. Fields:
   const data = JSON.parse(match[0]);
   const title = String(data.title || topic).trim();
 
-  // Try to fetch a real web image (Wikipedia portrait or topic photo)
-  const imageUrl = await getWebImageUrl(title, strHash(title));
-
   const doc = {
-    slug:        slugify(title),
+    slug:         slugify(title),
     title,
-    subtitle:    String(data.subtitle   || "").trim(),
-    content:     "",
-    summary:     String(data.summary    || "").trim(),
-    body:        String(data.body       || "").trim(),
-    tags:        Array.isArray(data.tags) ? data.tags.map(String) : ["AI"],
-    category:    String(data.category   || "Analysis"),
-    source:      "Aliss",
-    imageUrl,
-    isExternal:  false,
-    isGenerated: true,
-    publishedAt: new Date()
+    subtitle:     String(data.subtitle  || "").trim(),
+    content:      "",
+    summary:      String(data.summary   || "").trim(),
+    body:         String(data.body      || "").trim(),
+    tags:         Array.isArray(data.tags) ? data.tags.map(String) : ["AI"],
+    category:     String(data.category  || "Analysis"),
+    source:       "Aliss",
+    is_external:  false,
+    is_generated: true,
+    published_at: new Date().toISOString()
   };
 
-  try {
-    const saved = await Article.findOneAndUpdate(
-      { title: doc.title, source: "Aliss" },
-      { $setOnInsert: doc },
-      { upsert: true, new: true }
-    );
-    return saved;
-  } catch {
-    return await Article.findOne({ title: doc.title });
+  if (!isDbReady()) return normalizeArticle(doc);
+
+  const { data: saved, error } = await supabase
+    .from("aliss_articles")
+    .upsert(doc, { onConflict: "slug", ignoreDuplicates: true })
+    .select()
+    .single();
+
+  if (error || !saved) {
+    const { data: existing } = await supabase
+      .from("aliss_articles")
+      .select("*")
+      .eq("slug", doc.slug)
+      .single();
+    return normalizeArticle(existing || doc);
   }
+  return normalizeArticle(saved);
 }
 
 /* ======================
@@ -401,10 +298,14 @@ let cachedTicker = null;
 async function generateWittyTicker() {
   if (!ANTHROPIC_KEY) return null;
   try {
-    // Get recent article headlines for context
     let recent = [];
-    if (isMongoReady()) {
-      recent = await Article.find().sort({ publishedAt: -1 }).limit(10).select("title").lean();
+    if (isDbReady()) {
+      const { data } = await supabase
+        .from("aliss_articles")
+        .select("title")
+        .order("published_at", { ascending: false })
+        .limit(10);
+      recent = data || [];
     }
     const context = recent.map(a => a.title).join("; ");
 
@@ -433,9 +334,8 @@ async function refreshTicker() {
 
   cachedTicker = headlines;
 
-  if (isMongoReady()) {
-    await Ticker.deleteMany({});
-    await Ticker.create({ headlines, updatedAt: new Date() });
+  if (isDbReady()) {
+    await supabase.from("aliss_ticker").insert({ headlines, updated_at: new Date().toISOString() });
   }
 
   io.emit("tickerUpdate", { headlines });
@@ -448,76 +348,73 @@ async function refreshTicker() {
 
 const ORIGINAL_ARTICLES = [
   {
-    title:    "Sam Altman: The Architect of the AI Gold Rush",
-    subtitle: "From Stanford dropout to Y Combinator president to CEO of the most valuable AI company on Earth.",
-    summary:  "How one man bet everything on AGI — and, so far, won. Sam Altman's journey from Loopt to OpenAI, ChatGPT, and a $300B empire.",
-    tags:     ["Profile", "OpenAI"],
-    source:   "Aliss Editorial",
-    category: "Profile",
-    slug:     "article-altman",
-    imageUrl: getImageUrl("tech CEO boardroom silicon valley dark dramatic lighting professional portrait", strHash("altman")),
-    isExternal: false
+    title:       "Sam Altman: The Architect of the AI Gold Rush",
+    subtitle:    "From Stanford dropout to Y Combinator president to CEO of the most valuable AI company on Earth.",
+    summary:     "How one man bet everything on AGI — and, so far, won. Sam Altman's journey from Loopt to OpenAI, ChatGPT, and a $300B empire.",
+    tags:        ["Profile", "OpenAI"],
+    source:      "Aliss Editorial",
+    category:    "Profile",
+    slug:        "article-altman",
+    is_external: false,
+    is_generated: false
   },
   {
-    title:    "Ilya Sutskever: The Scientist Who Walked Away",
-    subtitle: "He helped build ChatGPT, tried to fire Sam Altman, then vanished. Now he's back with $3 billion.",
-    summary:  "Co-creator of AlexNet. OpenAI's chief scientist. The man who voted to fire Sam Altman. Now running Safe Superintelligence Inc. with $3B and no product.",
-    tags:     ["Profile", "Safety"],
-    source:   "Aliss Editorial",
-    category: "Profile",
-    slug:     "article-sutskever",
-    imageUrl: getImageUrl("AI researcher neural network abstract blue light dark background photorealistic", strHash("sutskever")),
-    isExternal: false
+    title:       "Ilya Sutskever: The Scientist Who Walked Away",
+    subtitle:    "He helped build ChatGPT, tried to fire Sam Altman, then vanished. Now he's back with $3 billion.",
+    summary:     "Co-creator of AlexNet. OpenAI's chief scientist. The man who voted to fire Sam Altman. Now running Safe Superintelligence Inc. with $3B and no product.",
+    tags:        ["Profile", "Safety"],
+    source:      "Aliss Editorial",
+    category:    "Profile",
+    slug:        "article-sutskever",
+    is_external: false,
+    is_generated: false
   },
   {
-    title:    "Andrej Karpathy: The Teacher Who Shaped Modern AI",
-    subtitle: "From Rubik's cube tutorials to Tesla Autopilot to reimagining education with AI.",
-    summary:  "From OpenAI founding member to Tesla AI director to educator — a look at one of AI's most trusted and insightful voices in the field.",
-    tags:     ["Profile", "Education"],
-    source:   "Aliss Editorial",
-    category: "Profile",
-    slug:     "article-karpathy",
-    imageUrl: "/assets/andrej-karpathy.jpg",
-    isExternal: false
+    title:       "Andrej Karpathy: The Teacher Who Shaped Modern AI",
+    subtitle:    "From Rubik's cube tutorials to Tesla Autopilot to reimagining education with AI.",
+    summary:     "From OpenAI founding member to Tesla AI director to educator — a look at one of AI's most trusted and insightful voices in the field.",
+    tags:        ["Profile", "Education"],
+    source:      "Aliss Editorial",
+    category:    "Profile",
+    slug:        "article-karpathy",
+    is_external: false,
+    is_generated: false
   }
 ];
 
 async function seedOriginalArticles() {
-  if (!isMongoReady()) return;
+  if (!isDbReady()) return;
   for (const article of ORIGINAL_ARTICLES) {
-    // Fetch proper Wikipedia image for each profile
-    const imageUrl = await getWebImageUrl(article.title, strHash(article.slug));
-    console.log(`Profile image for "${article.slug}": ${imageUrl.slice(0, 80)}`);
-    await Article.updateOne(
-      { slug: article.slug },
-      {
-        $setOnInsert: { ...article, publishedAt: new Date() },
-        $set: { imageUrl }   // always update imageUrl on every deploy
-      },
-      { upsert: true }
-    );
+    await supabase
+      .from("aliss_articles")
+      .upsert({ ...article, published_at: new Date().toISOString() }, { onConflict: "slug", ignoreDuplicates: true });
   }
-  console.log("Profile articles seeded with Wikipedia images.");
+  console.log("Profile articles seeded.");
 }
 
 let seeding = false;
 
-// Seed up to 100 articles from AI_TOPICS on first boot
 async function seedGeneratedArticles() {
   if (seeding) { console.log("Seed already running, skipping."); return; }
-  if (!isMongoReady()) { console.log("Seed skipped: DB not ready"); return; }
+  if (!isDbReady()) { console.log("Seed skipped: DB not ready"); return; }
   if (!ANTHROPIC_KEY) { console.log("Seed skipped: no ANTHROPIC_API_KEY"); return; }
 
-  const count = await Article.countDocuments({ isGenerated: true });
+  const { count } = await supabase
+    .from("aliss_articles")
+    .select("*", { count: "exact", head: true })
+    .eq("is_generated", true);
+
   console.log(`Seed check: ${count} generated articles exist, target ${AI_TOPICS.length}`);
   if (count >= AI_TOPICS.length) { console.log("All topics already written."); return; }
 
   seeding = true;
 
-  // Find topics not yet written
-  const existingTitles = new Set(
-    (await Article.find({ isGenerated: true }).select("title").lean()).map(a => a.title.toLowerCase())
-  );
+  const { data: existing } = await supabase
+    .from("aliss_articles")
+    .select("title")
+    .eq("is_generated", true);
+  const existingTitles = new Set((existing || []).map(a => a.title.toLowerCase()));
+
   const pending = AI_TOPICS.filter(t => {
     const key = t.toLowerCase().slice(0, 20);
     return ![...existingTitles].some(e => e.includes(key));
@@ -527,8 +424,13 @@ async function seedGeneratedArticles() {
   try {
     for (const topic of pending) {
       try {
-        const recentTitles = (await Article.find({ isGenerated: true })
-          .sort({ publishedAt: -1 }).limit(10).select("title").lean()).map(a => a.title);
+        const { data: recentData } = await supabase
+          .from("aliss_articles")
+          .select("title")
+          .eq("is_generated", true)
+          .order("published_at", { ascending: false })
+          .limit(10);
+        const recentTitles = (recentData || []).map(a => a.title);
         const article = await generateArticleWithClaude(topic, recentTitles);
         if (article) {
           console.log(`✓ Seeded: ${article.title?.slice(0, 60)}`);
@@ -536,7 +438,7 @@ async function seedGeneratedArticles() {
         }
         await new Promise(r => setTimeout(r, 3000));
       } catch (e) {
-        console.error(`✗ Seed failed "${topic.slice(0,40)}": ${e.message}`);
+        console.error(`✗ Seed failed "${topic.slice(0, 40)}": ${e.message}`);
         await new Promise(r => setTimeout(r, 2000));
       }
     }
@@ -547,43 +449,6 @@ async function seedGeneratedArticles() {
 }
 
 /* ======================
-   AUTH MIDDLEWARE
-====================== */
-
-function auth(req, res, next) {
-  const token = req.header("Authorization");
-  if (!token) return res.status(401).json({ msg: "No token" });
-  try {
-    req.user = jwt.verify(token, process.env.JWT_SECRET);
-    next();
-  } catch {
-    res.status(401).json({ msg: "Invalid token" });
-  }
-}
-
-/* ======================
-   AUTH ROUTES
-====================== */
-
-app.post("/api/register", async (req, res) => {
-  const { email, password } = req.body;
-  const hashed = await bcrypt.hash(password, 10);
-  const user = new User({ email, password: hashed });
-  await user.save();
-  res.json({ msg: "Admin created" });
-});
-
-app.post("/api/login", async (req, res) => {
-  const { email, password } = req.body;
-  const user = await User.findOne({ email });
-  if (!user) return res.status(400).json({ msg: "User not found" });
-  const valid = await bcrypt.compare(password, user.password);
-  if (!valid) return res.status(400).json({ msg: "Invalid credentials" });
-  const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: "1d" });
-  res.json({ token });
-});
-
-/* ======================
    PUBLIC ROUTES
 ====================== */
 
@@ -592,10 +457,15 @@ app.post("/api/signup", async (req, res) => {
     const email = String(req.body?.email || "").trim().toLowerCase();
     if (!email || !email.includes("@")) return res.status(400).json({ msg: "Invalid email" });
 
-    const result = await Signup.updateOne({ email }, { $setOnInsert: { email } }, { upsert: true });
-    const isNew = result.upsertedCount > 0;
+    let isNew = false;
+    if (isDbReady()) {
+      const { data } = await supabase
+        .from("aliss_signups")
+        .upsert({ email }, { onConflict: "email", ignoreDuplicates: true })
+        .select();
+      isNew = data && data.length > 0;
+    }
 
-    // Send welcome email via Resend if configured
     const resendKey = process.env.RESEND_API_KEY;
     if (isNew && resendKey) {
       try {
@@ -658,7 +528,14 @@ app.post("/api/alice-chat", async (req, res) => {
   let context = "";
   try {
     let recent = [];
-    if (isMongoReady()) recent = await Article.find().sort({ publishedAt: -1 }).limit(8).select("title summary").lean();
+    if (isDbReady()) {
+      const { data } = await supabase
+        .from("aliss_articles")
+        .select("title,summary")
+        .order("published_at", { ascending: false })
+        .limit(8);
+      recent = data || [];
+    }
     if (!recent.length) recent = ORIGINAL_ARTICLES;
     context = recent.map(a => `- ${a.title}: ${String(a.summary || "").slice(0, 150)}`).join("\n");
   } catch {}
@@ -683,48 +560,31 @@ app.post("/api/alice-chat", async (req, res) => {
    ARTICLE ROUTES
 ====================== */
 
-// Seed status — how many articles exist
 app.get("/api/seed-status", async (req, res) => {
-  if (!isMongoReady()) return res.json({ ready: false });
-  const total = await Article.countDocuments({ isGenerated: true });
+  if (!isDbReady()) return res.json({ ready: false });
+  const { count } = await supabase
+    .from("aliss_articles")
+    .select("*", { count: "exact", head: true })
+    .eq("is_generated", true);
+  const total = count || 0;
   res.json({ total, target: AI_TOPICS.length, seeding, remaining: Math.max(0, AI_TOPICS.length - total) });
 });
 
-// Trigger a full bulk seed immediately (runs in background)
 app.post("/api/seed-now", (req, res) => {
   res.json({ msg: "Seeding started in background", target: AI_TOPICS.length });
   seedGeneratedArticles().catch(e => console.error("Seed-now failed:", e.message));
 });
 
-// Force re-fetch Wikipedia images for ALL articles in DB
-app.post("/api/fix-images", async (req, res) => {
-  if (!isMongoReady()) return res.status(503).json({ msg: "DB not ready" });
-  res.json({ msg: "Image fix started in background" });
-  try {
-    const articles = await Article.find({}).select("title slug _id imageUrl").lean();
-    let fixed = 0;
-    for (const a of articles) {
-      try {
-        const newUrl = await getWebImageUrl(a.title || "", strHash(a.slug || String(a._id)));
-        if (newUrl !== a.imageUrl) {
-          await Article.updateOne({ _id: a._id }, { $set: { imageUrl: newUrl } });
-          fixed++;
-        }
-        await new Promise(r => setTimeout(r, 400));
-      } catch {}
-    }
-    console.log(`fix-images: updated ${fixed}/${articles.length} image URLs`);
-  } catch (e) {
-    console.error("fix-images failed:", e.message);
-  }
-});
-
-// Trigger one immediate article generation
 app.post("/api/generate-now", async (req, res) => {
   if (!ANTHROPIC_KEY) return res.status(503).json({ msg: "No Claude API key" });
   try {
-    const recentTitles = (await Article.find({ isGenerated: true })
-      .sort({ publishedAt: -1 }).limit(10).select("title").lean()).map(a => a.title);
+    const { data: recentData } = await supabase
+      .from("aliss_articles")
+      .select("title")
+      .eq("is_generated", true)
+      .order("published_at", { ascending: false })
+      .limit(10);
+    const recentTitles = (recentData || []).map(a => a.title);
     const topic = req.body?.topic || AI_TOPICS[Math.floor(Math.random() * AI_TOPICS.length)];
     res.json({ msg: "Generating...", topic });
     const article = await generateArticleWithClaude(topic, recentTitles);
@@ -737,10 +597,14 @@ app.post("/api/generate-now", async (req, res) => {
 app.get("/api/articles", async (req, res) => {
   try {
     const fallback = ORIGINAL_ARTICLES.map(a => ({ ...a, publishedAt: new Date() }));
-    if (!isMongoReady()) return res.json(fallback);
-    const articles = await Article.find().sort({ publishedAt: -1 }).select("-body").limit(60);
-    if (!articles.length) return res.json(fallback);
-    res.json(articles);
+    if (!isDbReady()) return res.json(fallback);
+    const { data: articles, error } = await supabase
+      .from("aliss_articles")
+      .select("id,slug,title,subtitle,summary,tags,category,source,is_external,is_generated,published_at")
+      .order("published_at", { ascending: false })
+      .limit(60);
+    if (error || !articles?.length) return res.json(fallback);
+    res.json(articles.map(normalizeArticle));
   } catch {
     res.json(ORIGINAL_ARTICLES.map(a => ({ ...a, publishedAt: new Date() })));
   }
@@ -750,13 +614,14 @@ app.get("/api/articles/:slugOrId", async (req, res) => {
   const param = String(req.params.slugOrId || "").trim();
   if (!param) return res.status(400).json({ msg: "Identifier required" });
   try {
-    if (isMongoReady()) {
-      if (/^[a-f0-9]{24}$/i.test(param)) {
-        const byId = await Article.findById(param).lean();
-        if (byId) return res.json(byId);
+    if (isDbReady()) {
+      // Try UUID format first
+      if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(param)) {
+        const { data: byId } = await supabase.from("aliss_articles").select("*").eq("id", param).single();
+        if (byId) return res.json(normalizeArticle(byId));
       }
-      const bySlug = await Article.findOne({ slug: param }).lean();
-      if (bySlug) return res.json(bySlug);
+      const { data: bySlug } = await supabase.from("aliss_articles").select("*").eq("slug", param).single();
+      if (bySlug) return res.json(normalizeArticle(bySlug));
     }
     const local = ORIGINAL_ARTICLES.find(a => a.slug === slugify(param));
     if (local) return res.json({ ...local, publishedAt: new Date() });
@@ -767,32 +632,23 @@ app.get("/api/articles/:slugOrId", async (req, res) => {
 });
 
 app.get("/api/search", async (req, res) => {
-  const q = String(req.query.q || "").trim();
-  if (!q) return res.json([]);
+  const raw = String(req.query.q || "").trim();
+  if (!raw) return res.json([]);
+  const q = raw.replace(/%/g, "\\%").replace(/_/g, "\\_").slice(0, 100);
   try {
-    if (!isMongoReady()) {
-      const lower = q.toLowerCase();
+    if (!isDbReady()) {
+      const lower = raw.toLowerCase();
       return res.json(ORIGINAL_ARTICLES.filter(a =>
         a.title.toLowerCase().includes(lower) || (a.summary || "").toLowerCase().includes(lower)
       ).map(a => ({ ...a, publishedAt: new Date() })));
     }
-    // Try full-text search first, fall back to regex
-    let results = [];
-    try {
-      results = await Article.find(
-        { $text: { $search: q } },
-        { score: { $meta: "textScore" } }
-      ).sort({ score: { $meta: "textScore" } }).select("-body").limit(20).lean();
-    } catch {
-      results = await Article.find({
-        $or: [
-          { title: { $regex: q, $options: "i" } },
-          { summary: { $regex: q, $options: "i" } },
-          { tags: { $regex: q, $options: "i" } }
-        ]
-      }).sort({ publishedAt: -1 }).select("-body").limit(20).lean();
-    }
-    res.json(results);
+    const { data: results } = await supabase
+      .from("aliss_articles")
+      .select("id,slug,title,subtitle,summary,tags,category,source,is_external,is_generated,published_at")
+      .or(`title.ilike.%${q}%,summary.ilike.%${q}%`)
+      .order("published_at", { ascending: false })
+      .limit(20);
+    res.json((results || []).map(normalizeArticle));
   } catch {
     res.status(500).json({ msg: "Search failed" });
   }
@@ -807,21 +663,27 @@ app.get("/api/live-updates", async (_req, res) => {
     "DeepSeek trained a frontier model for less than your team's AWS bill last quarter",
     "The AI arms race has entered its 'everyone is hiring safety researchers and ignoring them' phase"
   ];
-
   try {
-    // Try cached ticker first
     if (cachedTicker && cachedTicker.length) {
       return res.json({ headlines: cachedTicker, updatedAt: new Date().toISOString() });
     }
-    if (isMongoReady()) {
-      const ticker = await Ticker.findOne().sort({ updatedAt: -1 }).lean();
+    if (isDbReady()) {
+      const { data: ticker } = await supabase
+        .from("aliss_ticker")
+        .select("*")
+        .order("updated_at", { ascending: false })
+        .limit(1)
+        .single();
       if (ticker?.headlines?.length) {
         cachedTicker = ticker.headlines;
-        return res.json({ headlines: ticker.headlines, updatedAt: ticker.updatedAt });
+        return res.json({ headlines: ticker.headlines, updatedAt: ticker.updated_at });
       }
-      // Fall back to article titles
-      const articles = await Article.find().sort({ publishedAt: -1 }).limit(8).lean();
-      if (articles.length) {
+      const { data: articles } = await supabase
+        .from("aliss_articles")
+        .select("category,title")
+        .order("published_at", { ascending: false })
+        .limit(8);
+      if (articles?.length) {
         const h = articles.map(a => `${a.category || "AI"}: ${a.title}`);
         return res.json({ headlines: h, updatedAt: new Date().toISOString() });
       }
@@ -830,18 +692,6 @@ app.get("/api/live-updates", async (_req, res) => {
   } catch {
     res.json({ headlines: fallback, updatedAt: new Date().toISOString() });
   }
-});
-
-app.post("/api/articles", auth, async (req, res) => {
-  const article = new Article(req.body);
-  await article.save();
-  io.emit("newArticle", article);
-  res.json(article);
-});
-
-app.delete("/api/articles/:id", auth, async (req, res) => {
-  await Article.findByIdAndDelete(req.params.id);
-  res.json({ msg: "Deleted" });
 });
 
 app.post("/api/generate", async (req, res) => {
@@ -861,55 +711,9 @@ app.post("/api/generate", async (req, res) => {
 ====================== */
 
 io.on("connection", socket => {
-  // Send cached ticker on connect
   if (cachedTicker) socket.emit("tickerUpdate", { headlines: cachedTicker });
   console.log("Client connected:", socket.id);
 });
-
-/* ======================
-   MIGRATE: SET ALL SOURCES TO "Aliss"
-====================== */
-
-async function migrateSourceToAliss() {
-  if (!isMongoReady()) return;
-  try {
-    const result = await Article.updateMany(
-      { source: { $ne: "Aliss" } },
-      { $set: { source: "Aliss" } }
-    );
-    if (result.modifiedCount > 0) console.log(`Migrated ${result.modifiedCount} articles to source=Aliss`);
-  } catch (e) {
-    console.error("Source migration failed:", e.message);
-  }
-}
-
-async function migrateImages() {
-  if (!isMongoReady()) return;
-  try {
-    // Fix: Pollinations URLs, local /assets/ paths, picsum fallbacks, and low-res Wikipedia thumbnails
-    const articles = await Article.find({
-      $or: [
-        { imageUrl: /pollinations\.ai/i },
-        { imageUrl: /^\/assets\//i },
-        { imageUrl: /picsum\.photos/i },
-        { imageUrl: /\/\d+px-/ },  // low-res Wikipedia thumbnails (e.g. /320px-)
-      ]
-    }).lean();
-
-    let updated = 0;
-    for (const a of articles) {
-      try {
-        const newUrl = await getWebImageUrl(a.title || "", strHash(a.slug || a.title || String(a._id)));
-        await Article.updateOne({ _id: a._id }, { $set: { imageUrl: newUrl } });
-        updated++;
-        await new Promise(r => setTimeout(r, 300)); // gentle rate limiting for Wikipedia API
-      } catch {}
-    }
-    if (updated > 0) console.log(`Migrated ${updated} image URLs to full-resolution web images`);
-  } catch (e) {
-    console.error("Image migration failed:", e.message);
-  }
-}
 
 /* ======================
    POLISH SHORT ARTICLES
@@ -917,20 +721,21 @@ async function migrateImages() {
 
 let polishing = false;
 async function polishShortArticles() {
-  if (polishing || !isMongoReady() || !ANTHROPIC_KEY) return;
+  if (polishing || !isDbReady() || !ANTHROPIC_KEY) return;
   polishing = true;
 
   try {
-    // Find articles with no body, empty body, or body under 1500 chars
-    const candidates = await Article.find({
-      slug: { $nin: ["article-altman", "article-sutskever", "article-karpathy"] },
-      $or: [
-        { body: { $exists: false } },
-        { body: null },
-        { body: "" },
-        { $expr: { $lt: [{ $strLenCP: { $ifNull: ["$body", ""] } }, 1500] } }
-      ]
-    }).limit(8).lean();
+    const { data: allArticles } = await supabase
+      .from("aliss_articles")
+      .select("id,slug,title,summary,tags,category,body")
+      .order("published_at", { ascending: false })
+      .limit(100);
+
+    const excluded = ["article-altman", "article-sutskever", "article-karpathy"];
+    const candidates = (allArticles || [])
+      .filter(a => !excluded.includes(a.slug))
+      .filter(a => !a.body || a.body.length < 1500)
+      .slice(0, 8);
 
     if (!candidates.length) { polishing = false; return; }
     console.log(`Polishing ${candidates.length} short/empty articles...`);
@@ -949,7 +754,6 @@ Return ONLY raw JSON:
   "summary": "2-3 sentence compelling card preview",
   "category": "Profile OR Analysis OR Opinion OR Research OR Industry OR News",
   "tags": ["tag1","tag2","tag3","tag4"],
-  "imagePrompt": "Vivid Stable Diffusion image prompt, specific and cinematic",
   "body": "Full HTML article: <p class=\\"drop-cap\\"> for first paragraph, <h2> headers (5+), <div class=\\"pull-quote\\">quote<cite>— source</cite></div> pull quotes (2+). Minimum 1000 words. Be specific, factual, punchy."
 }`,
           4000
@@ -959,25 +763,20 @@ Return ONLY raw JSON:
         if (!match) continue;
         const data = JSON.parse(match[0]);
 
-        await Article.updateOne(
-          { _id: article._id },
-          {
-            $set: {
-              title:       String(data.title    || article.title).trim(),
-              subtitle:    String(data.subtitle || "").trim(),
-              summary:     String(data.summary  || "").trim(),
-              body:        String(data.body     || "").trim(),
-              tags:        Array.isArray(data.tags) ? data.tags.map(String) : (article.tags || ["AI"]),
-              category:    String(data.category || article.category || "Analysis"),
-              source:      "Aliss",
-              imageUrl:    await getWebImageUrl(String(data.title || article.title), strHash(article.title)),
-              isGenerated: true,
-              isExternal:  false
-            }
-          }
-        );
+        await supabase.from("aliss_articles").update({
+          title:        String(data.title    || article.title).trim(),
+          subtitle:     String(data.subtitle || "").trim(),
+          summary:      String(data.summary  || "").trim(),
+          body:         String(data.body     || "").trim(),
+          tags:         Array.isArray(data.tags) ? data.tags.map(String) : (article.tags || ["AI"]),
+          category:     String(data.category || article.category || "Analysis"),
+          source:       "Aliss",
+          is_generated: true,
+          is_external:  false
+        }).eq("id", article.id);
+
         console.log(`Polished: ${article.title.slice(0, 55)}`);
-        io.emit("articleUpdated", { id: article._id });
+        io.emit("articleUpdated", { id: article.id });
         await new Promise(r => setTimeout(r, 5000));
       } catch (e) {
         console.error(`Polish failed "${article.title?.slice(0, 40)}":`, e.message);
@@ -995,23 +794,25 @@ Return ONLY raw JSON:
 ====================== */
 
 async function fetchHNNews() {
-  if (!isMongoReady() || !ANTHROPIC_KEY) return;
+  if (!isDbReady() || !ANTHROPIC_KEY) return;
   console.log("Fetching AI news from Hacker News...");
   try {
-    const { data } = await axios.get(
+    const { data: hnData } = await axios.get(
       "https://hn.algolia.com/api/v1/search?query=artificial+intelligence+OR+LLM+OR+Claude+OR+OpenAI+OR+Anthropic+OR+Nvidia+OR+Gemini+OR+DeepSeek&tags=story&hitsPerPage=20",
       { timeout: 20000 }
     );
-    const hits = Array.isArray(data?.hits) ? data.hits : [];
+    const hits = Array.isArray(hnData?.hits) ? hnData.hits : [];
 
-    // Only take truly new stories (not already in DB)
     const newHits = [];
     for (const item of hits) {
       const title = String(item.title || item.story_title || "").trim();
       if (!title) continue;
-      const exists = await Article.exists({ title });
-      if (!exists) newHits.push(item);
-      if (newHits.length >= 4) break; // Write up to 4 full articles per hour from real news
+      const { count } = await supabase
+        .from("aliss_articles")
+        .select("*", { count: "exact", head: true })
+        .eq("title", title);
+      if (!count) newHits.push(item);
+      if (newHits.length >= 4) break;
     }
 
     if (!newHits.length) { console.log("HN: no new stories"); return; }
@@ -1031,22 +832,20 @@ async function fetchHNNews() {
         }
         await new Promise(r => setTimeout(r, 6000));
       } catch (e) {
-        // If generation fails, store as a stub for later polishing
         try {
           const doc = {
-            slug:        slugify(title),
+            slug:         slugify(title),
             title,
-            content:     sourceUrl,
-            summary:     rawSummary || title,
-            tags:        ["AI", "News"],
-            category:    "News",
-            source:      "Aliss",
-            imageUrl:    getImageUrl("AI technology", strHash(title)),
-            isExternal:  false,
-            isGenerated: false,
-            publishedAt: item.created_at_i ? new Date(item.created_at_i * 1000) : new Date()
+            content:      sourceUrl,
+            summary:      rawSummary || title,
+            tags:         ["AI", "News"],
+            category:     "News",
+            source:       "Aliss",
+            is_external:  false,
+            is_generated: false,
+            published_at: item.created_at_i ? new Date(item.created_at_i * 1000).toISOString() : new Date().toISOString()
           };
-          await Article.updateOne({ title: doc.title }, { $setOnInsert: doc }, { upsert: true });
+          await supabase.from("aliss_articles").upsert(doc, { onConflict: "slug", ignoreDuplicates: true });
         } catch {}
         console.error(`HN article gen failed: ${e.message}`);
       }
@@ -1060,7 +859,6 @@ async function fetchHNNews() {
    RECURSIVE META TOPIC GENERATOR
 ====================== */
 
-// Generates a roundup/meta article about Aliss's own recent coverage
 async function buildRecursiveTopic(recentTitles) {
   const options = [
     `Aliss Roundup: the five AI stories that mattered most this week, and what they mean together`,
@@ -1078,32 +876,30 @@ async function buildRecursiveTopic(recentTitles) {
 
 let topicIndex = 0;
 async function autoGenerateArticle() {
-  if (!isMongoReady() || !ANTHROPIC_KEY || seeding) return;
+  if (!isDbReady() || !ANTHROPIC_KEY || seeding) return;
   try {
-    // Always fetch recent titles for cross-referencing (the "recursive" part)
-    const recentArticles = await Article.find({ isGenerated: true })
-      .sort({ publishedAt: -1 })
-      .limit(20)
+    const { data: recentData } = await supabase
+      .from("aliss_articles")
       .select("title")
-      .lean();
-    const recentTitles = recentArticles.map(a => a.title);
+      .eq("is_generated", true)
+      .order("published_at", { ascending: false })
+      .limit(20);
+    const recentTitles = (recentData || []).map(a => a.title);
 
-    // Find the next topic not yet in the database
-    const existingKeys = new Set(recentTitles.map(t => t.toLowerCase().slice(0, 30)));
-    const allExisting = new Set(
-      (await Article.find({ isGenerated: true }).select("title").lean()).map(a => a.title.toLowerCase().slice(0, 30))
-    );
+    const { data: allGenerated } = await supabase
+      .from("aliss_articles")
+      .select("title")
+      .eq("is_generated", true);
+    const allExisting = new Set((allGenerated || []).map(a => a.title.toLowerCase().slice(0, 30)));
     const remaining = AI_TOPICS.filter(t => !allExisting.has(t.toLowerCase().slice(0, 30)));
 
     let topic;
-    // Every 5th article: write a recursive meta-roundup
     if (topicIndex > 0 && topicIndex % 5 === 0 && recentTitles.length >= 5) {
       topic = await buildRecursiveTopic(recentTitles);
       console.log(`[Recursive] ${topic.slice(0, 60)}...`);
     } else if (remaining.length > 0) {
       topic = remaining[Math.floor(Math.random() * remaining.length)];
     } else {
-      // All topics covered — keep writing new angles forever
       topic = AI_TOPICS[topicIndex % AI_TOPICS.length];
     }
     topicIndex++;
@@ -1119,10 +915,10 @@ async function autoGenerateArticle() {
   }
 }
 
-cron.schedule("0 * * * *",    fetchHNNews);           // Real news every hour
-cron.schedule("*/30 * * * *", autoGenerateArticle);   // Original articles every 30 min
-cron.schedule("*/15 * * * *", refreshTicker);         // Witty ticker every 15 min
-cron.schedule("0 */3 * * *",  polishShortArticles);   // Polish short articles every 3h
+cron.schedule("0 * * * *",    fetchHNNews);
+cron.schedule("*/30 * * * *", autoGenerateArticle);
+cron.schedule("*/15 * * * *", refreshTicker);
+cron.schedule("0 */3 * * *",  polishShortArticles);
 
 /* ======================
    STATIC FRONTEND
