@@ -32,10 +32,13 @@ if (mongoUri && (mongoUri.startsWith("mongodb://") || mongoUri.startsWith("mongo
     .then(() => {
       console.log("MongoDB Connected");
       setTimeout(async () => {
+        await migrateSourceToAliss();
         await seedOriginalArticles();
         await seedGeneratedArticles();
         fetchHNNews();
         refreshTicker();
+        // Polish short articles after seeding is done
+        setTimeout(polishShortArticles, 30000);
       }, 5000);
     })
     .catch(err => console.error("MongoDB error:", err));
@@ -619,76 +622,192 @@ io.on("connection", socket => {
 });
 
 /* ======================
-   AUTO FETCH HN NEWS (HOURLY)
+   MIGRATE: SET ALL SOURCES TO "Aliss"
+====================== */
+
+async function migrateSourceToAliss() {
+  if (!isMongoReady()) return;
+  try {
+    const result = await Article.updateMany(
+      { source: { $ne: "Aliss" } },
+      { $set: { source: "Aliss" } }
+    );
+    if (result.modifiedCount > 0) console.log(`Migrated ${result.modifiedCount} articles to source=Aliss`);
+  } catch (e) {
+    console.error("Source migration failed:", e.message);
+  }
+}
+
+/* ======================
+   POLISH SHORT ARTICLES
+====================== */
+
+let polishing = false;
+async function polishShortArticles() {
+  if (polishing || !isMongoReady() || !ANTHROPIC_KEY) return;
+  polishing = true;
+
+  try {
+    // Find articles with no body, empty body, or body under 1500 chars
+    const candidates = await Article.find({
+      slug: { $nin: ["article-altman", "article-sutskever", "article-karpathy"] },
+      $or: [
+        { body: { $exists: false } },
+        { body: null },
+        { body: "" },
+        { $expr: { $lt: [{ $strLenCP: { $ifNull: ["$body", ""] } }, 1500] } }
+      ]
+    }).limit(8).lean();
+
+    if (!candidates.length) { polishing = false; return; }
+    console.log(`Polishing ${candidates.length} short/empty articles...`);
+
+    for (const article of candidates) {
+      try {
+        const topic = `${article.title}${article.summary ? ` — ${article.summary}` : ""}`;
+        const raw = await callClaude(
+          `You are a senior journalist at Aliss — the world's first fully AI-autonomous news network, self-generating and self-publishing breaking AI and software coverage 24/7. Every article you write is authoritative, specific, and long-form. No filler. No summaries masquerading as articles.`,
+          `Expand and fully rewrite this into a complete long-form Aliss article: ${topic}
+
+Return ONLY raw JSON:
+{
+  "title": "Sharp headline under 80 chars",
+  "subtitle": "One compelling deck sentence",
+  "summary": "2-3 sentence compelling card preview",
+  "category": "Profile OR Analysis OR Opinion OR Research OR Industry OR News",
+  "tags": ["tag1","tag2","tag3","tag4"],
+  "imagePrompt": "Vivid Stable Diffusion image prompt, specific and cinematic",
+  "body": "Full HTML article: <p class=\\"drop-cap\\"> for first paragraph, <h2> headers (5+), <div class=\\"pull-quote\\">quote<cite>— source</cite></div> pull quotes (2+). Minimum 1000 words. Be specific, factual, punchy."
+}`,
+          4000
+        );
+
+        const match = raw.match(/\{[\s\S]*\}/);
+        if (!match) continue;
+        const data = JSON.parse(match[0]);
+
+        await Article.updateOne(
+          { _id: article._id },
+          {
+            $set: {
+              title:       String(data.title    || article.title).trim(),
+              subtitle:    String(data.subtitle || "").trim(),
+              summary:     String(data.summary  || "").trim(),
+              body:        String(data.body     || "").trim(),
+              tags:        Array.isArray(data.tags) ? data.tags.map(String) : (article.tags || ["AI"]),
+              category:    String(data.category || article.category || "Analysis"),
+              source:      "Aliss",
+              imageUrl:    getImageUrl(data.imagePrompt || article.title, strHash(article.title)),
+              isGenerated: true,
+              isExternal:  false
+            }
+          }
+        );
+        console.log(`Polished: ${article.title.slice(0, 55)}`);
+        io.emit("articleUpdated", { id: article._id });
+        await new Promise(r => setTimeout(r, 5000));
+      } catch (e) {
+        console.error(`Polish failed "${article.title?.slice(0, 40)}":`, e.message);
+      }
+    }
+    console.log("Polish run complete.");
+  } catch (e) {
+    console.error("Polish error:", e.message);
+  }
+  polishing = false;
+}
+
+/* ======================
+   FETCH + WRITE AI NEWS FROM HN (HOURLY)
 ====================== */
 
 async function fetchHNNews() {
-  if (!isMongoReady()) return;
+  if (!isMongoReady() || !ANTHROPIC_KEY) return;
   console.log("Fetching AI news from Hacker News...");
   try {
     const { data } = await axios.get(
-      "https://hn.algolia.com/api/v1/search?query=artificial+intelligence+OR+LLM+OR+Claude+OR+OpenAI+OR+Anthropic+OR+Nvidia+OR+Gemini&tags=story&hitsPerPage=15",
+      "https://hn.algolia.com/api/v1/search?query=artificial+intelligence+OR+LLM+OR+Claude+OR+OpenAI+OR+Anthropic+OR+Nvidia+OR+Gemini+OR+DeepSeek&tags=story&hitsPerPage=20",
       { timeout: 20000 }
     );
     const hits = Array.isArray(data?.hits) ? data.hits : [];
-    let added = 0;
+
+    // Only take truly new stories (not already in DB)
+    const newHits = [];
     for (const item of hits) {
       const title = String(item.title || item.story_title || "").trim();
       if (!title) continue;
-      const summary = cleanSummary(item.story_text || item._highlightResult?.title?.value || "");
-      const doc = {
-        slug:        slugify(title),
-        title,
-        content:     item.url || item.story_url || "",
-        summary:     summary || "Latest AI news from Hacker News.",
-        tags:        ["AI", "News"],
-        category:    "News",
-        source:      "Hacker News",
-        imageUrl:    getImageUrl("AI technology news silicon valley computers dark blue abstract", strHash(title)),
-        isExternal:  true,
-        publishedAt: item.created_at_i ? new Date(item.created_at_i * 1000) : new Date()
-      };
-      const result = await Article.updateOne(
-        { title: doc.title, source: doc.source },
-        { $setOnInsert: doc },
-        { upsert: true }
-      );
-      if (result.upsertedCount > 0) {
-        added++;
-        const saved = await Article.findOne({ title: doc.title, source: doc.source }).lean();
-        if (saved) io.emit("newArticle", saved);
+      const exists = await Article.exists({ title });
+      if (!exists) newHits.push(item);
+      if (newHits.length >= 4) break; // Write up to 4 full articles per hour from real news
+    }
+
+    if (!newHits.length) { console.log("HN: no new stories"); return; }
+    console.log(`Writing ${newHits.length} full Aliss articles from HN...`);
+
+    for (const item of newHits) {
+      const title = String(item.title || item.story_title || "").trim();
+      const rawSummary = cleanSummary(item.story_text || item._highlightResult?.title?.value || "");
+      const sourceUrl = item.url || item.story_url || "";
+
+      try {
+        const topic = `Breaking: ${title}${rawSummary ? ` — ${rawSummary}` : ""}`;
+        const article = await generateArticleWithClaude(topic);
+        if (article) {
+          io.emit("newArticle", article);
+          console.log(`HN→Aliss: ${article.title?.slice(0, 55)}`);
+        }
+        await new Promise(r => setTimeout(r, 6000));
+      } catch (e) {
+        // If generation fails, store as a stub for later polishing
+        try {
+          const doc = {
+            slug:        slugify(title),
+            title,
+            content:     sourceUrl,
+            summary:     rawSummary || title,
+            tags:        ["AI", "News"],
+            category:    "News",
+            source:      "Aliss",
+            imageUrl:    getImageUrl("AI technology news breaking story dark cinematic", strHash(title)),
+            isExternal:  false,
+            isGenerated: false,
+            publishedAt: item.created_at_i ? new Date(item.created_at_i * 1000) : new Date()
+          };
+          await Article.updateOne({ title: doc.title }, { $setOnInsert: doc }, { upsert: true });
+        } catch {}
+        console.error(`HN article gen failed: ${e.message}`);
       }
     }
-    console.log(`HN fetch: ${added} new article(s)`);
   } catch (e) {
     console.error("HN fetch failed:", e?.message);
   }
 }
 
 /* ======================
-   AUTO GENERATE (EVERY 2H)
+   AUTO GENERATE NEW ARTICLES (EVERY 30 MIN)
 ====================== */
 
-let topicIndex = 4; // Start after seed topics
+let topicIndex = 4;
 async function autoGenerateArticle() {
   if (!isMongoReady() || !ANTHROPIC_KEY) return;
   const topic = AI_TOPICS[topicIndex % AI_TOPICS.length];
   topicIndex++;
-  console.log(`Auto-generating: ${topic.slice(0, 60)}...`);
+  console.log(`Auto-generating [${topicIndex}]: ${topic.slice(0, 55)}...`);
   try {
     const article = await generateArticleWithClaude(topic);
     if (article) {
       io.emit("newArticle", article);
-      console.log("Done:", article?.title?.slice(0, 60));
+      console.log("Published:", article?.title?.slice(0, 55));
     }
   } catch (e) {
     console.error("Auto-gen failed:", e.message);
   }
 }
 
-cron.schedule("0 * * * *",    fetchHNNews);
-cron.schedule("0 */2 * * *",  autoGenerateArticle);
-cron.schedule("*/30 * * * *", refreshTicker);
+cron.schedule("0 * * * *",    fetchHNNews);           // Real news every hour
+cron.schedule("*/30 * * * *", autoGenerateArticle);   // Original articles every 30 min
+cron.schedule("*/15 * * * *", refreshTicker);         // Witty ticker every 15 min
+cron.schedule("0 */3 * * *",  polishShortArticles);   // Polish short articles every 3h
 
 /* ======================
    STATIC FRONTEND
