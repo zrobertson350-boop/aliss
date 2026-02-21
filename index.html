@@ -570,6 +570,7 @@ Right now, we just focus on the research, and then the answer to the business qu
     <p class="article-subtitle" id="dynamicArticleSummary"></p>
     <p class="article-meta-bar" id="dynamicArticleMeta"></p>
   </section>
+  <div class="article-photo" id="dynamicArticleImage" style="display:none"></div>
   <div class="dynamic-article">
     <article class="article-body" id="dynamicArticleBody"></article>
     <p class="article-notice" id="dynamicArticleNotice"></p>
@@ -681,15 +682,36 @@ async function openDynamicArticle(slug,{replace=false}={}){
     const title=String(article?.title||'Untitled');
     const summary=String(article?.summary||'');
     const source=String(article?.source||'Aliss Editorial');
-    const tag=(Array.isArray(article?.tags)&&article.tags.length)?String(article.tags[0]):'Article';
-    const publishedAt=article?.publishedAt ? new Date(article.publishedAt).toLocaleDateString() : 'Recent';
+    const tag=String(article?.category||((Array.isArray(article?.tags)&&article.tags[0])||'Article'));
+    const publishedAt=article?.publishedAt ? new Date(article.publishedAt).toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}) : 'Recent';
 
     categoryEl.textContent=tag;
     titleEl.textContent=title;
-    summaryEl.textContent=summary;
+    summaryEl.textContent=String(article?.subtitle||summary);
     metaEl.innerHTML=`By <strong>${escapeHtml(source)}</strong> · ${escapeHtml(publishedAt)}`;
-    bodyEl.innerHTML=formatArticleBodyText(article?.content||summary);
-    noticeEl.textContent=article?.isExternal ? 'External source article.' : 'Original Aliss article.';
+
+    // Show hero image if available
+    const imageEl=document.getElementById('dynamicArticleImage');
+    if(imageEl){
+      if(article.imageUrl){
+        imageEl.innerHTML=`<figure><img src="${escapeHtml(article.imageUrl)}" alt="${escapeHtml(title)}" loading="lazy"><figcaption>${escapeHtml(title)}</figcaption></figure>`;
+        imageEl.style.display='block';
+      }else{
+        imageEl.innerHTML='';
+        imageEl.style.display='none';
+      }
+    }
+
+    // Render body: HTML for generated articles, plain text for others
+    if(article.body){
+      bodyEl.innerHTML=article.body;
+    }else if(article.isExternal&&article.content){
+      bodyEl.innerHTML=`<p>${escapeHtml(summary)}</p><p><a href="${escapeHtml(article.content)}" target="_blank" rel="noopener noreferrer" style="color:var(--accent);font-weight:600">Read full article &#8594;</a></p>`;
+    }else{
+      bodyEl.innerHTML=formatArticleBodyText(article?.content||summary);
+    }
+
+    noticeEl.textContent='';
   }catch{
     categoryEl.textContent='Article';
     titleEl.textContent='Article not found';
@@ -807,8 +829,11 @@ async function loadDynamicArticles(){
 
       const card=document.createElement('div');
       card.className='card';
+      const imgHtml=article.imageUrl
+        ?`<img src="${escapeHtml(article.imageUrl)}" alt="${title}" loading="lazy" style="width:100%;height:100%;object-fit:cover">`
+        :`<div class="card-img-inner ${gradient}"></div>`;
       card.innerHTML=`
-        <div class="card-img"><div class="card-img-inner ${gradient}"></div></div>
+        <div class="card-img">${imgHtml}</div>
         <div class="card-body">
           <div class="card-tag">${tag}</div>
           <h4>${title}</h4>
@@ -817,11 +842,11 @@ async function loadDynamicArticles(){
         </div>
       `;
 
-      const slug=String(article?.slug||'').trim();
-      if(slug){
-        card.addEventListener('click',()=>openDynamicArticle(slug));
-      }else if(article.isExternal&&article.content){
+      const slug=String(article?.slug||article?._id||'').trim();
+      if(article.isExternal&&article.content){
         card.addEventListener('click',()=>window.open(article.content,'_blank','noopener,noreferrer'));
+      }else if(slug){
+        card.addEventListener('click',()=>openDynamicArticle(slug));
       }
       grid.appendChild(card);
     });
