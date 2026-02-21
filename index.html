@@ -588,15 +588,42 @@ Right now, we just focus on the research, and then the answer to the business qu
 <button class="scroll-top" id="scrollTop" onclick="window.scrollTo({top:0,behavior:'smooth'})">&#8593;</button>
 
 <script>
-function navigate(pageId){
+function getPageFromUrl(){
+  const params=new URLSearchParams(window.location.search);
+  return params.get('page')||'home';
+}
+
+function renderPage(pageId,{scroll=true}={}){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   (document.getElementById('page-'+pageId)||document.getElementById('page-home')).classList.add('active');
   document.querySelectorAll('.main-nav a').forEach(a=>a.classList.remove('active'));
   const n=document.querySelector(`.main-nav a[data-nav="${pageId}"]`);
   if(n)n.classList.add('active');
   if(pageId.startsWith('article'))document.querySelector('.main-nav a[data-nav="profiles"]')?.classList.add('active');
-  window.scrollTo({top:0,behavior:'smooth'});
+  if(scroll) window.scrollTo({top:0,behavior:'smooth'});
 }
+
+function navigate(pageId,{replace=false}={}){
+  const url=new URL(window.location.href);
+  if(pageId==='home'){
+    url.searchParams.delete('page');
+  }else{
+    url.searchParams.set('page',pageId);
+  }
+
+  if(replace){
+    history.replaceState({pageId},'',url.toString());
+  }else{
+    history.pushState({pageId},'',url.toString());
+  }
+
+  renderPage(pageId);
+}
+
+renderPage(getPageFromUrl(),{scroll:false});
+navigate(getPageFromUrl(),{replace:true});
+window.addEventListener('popstate',()=>renderPage(getPageFromUrl(),{scroll:false}));
+
 window.addEventListener('scroll',()=>{document.getElementById('scrollTop').classList.toggle('visible',window.scrollY>400)});
 
 const signupForm=document.getElementById('signupForm');
