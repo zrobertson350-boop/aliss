@@ -21,7 +21,7 @@ const io = socketIo(server, {
 app.set("trust proxy", 1);
 app.use(cors());
 app.use(express.json());
-app.use(helmet());
+app.use(helmet({ contentSecurityPolicy: false }));
 
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
