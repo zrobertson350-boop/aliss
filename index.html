@@ -43,47 +43,32 @@ a{color:inherit;text-decoration:none}
 .search-clear{padding:0 12px;color:var(--muted);cursor:pointer;font-size:16px;border:none;background:none;display:none}
 .search-results-label{font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:20px}
 
-.featured-hero{margin-top:20px;margin-bottom:28px;cursor:pointer;position:relative;overflow:hidden;border-radius:4px;min-height:320px;display:flex;align-items:flex-end;transition:transform .4s cubic-bezier(.25,.46,.45,.94),box-shadow .4s}
-.featured-hero:hover{transform:translateY(-3px);box-shadow:0 20px 60px rgba(0,0,0,.2)}
-.featured-hero::before{content:'';position:absolute;inset:0;background:linear-gradient(0deg,rgba(0,0,0,.82) 0%,rgba(0,0,0,.3) 50%,transparent 100%);z-index:1;transition:opacity .4s}
-.featured-hero::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(192,57,43,.12) 0%,transparent 60%);z-index:1;pointer-events:none}
-.hero-bg-1{background:linear-gradient(135deg,#1a1a2e 0%,#16213e 40%,#0f3460 100%)}
-.featured-hero-content{position:relative;z-index:2;padding:28px 36px;max-width:640px;animation:fadeUp .7s ease-out}
-.featured-hero-content .tag-label{font-size:10px;letter-spacing:3px;text-transform:uppercase;font-weight:700;color:var(--accent);background:rgba(192,57,43,.15);padding:4px 12px;display:inline-block;margin-bottom:16px}
-.featured-hero-content h2{font-family:var(--serif);font-size:clamp(22px,3vw,34px);font-weight:900;line-height:1.15;color:#fff;margin-bottom:10px}
+/* Featured story — text only, no image */
+.featured-hero{margin-top:20px;margin-bottom:28px;cursor:pointer;background:var(--ink);border-radius:2px;padding:36px 44px;transition:background .25s;animation:fadeUp .6s ease-out}
+.featured-hero:hover{background:#1e1e1e}
+.hero-bg-1{}
+.featured-hero-content{}
+.featured-hero-content .tag-label{font-size:10px;letter-spacing:3px;text-transform:uppercase;font-weight:700;color:var(--accent);display:inline-block;margin-bottom:14px;border-bottom:2px solid var(--accent);padding-bottom:2px}
+.featured-hero-content h2{font-family:var(--serif);font-size:clamp(26px,3.5vw,42px);font-weight:900;line-height:1.1;color:#fff;margin-bottom:12px}
 .featured-hero-content h2 em{font-style:italic;color:#E8A87C}
-.featured-hero-content p{color:rgba(255,255,255,.72);font-size:16px;line-height:1.6;margin-bottom:18px;max-width:520px}
-.featured-hero-content .hero-meta-home{font-size:12px;color:rgba(255,255,255,.45)}
-.featured-hero-content .hero-meta-home strong{color:rgba(255,255,255,.7)}
+.featured-hero-content p{color:rgba(255,255,255,.65);font-size:16px;line-height:1.65;margin-bottom:16px;max-width:640px}
+.featured-hero-content .hero-meta-home{font-size:12px;color:rgba(255,255,255,.35)}
+.featured-hero-content .hero-meta-home strong{color:rgba(255,255,255,.6)}
 
 .section-header{display:flex;align-items:center;gap:16px;margin-bottom:14px}
 .section-header h3{font-family:var(--serif);font-size:22px;font-weight:700;white-space:nowrap}
 .section-header::after{content:'';flex:1;height:1px;background:var(--divider)}
 
-.cards-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:36px}
-
-/* Artistic card design: image-first, overlay text on hover */
-.card{background:var(--card-bg);border:0;border-radius:4px;overflow:hidden;cursor:pointer;transition:all .35s cubic-bezier(.25,.46,.45,.94);display:flex;flex-direction:column;box-shadow:0 2px 8px rgba(0,0,0,.06)}
-.card:hover{transform:translateY(-4px);box-shadow:0 16px 40px rgba(0,0,0,.14)}
-.card-img{height:160px;overflow:hidden;position:relative;flex-shrink:0}
-.card-img::after{content:'';position:absolute;inset:0;background:linear-gradient(0deg,rgba(0,0,0,.45) 0%,transparent 60%);z-index:1;transition:opacity .3s}
-.card:hover .card-img::after{opacity:.7}
-.card-img-inner{width:100%;height:100%;transition:transform .5s cubic-bezier(.25,.46,.45,.94);background-size:cover;background-position:center}
-.card:hover .card-img-inner{transform:scale(1.07)}
-.card-img img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .5s cubic-bezier(.25,.46,.45,.94)}
-.card:hover .card-img img{transform:scale(1.07)}
-.ci-1{background:linear-gradient(135deg,#0d1b2a,#1b4f72,#2e86ab)}
-.ci-2{background:linear-gradient(135deg,#1a0533,#6a0572,#d63af9)}
-.ci-3{background:linear-gradient(135deg,#0d0d0d,#7b2d00,#e05c00)}
-.ci-4{background:linear-gradient(135deg,#0a0f0a,#1a3a1a,#2d6a2d)}
-.ci-5{background:linear-gradient(135deg,#1a0d2e,#4a1fa8,#7b68ee)}
-.ci-6{background:linear-gradient(135deg,#1a1209,#5c3d11,#c8922a)}
-.card-body{padding:14px 16px 12px;flex:1;display:flex;flex-direction:column;border-top:3px solid transparent;transition:border-color .3s}
-.card:hover .card-body{border-top-color:var(--accent)}
-.card-tag{font-size:10px;letter-spacing:2px;text-transform:uppercase;font-weight:700;color:var(--accent);margin-bottom:6px}
-.card-body h4{font-family:var(--serif);font-size:15px;font-weight:700;line-height:1.25;margin-bottom:6px}
-.card-body p{font-size:12.5px;color:var(--muted);line-height:1.5;flex:1}
-.card-meta{font-size:11px;color:var(--muted-light);margin-top:10px;padding-top:8px;border-top:1px solid var(--divider)}
+/* Text-only grid — no images, pure editorial */
+.cards-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:0;margin-bottom:36px;border:1px solid var(--divider)}
+.card{background:var(--card-bg);border:0;border-right:1px solid var(--divider);border-bottom:1px solid var(--divider);cursor:pointer;transition:background .2s;display:flex;flex-direction:column}
+.card:hover{background:var(--cream)}
+.card-img{display:none}
+.card-body{padding:16px 18px 14px;flex:1;display:flex;flex-direction:column}
+.card-tag{font-size:9px;letter-spacing:2.5px;text-transform:uppercase;font-weight:700;color:var(--accent);margin-bottom:8px}
+.card-body h4{font-family:var(--serif);font-size:16px;font-weight:700;line-height:1.3;margin-bottom:8px;color:var(--ink)}
+.card-body p{font-size:13px;color:var(--muted);line-height:1.55;flex:1}
+.card-meta{font-size:11px;color:var(--muted-light);margin-top:12px;padding-top:10px;border-top:1px solid var(--divider)}
 
 .newsletter-banner{background:var(--ink);color:#fff;padding:28px 36px;display:flex;align-items:center;justify-content:space-between;gap:24px;margin-bottom:36px;border-radius:2px;position:relative;overflow:hidden}
 .newsletter-banner::before{content:'';position:absolute;top:-40%;right:-10%;width:400px;height:400px;background:radial-gradient(circle,rgba(192,57,43,.2) 0%,transparent 70%)}
@@ -107,10 +92,7 @@ a{color:inherit;text-decoration:none}
 .fact-item{text-align:center;padding:12px 12px;border-right:1px solid var(--divider)}.fact-item:last-child{border-right:none}
 .fact-label{font-size:10px;letter-spacing:2.5px;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:3px}
 .fact-value{font-family:var(--serif);font-size:17px;font-weight:700}
-.article-photo{max-width:860px;margin:0 auto 34px;padding:0 24px;animation:fadeUp .7s ease-out .18s both}
-.article-photo figure{margin:0}
-.article-photo img{width:100%;max-height:430px;object-fit:cover;border:1px solid var(--divider);border-radius:2px}
-.article-photo figcaption{font-size:12px;color:var(--muted);margin-top:8px;letter-spacing:.2px}
+.article-photo{display:none}
 .article-body{max-width:var(--content-w);margin:0 auto;padding:0 24px 48px;animation:fadeUp .7s ease-out .24s both}
 .article-body p{margin-bottom:14px}
 .article-body h2{font-family:var(--serif);font-size:24px;font-weight:700;margin:28px 0 10px;padding-top:18px;border-top:1px solid var(--divider)}
@@ -219,7 +201,7 @@ a{color:inherit;text-decoration:none}
 
 <div id="page-home" class="page active"><div class="container">
 
-<div class="featured-hero hero-bg-1" id="dynamicFeaturedHero" onclick="navigate('article-karpathy')" style="background-image:url('/assets/andrej-karpathy.jpg');background-size:cover;background-position:center top">
+<div class="featured-hero hero-bg-1" id="dynamicFeaturedHero" onclick="navigate('article-karpathy')">
 <div class="featured-hero-content">
 <div class="tag-label">Featured Profile</div>
 <h2>Andrej Karpathy: <em>The Teacher</em> Who Shaped Modern AI</h2>
@@ -736,17 +718,9 @@ async function openDynamicArticle(slug,{replace=false}={}){
     summaryEl.textContent=String(article?.subtitle||summary);
     metaEl.innerHTML=`By <strong>${escapeHtml(source)}</strong> · ${escapeHtml(publishedAt)}`;
 
-    // Show hero image if available
+    // No images — text only
     const imageEl=document.getElementById('dynamicArticleImage');
-    if(imageEl){
-      if(article.imageUrl){
-        imageEl.innerHTML=`<figure><img src="${escapeHtml(article.imageUrl)}" alt="${escapeHtml(title)}" loading="lazy"><figcaption>${escapeHtml(title)}</figcaption></figure>`;
-        imageEl.style.display='block';
-      }else{
-        imageEl.innerHTML='';
-        imageEl.style.display='none';
-      }
-    }
+    if(imageEl){ imageEl.innerHTML=''; imageEl.style.display='none'; }
 
     // Render body: HTML for generated articles, plain text for others
     if(article.body){
@@ -871,7 +845,7 @@ async function loadDynamicArticles(){
     if(featured) updateFeaturedHero(featured);
 
     grid.innerHTML='';
-    articles.slice(0,9).forEach((article,index)=>grid.appendChild(buildCard(article,index)));
+    articles.slice(0,24).forEach((article,index)=>grid.appendChild(buildCard(article,index)));
   }catch{}
 }
 
@@ -879,7 +853,7 @@ function updateFeaturedHero(article){
   const hero=document.getElementById('dynamicFeaturedHero');
   if(!hero) return;
   const slug=String(article.slug||article._id||'');
-  hero.style.cssText=article.imageUrl?`background-image:url(${article.imageUrl});background-size:cover;background-position:center`:'';
+  hero.style.cssText='';
   hero.onclick=()=>openDynamicArticle(slug);
   const tag=hero.querySelector('.tag-label');
   const h2=hero.querySelector('h2');
@@ -940,12 +914,9 @@ function buildCard(article,index){
   const tag=escapeHtml(article.category||(article.tags&&article.tags[0])||'News');
   const dateText=article.publishedAt?new Date(article.publishedAt).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):'Recent';
   const gradient=['ci-1','ci-2','ci-3','ci-4','ci-5','ci-6'][index%6];
-  const imgHtml=article.imageUrl
-    ?`<img src="${escapeHtml(article.imageUrl)}" alt="${title}" loading="lazy" onerror="this.parentNode.innerHTML='<div class=\\"card-img-inner ${gradient}\\" style=\\"width:100%;height:100%\\"></div>'">`
-    :`<div class="card-img-inner ${gradient}" style="width:100%;height:100%"></div>`;
   const card=document.createElement('div');
   card.className='card';
-  card.innerHTML=`<div class="card-img">${imgHtml}</div><div class="card-body"><div class="card-tag">${tag}</div><h4>${title}</h4><p>${summary}</p><div class="card-meta">${dateText} · ${source}</div></div>`;
+  card.innerHTML=`<div class="card-body"><div class="card-tag">${tag}</div><h4>${title}</h4><p>${summary}</p><div class="card-meta">${dateText} · ${source}</div></div>`;
   const slug=String(article?.slug||article?._id||'').trim();
   if(article.isExternal&&article.content){
     card.addEventListener('click',()=>window.open(article.content,'_blank','noopener,noreferrer'));
@@ -988,7 +959,7 @@ searchInput?.addEventListener('input',async function(){
       grid.innerHTML='<p style="color:var(--muted);padding:20px 0;grid-column:1/-1">No articles found.</p>';
       return;
     }
-    results.slice(0,9).forEach((a,i)=>grid.appendChild(buildCard(a,i)));
+    results.slice(0,24).forEach((a,i)=>grid.appendChild(buildCard(a,i)));
   },280);
 });
 
