@@ -51,6 +51,7 @@ const ArticleSchema = new mongoose.Schema({
   isExternal: { type: Boolean, default: false },
   publishedAt: { type: Date, default: Date.now }
 });
+ArticleSchema.index({ title: 1, source: 1 }, { unique: true });
 
 const UserSchema = new mongoose.Schema({
   email: { type: String, unique: true },
@@ -216,32 +217,77 @@ io.on("connection", socket => {
    AUTO FETCH AI NEWS
 ====================== */
 
-cron.schedule("0 * * * *", async () => {
-  console.log("Fetching AI news...");
+function isMongoReady() {
+  return mongoose.connection.readyState === 1;
+}
+
+function cleanSummary(value) {
+  if (!value) return "";
+  return String(value).replace(/\s+/g, " ").trim().slice(0, 260);
+}
+
+async function fetchAndPublishAINews() {
+  if (!isMongoReady()) {
+    console.log("Skipping AI news fetch: MongoDB is not connected yet");
+    return;
+  }
+
+  console.log("Fetching hourly AI news posts...");
 
   try {
-    const res = await axios.get(
-      "https://hn.algolia.com/api/v1/search?query=artificial%20intelligence"
+    const response = await axios.get(
+      "https://hn.algolia.com/api/v1/search?query=artificial%20intelligence%20OR%20LLM%20OR%20GPT&tags=story",
+      { timeout: 20000 }
     );
 
-    for (let item of res.data.hits.slice(0, 5)) {
-      const exists = await Article.findOne({ title: item.title });
-      if (!exists && item.title) {
-        const article = await Article.create({
-          title: item.title,
-          content: item.url,
-          source: "Hacker News",
-          isExternal: true
-        });
+    const hits = Array.isArray(response.data?.hits) ? response.data.hits : [];
+    const topHits = hits.slice(0, 10);
+    let insertedCount = 0;
 
-        io.emit("newArticle", article);
+    for (const item of topHits) {
+      const title = String(item.title || item.story_title || "").trim();
+      if (!title) continue;
+
+      const publishedAt = item.created_at_i
+        ? new Date(item.created_at_i * 1000)
+        : new Date();
+
+      const articleDoc = {
+        title,
+        content: item.url || item.story_url || "",
+        summary: cleanSummary(item.story_text || item.comment_text || item._highlightResult?.title?.value || "AI news update"),
+        tags: ["AI", "Auto"],
+        source: "Hacker News",
+        isExternal: true,
+        publishedAt
+      };
+
+      const result = await Article.updateOne(
+        { title: articleDoc.title, source: articleDoc.source },
+        { $setOnInsert: articleDoc },
+        { upsert: true }
+      );
+
+      if (result.upsertedCount > 0) {
+        insertedCount += 1;
+        const newArticle = await Article.findOne({ title: articleDoc.title, source: articleDoc.source });
+        if (newArticle) io.emit("newArticle", newArticle);
       }
     }
 
+    console.log(`AI hourly job completed: ${insertedCount} new post(s)`);
   } catch (err) {
-    console.error("Auto fetch failed");
+    console.error("Auto fetch failed", err?.message || err);
   }
+}
+
+cron.schedule("0 * * * *", async () => {
+  await fetchAndPublishAINews();
 });
+
+setTimeout(() => {
+  fetchAndPublishAINews();
+}, 8000);
 
 /* ======================
    STATIC FRONTEND

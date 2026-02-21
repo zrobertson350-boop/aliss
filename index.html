@@ -28,6 +28,11 @@ a{color:inherit;text-decoration:none}
 .page{display:none}.page.active{display:block}
 @keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
 
+.ticker{border-top:1px solid var(--divider);border-bottom:1px solid var(--divider);margin-top:12px;background:var(--cream);overflow:hidden}
+.ticker__track{display:inline-block;white-space:nowrap;padding:10px 0;font-family:var(--mono);font-size:12px;letter-spacing:.4px;color:var(--muted);animation:tickerScroll 34s linear infinite;min-width:100%}
+.ticker__item{margin-right:28px}
+@keyframes tickerScroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+
 .featured-hero{margin-top:48px;margin-bottom:56px;cursor:pointer;position:relative;overflow:hidden;border-radius:2px;min-height:420px;display:flex;align-items:flex-end;transition:transform .3s}
 .featured-hero:hover{transform:translateY(-2px)}
 .featured-hero::before{content:'';position:absolute;inset:0;background:linear-gradient(0deg,rgba(0,0,0,.75) 0%,rgba(0,0,0,.15) 60%,transparent 100%);z-index:1}
@@ -83,6 +88,10 @@ a{color:inherit;text-decoration:none}
 .fact-item{text-align:center;padding:20px 12px;border-right:1px solid var(--divider)}.fact-item:last-child{border-right:none}
 .fact-label{font-size:10px;letter-spacing:2.5px;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:3px}
 .fact-value{font-family:var(--serif);font-size:17px;font-weight:700}
+.article-photo{max-width:860px;margin:0 auto 34px;padding:0 24px;animation:fadeUp .7s ease-out .18s both}
+.article-photo figure{margin:0}
+.article-photo img{width:100%;max-height:430px;object-fit:cover;border:1px solid var(--divider);border-radius:2px}
+.article-photo figcaption{font-size:12px;color:var(--muted);margin-top:8px;letter-spacing:.2px}
 .article-body{max-width:var(--content-w);margin:0 auto;padding:0 24px 80px;animation:fadeUp .7s ease-out .24s both}
 .article-body p{margin-bottom:22px}
 .article-body h2{font-family:var(--serif);font-size:26px;font-weight:700;margin:44px 0 16px;padding-top:30px;border-top:1px solid var(--divider)}
@@ -161,6 +170,23 @@ a{color:inherit;text-decoration:none}
 <li><a href="#" data-nav="opinion" onclick="navigate('home');return false">Opinion</a></li>
 <li><a href="#" data-nav="about" onclick="navigate('about');return false">About</a></li>
 </ul></nav>
+
+<div class="ticker">
+  <div class="container">
+    <div class="ticker__track">
+      <span class="ticker__item">AI BREAKING: Frontier model evaluations tighten across labs</span>
+      <span class="ticker__item">MARKETS: AI infrastructure spending continues to accelerate</span>
+      <span class="ticker__item">RESEARCH: RLVR methods gain traction in production workflows</span>
+      <span class="ticker__item">POLICY: Global regulators debate model transparency standards</span>
+      <span class="ticker__item">STARTUPS: Vertical AI apps expand in healthcare and finance</span>
+      <span class="ticker__item">AI BREAKING: Frontier model evaluations tighten across labs</span>
+      <span class="ticker__item">MARKETS: AI infrastructure spending continues to accelerate</span>
+      <span class="ticker__item">RESEARCH: RLVR methods gain traction in production workflows</span>
+      <span class="ticker__item">POLICY: Global regulators debate model transparency standards</span>
+      <span class="ticker__item">STARTUPS: Vertical AI apps expand in healthcare and finance</span>
+    </div>
+  </div>
+</div>
 
 <div id="page-home" class="page active"><div class="container">
 
@@ -442,6 +468,13 @@ Right now, we just focus on the research, and then the answer to the business qu
 <div class="fact-item"><div class="fact-label">Nationality</div><div class="fact-value">Slovak</div></div>
 <div class="fact-item"><div class="fact-label">Known For</div><div class="fact-value">Deep Learning</div></div>
 <div class="fact-item"><div class="fact-label">Current</div><div class="fact-value">Eureka Labs</div></div>
+</div>
+
+<div class="article-photo">
+  <figure>
+    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/49/Andrej_Karpathy_TechCrunch_Disrupt_2024.jpg/1280px-Andrej_Karpathy_TechCrunch_Disrupt_2024.jpg" alt="Andrej Karpathy speaking at a conference" loading="lazy">
+    <figcaption>Andrej Karpathy at TechCrunch Disrupt 2024.</figcaption>
+  </figure>
 </div>
 
 <article class="article-body">
