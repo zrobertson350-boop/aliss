@@ -145,30 +145,51 @@ const TECH_PHOTOS = [
   "photo-1498050108023-c5249f4df085", // laptop code
 ];
 
-// Try to get a real relevant photo: Wikipedia first, Unsplash curated fallback
-async function getWebImageUrl(title, seed) {
+// Extract the primary person/entity name from an article title
+// "Dario Amodei and Anthropic: the safety..." → "Dario Amodei"
+// "Jensen Huang and Nvidia: ..." → "Jensen Huang"
+// "The China AI race: ..." → "The China AI race" (no person, will fail wiki, use fallback)
+function extractSubject(title) {
+  return String(title || "")
+    .split(/[:\-–|]/)[0]          // take text before colon
+    .split(/ and /i)[0]           // take text before " and "
+    .split(/ vs\.? /i)[0]         // take text before " vs "
+    .replace(/^(The|How|Why|What|Inside|Meet)\s+/i, "") // strip leading articles
+    .replace(/[^\w\s'.]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+// Fetch full-resolution Wikipedia portrait
+async function getWikipediaImage(name) {
+  if (!name || name.length < 3) return null;
   try {
-    // Extract subject before colon (e.g., "Sam Altman: ..." → "Sam Altman")
-    const subject = String(title || "")
-      .split(/[:\-–|]/)[0]
-      .replace(/[^\w\s]/g, " ")
-      .trim();
-    if (subject.length > 3) {
-      const url = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(subject.replace(/\s+/g, "_"))}`;
-      const res = await axios.get(url, {
-        timeout: 5000,
-        headers: { "User-Agent": "Aliss-News/1.0 (https://aliss-3a3o.onrender.com)" }
-      });
-      if (res.data?.thumbnail?.source) {
-        // Upgrade to larger image size
-        return res.data.thumbnail.source.replace(/\/\d+px-/, "/800px-");
-      }
+    const wikiName = name.replace(/\s+/g, "_");
+    const url = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(wikiName)}`;
+    const res = await axios.get(url, {
+      timeout: 6000,
+      headers: { "User-Agent": "Aliss-News/1.0 (https://aliss-3a3o.onrender.com)" }
+    });
+    // originalimage gives the full-resolution source file — always prefer it
+    if (res.data?.originalimage?.source) return res.data.originalimage.source;
+    // thumbnail fallback: scale up to 1200px wide for good quality
+    if (res.data?.thumbnail?.source) {
+      return res.data.thumbnail.source.replace(/\/\d+px-/, "/1200px-");
     }
   } catch {}
+  return null;
+}
+
+// Main image resolver: Wikipedia portrait → Unsplash curated tech photo
+async function getWebImageUrl(title, seed) {
+  const subject = extractSubject(title);
+  const wikiImg = await getWikipediaImage(subject);
+  if (wikiImg) return wikiImg;
+
   // Unsplash curated tech photo (deterministic by seed, no API key needed)
   const s = seed !== undefined ? Math.abs(seed) : strHash(String(title || ""));
   const photoId = TECH_PHOTOS[s % TECH_PHOTOS.length];
-  return `https://images.unsplash.com/${photoId}?w=800&h=450&fit=crop&auto=format`;
+  return `https://images.unsplash.com/${photoId}?w=1200&h=675&fit=crop&auto=format&q=85`;
 }
 
 /* ======================
@@ -830,13 +851,26 @@ async function migrateSourceToAliss() {
 async function migrateImages() {
   if (!isMongoReady()) return;
   try {
-    // Replace any Pollinations URLs with real Wikipedia/Picsum images
-    const articles = await Article.find({ imageUrl: /pollinations\.ai/i }).lean();
+    // Fix: Pollinations URLs, local /assets/ paths, picsum fallbacks, and low-res Wikipedia thumbnails
+    const articles = await Article.find({
+      $or: [
+        { imageUrl: /pollinations\.ai/i },
+        { imageUrl: /^\/assets\//i },
+        { imageUrl: /picsum\.photos/i },
+        { imageUrl: /\/\d+px-/ },  // low-res Wikipedia thumbnails (e.g. /320px-)
+      ]
+    }).lean();
+
+    let updated = 0;
     for (const a of articles) {
-      const newUrl = await getWebImageUrl(a.title || "", strHash(a.slug || a.title || String(a._id)));
-      await Article.updateOne({ _id: a._id }, { $set: { imageUrl: newUrl } });
+      try {
+        const newUrl = await getWebImageUrl(a.title || "", strHash(a.slug || a.title || String(a._id)));
+        await Article.updateOne({ _id: a._id }, { $set: { imageUrl: newUrl } });
+        updated++;
+        await new Promise(r => setTimeout(r, 300)); // gentle rate limiting for Wikipedia API
+      } catch {}
     }
-    if (articles.length > 0) console.log(`Migrated ${articles.length} Pollinations image URLs to web images`);
+    if (updated > 0) console.log(`Migrated ${updated} image URLs to full-resolution web images`);
   } catch (e) {
     console.error("Image migration failed:", e.message);
   }
