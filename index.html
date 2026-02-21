@@ -96,6 +96,9 @@ a{color:inherit;text-decoration:none}
 .article-body p{margin-bottom:22px}
 .article-body h2{font-family:var(--serif);font-size:26px;font-weight:700;margin:44px 0 16px;padding-top:30px;border-top:1px solid var(--divider)}
 .article-body h2::before{content:'';display:block;width:36px;height:3px;background:var(--accent);margin-bottom:12px}
+.dynamic-article{max-width:860px;margin:0 auto;padding:0 24px 80px}
+.dynamic-article .article-body{max-width:var(--content-w);padding:0}
+.article-notice{font-size:12px;color:var(--muted);margin-top:8px}
 .drop-cap::first-letter{float:left;font-family:var(--serif);font-size:68px;font-weight:900;line-height:.82;margin:4px 12px 0 0;color:var(--accent)}
 .pull-quote{margin:38px -20px;padding:26px 34px;border-left:4px solid var(--accent);background:var(--highlight);font-family:var(--serif);font-size:21px;font-style:italic;line-height:1.5;color:#333;position:relative}
 .pull-quote::before{content:'\201C';font-family:var(--serif);font-size:76px;color:var(--accent);opacity:.18;position:absolute;top:-8px;left:12px;line-height:1}
@@ -560,6 +563,19 @@ Right now, we just focus on the research, and then the answer to the business qu
 </div>
 </div>
 
+<div id="page-article" class="page">
+  <section class="article-hero">
+    <div class="article-category" id="dynamicArticleCategory">Article</div>
+    <h1 id="dynamicArticleTitle">Loading article...</h1>
+    <p class="article-subtitle" id="dynamicArticleSummary"></p>
+    <p class="article-meta-bar" id="dynamicArticleMeta"></p>
+  </section>
+  <div class="dynamic-article">
+    <article class="article-body" id="dynamicArticleBody"></article>
+    <p class="article-notice" id="dynamicArticleNotice"></p>
+  </div>
+</div>
+
 <footer class="site-footer"><div class="container">
 <div class="footer-grid">
 <div class="footer-brand"><span class="footer-logo"><span class="logo-accent">A</span>l<span class="logo-accent">i</span>ss</span><p>Independent, thoughtful coverage of artificial intelligence — the people, the research, and the ideas that matter.</p></div>
@@ -593,6 +609,11 @@ function getPageFromUrl(){
   return params.get('page')||'home';
 }
 
+function getSlugFromUrl(){
+  const params=new URLSearchParams(window.location.search);
+  return params.get('slug')||'';
+}
+
 function renderPage(pageId,{scroll=true}={}){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   (document.getElementById('page-'+pageId)||document.getElementById('page-home')).classList.add('active');
@@ -603,12 +624,18 @@ function renderPage(pageId,{scroll=true}={}){
   if(scroll) window.scrollTo({top:0,behavior:'smooth'});
 }
 
-function navigate(pageId,{replace=false}={}){
+function navigate(pageId,{replace=false,slug=''}={}){
   const url=new URL(window.location.href);
   if(pageId==='home'){
     url.searchParams.delete('page');
+    url.searchParams.delete('slug');
   }else{
     url.searchParams.set('page',pageId);
+    if(slug){
+      url.searchParams.set('slug',slug);
+    }else{
+      url.searchParams.delete('slug');
+    }
   }
 
   if(replace){
@@ -620,9 +647,74 @@ function navigate(pageId,{replace=false}={}){
   renderPage(pageId);
 }
 
-renderPage(getPageFromUrl(),{scroll:false});
-navigate(getPageFromUrl(),{replace:true});
-window.addEventListener('popstate',()=>renderPage(getPageFromUrl(),{scroll:false}));
+function formatArticleBodyText(content){
+  const text=String(content||'').trim();
+  if(!text) return '<p>No article body available yet.</p>';
+  return text
+    .split(/\n\s*\n/)
+    .map(paragraph=>`<p>${escapeHtml(paragraph)}</p>`)
+    .join('');
+}
+
+async function openDynamicArticle(slug,{replace=false}={}){
+  if(!slug) return;
+  navigate('article',{replace,slug});
+
+  const titleEl=document.getElementById('dynamicArticleTitle');
+  const summaryEl=document.getElementById('dynamicArticleSummary');
+  const metaEl=document.getElementById('dynamicArticleMeta');
+  const bodyEl=document.getElementById('dynamicArticleBody');
+  const categoryEl=document.getElementById('dynamicArticleCategory');
+  const noticeEl=document.getElementById('dynamicArticleNotice');
+
+  titleEl.textContent='Loading article...';
+  summaryEl.textContent='';
+  metaEl.textContent='';
+  bodyEl.innerHTML='';
+  noticeEl.textContent='';
+
+  try{
+    const response=await fetch(`/api/articles/${encodeURIComponent(slug)}`);
+    if(!response.ok) throw new Error('not found');
+    const article=await response.json();
+
+    const title=String(article?.title||'Untitled');
+    const summary=String(article?.summary||'');
+    const source=String(article?.source||'Aliss Editorial');
+    const tag=(Array.isArray(article?.tags)&&article.tags.length)?String(article.tags[0]):'Article';
+    const publishedAt=article?.publishedAt ? new Date(article.publishedAt).toLocaleDateString() : 'Recent';
+
+    categoryEl.textContent=tag;
+    titleEl.textContent=title;
+    summaryEl.textContent=summary;
+    metaEl.innerHTML=`By <strong>${escapeHtml(source)}</strong> · ${escapeHtml(publishedAt)}`;
+    bodyEl.innerHTML=formatArticleBodyText(article?.content||summary);
+    noticeEl.textContent=article?.isExternal ? 'External source article.' : 'Original Aliss article.';
+  }catch{
+    categoryEl.textContent='Article';
+    titleEl.textContent='Article not found';
+    summaryEl.textContent='This article may have moved or is unavailable.';
+    metaEl.textContent='';
+    bodyEl.innerHTML='<p>Please return home and select another article.</p>';
+    noticeEl.textContent='';
+  }
+}
+
+if(getPageFromUrl()==='article'&&getSlugFromUrl()){
+  openDynamicArticle(getSlugFromUrl(),{replace:true});
+}else{
+  renderPage(getPageFromUrl(),{scroll:false});
+  navigate(getPageFromUrl(),{replace:true});
+}
+window.addEventListener('popstate',()=>{
+  const page=getPageFromUrl();
+  const slug=getSlugFromUrl();
+  if(page==='article'&&slug){
+    openDynamicArticle(slug,{replace:true});
+  }else{
+    renderPage(page,{scroll:false});
+  }
+});
 
 window.addEventListener('scroll',()=>{document.getElementById('scrollTop').classList.toggle('visible',window.scrollY>400)});
 
@@ -725,7 +817,10 @@ async function loadDynamicArticles(){
         </div>
       `;
 
-      if(article.isExternal&&article.content){
+      const slug=String(article?.slug||'').trim();
+      if(slug){
+        card.addEventListener('click',()=>openDynamicArticle(slug));
+      }else if(article.isExternal&&article.content){
         card.addEventListener('click',()=>window.open(article.content,'_blank','noopener,noreferrer'));
       }
       grid.appendChild(card);

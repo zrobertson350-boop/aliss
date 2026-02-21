@@ -43,6 +43,7 @@ if (mongoUri && (mongoUri.startsWith("mongodb://") || mongoUri.startsWith("mongo
 ====================== */
 
 const ArticleSchema = new mongoose.Schema({
+  slug: { type: String, unique: true, sparse: true },
   title: { type: String, required: true },
   content: String,
   summary: String,
@@ -52,6 +53,7 @@ const ArticleSchema = new mongoose.Schema({
   publishedAt: { type: Date, default: Date.now }
 });
 ArticleSchema.index({ title: 1, source: 1 }, { unique: true });
+ArticleSchema.index({ slug: 1 }, { unique: true, sparse: true });
 
 const UserSchema = new mongoose.Schema({
   email: { type: String, unique: true },
@@ -67,6 +69,75 @@ const SignupSchema = new mongoose.Schema({
 const Article = mongoose.model("Article", ArticleSchema);
 const User = mongoose.model("User", UserSchema);
 const Signup = mongoose.model("Signup", SignupSchema);
+
+const ORIGINAL_ARTICLES = [
+  {
+    title: "The New AI Product Stack in 2026",
+    summary: "Why orchestration, retrieval, and evaluation layers are becoming the real moat in AI products.",
+    content: "The first AI wave rewarded model access. The second rewards product architecture. In 2026, the most durable teams are not simply wrapping a model endpoint—they are building resilient stacks with retrieval controls, evaluation loops, and domain workflows that improve with every user interaction. The practical lesson is clear: your moat is no longer just model quality, but the quality of your system design, feedback collection, and vertical-specific execution.",
+    tags: ["Industry", "Architecture"],
+    source: "Aliss Editorial",
+    isExternal: false
+  },
+  {
+    title: "Why LLM Evaluation Is Finally Going Production-Grade",
+    summary: "Benchmarks are useful, but real products now need task-level reliability and continuous eval pipelines.",
+    content: "Static benchmarks helped compare models, but production systems expose a different truth: reliability is contextual. Teams now run evaluation suites tied to their own tasks—customer support, research synthesis, legal drafting, and code generation—then gate releases with pass/fail thresholds. This shift turns evals from academic scorecards into operational controls. It also changes hiring: AI teams increasingly need evaluation engineers as much as prompt engineers.",
+    tags: ["Research", "LLMs"],
+    source: "Aliss Editorial",
+    isExternal: false
+  },
+  {
+    title: "AI Infrastructure Economics: The Margin Battle Has Begun",
+    summary: "As usage explodes, cost control and model routing decide who survives.",
+    content: "The unit economics of AI products are no longer theoretical. As request volumes increase, infrastructure decisions directly shape margins. Teams that route intelligently across model tiers, cache aggressively, and trim unnecessary context windows can cut serving costs dramatically without hurting user quality. In the coming year, infrastructure discipline—not hype—will separate sustainable businesses from expensive demos.",
+    tags: ["Analysis", "Infrastructure"],
+    source: "Aliss Editorial",
+    isExternal: false
+  },
+  {
+    title: "Multimodal Agents Are Real, but Narrowly Useful",
+    summary: "Agent systems are improving quickly when tasks are constrained and verifiable.",
+    content: "The broad promise of autonomous agents remains ahead of reality, but constrained agents are already useful. Workflows like structured data extraction, incident triage, and document-heavy QA now benefit from multimodal models that reason across text, tables, screenshots, and logs. The winning pattern is narrow scope plus explicit checks. When tasks are measurable, agent performance becomes tractable.",
+    tags: ["Opinion", "Agents"],
+    source: "Aliss Editorial",
+    isExternal: false
+  },
+  {
+    title: "Safety and Governance Moves From Policy to Product",
+    summary: "Governance is becoming embedded in release workflows, not just written in policy docs.",
+    content: "Safety has moved from high-level principle to implementation detail. Leading teams now attach policy checks to deployment pipelines, maintain model behavior audits, and track refusal quality alongside latency and cost. The result is pragmatic governance: testable controls instead of abstract commitments. For users, this means more consistent behavior and clearer boundaries in high-risk use cases.",
+    tags: ["Policy", "Safety"],
+    source: "Aliss Editorial",
+    isExternal: false
+  },
+  {
+    title: "Developer Platform Updates: The Rise of AI-Native Tooling",
+    summary: "The best developer platforms now treat AI as a first-class runtime, not a plugin.",
+    content: "Developer tooling is being rebuilt around AI primitives: structured prompts, eval suites, model routing, and observability for prompts and completions. The strongest platforms reduce cognitive load by giving teams versioned prompts, replayable test cases, and traceability across entire AI workflows. In short, we are watching the emergence of AI-native software engineering.",
+    tags: ["Developers", "Platforms"],
+    source: "Aliss Editorial",
+    isExternal: false
+  }
+];
+
+function slugify(value) {
+  return String(value || "")
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9\s-]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
+function buildOriginalArticles() {
+  return ORIGINAL_ARTICLES.map((article) => ({
+    ...article,
+    slug: slugify(article.title),
+    publishedAt: new Date()
+  }));
+}
 
 /* ======================
    AUTH MIDDLEWARE
@@ -146,10 +217,28 @@ app.post("/api/alice-chat", async (req, res) => {
   const message = String(req.body?.message || "").trim();
   if (!message) return res.status(400).json({ msg: "Message is required" });
 
+  let contextArticles = [];
+  try {
+    if (isMongoReady()) {
+      contextArticles = await Article.find()
+        .sort({ publishedAt: -1 })
+        .limit(6)
+        .lean();
+    }
+  } catch {}
+
+  if (!contextArticles.length) {
+    contextArticles = buildOriginalArticles().slice(0, 6);
+  }
+
+  const contextBlock = contextArticles
+    .map((article) => `- ${article.title}: ${String(article.summary || "").slice(0, 180)}`)
+    .join("\n");
+
   const claudeKey = process.env.CLAUDE_API_KEY;
   if (!claudeKey) {
     return res.json({
-      reply: "Alice is ready. Add CLAUDE_API_KEY in .env to enable live Claude responses."
+      reply: `Alice is connected to Aliss content but missing a Claude key. Recent context:\n${contextBlock}`
     });
   }
 
@@ -159,7 +248,7 @@ app.post("/api/alice-chat", async (req, res) => {
       {
         model: "claude-3-5-sonnet-latest",
         max_tokens: 500,
-        system: "You are Alice, an AI assistant for the Aliss AI news website. Be concise and helpful.",
+        system: `You are Alice, an AI assistant for the Aliss AI news website. Be concise, accurate, and editorial in tone. Use this recent site context when relevant:\n${contextBlock}`,
         messages: [{ role: "user", content: message }]
       },
       {
@@ -185,8 +274,38 @@ app.post("/api/alice-chat", async (req, res) => {
 
 // Get all articles
 app.get("/api/articles", async (req, res) => {
-  const articles = await Article.find().sort({ publishedAt: -1 });
-  res.json(articles);
+  try {
+    if (!isMongoReady()) {
+      return res.json(buildOriginalArticles());
+    }
+
+    const articles = await Article.find().sort({ publishedAt: -1 });
+    if (!articles.length) {
+      return res.json(buildOriginalArticles());
+    }
+    res.json(articles);
+  } catch {
+    res.json(buildOriginalArticles());
+  }
+});
+
+app.get("/api/articles/:slug", async (req, res) => {
+  const slug = String(req.params.slug || "").trim();
+  if (!slug) return res.status(400).json({ msg: "Slug is required" });
+
+  try {
+    if (isMongoReady()) {
+      const article = await Article.findOne({ slug }).lean();
+      if (article) return res.json(article);
+    }
+
+    const localArticle = buildOriginalArticles().find((article) => article.slug === slug);
+    if (localArticle) return res.json(localArticle);
+
+    return res.status(404).json({ msg: "Article not found" });
+  } catch {
+    return res.status(500).json({ msg: "Failed to load article" });
+  }
 });
 
 function generateAiHeadline(article) {
@@ -301,6 +420,7 @@ async function fetchAndPublishAINews() {
         : new Date();
 
       const articleDoc = {
+        slug: slugify(title),
         title,
         content: item.url || item.story_url || "",
         summary: cleanSummary(item.story_text || item.comment_text || item._highlightResult?.title?.value || "AI news update"),
@@ -329,11 +449,25 @@ async function fetchAndPublishAINews() {
   }
 }
 
+async function seedOriginalArticles() {
+  if (!isMongoReady()) return;
+
+  const originals = buildOriginalArticles();
+  for (const article of originals) {
+    await Article.updateOne(
+      { slug: article.slug },
+      { $setOnInsert: article },
+      { upsert: true }
+    );
+  }
+}
+
 cron.schedule("0 * * * *", async () => {
   await fetchAndPublishAINews();
 });
 
 setTimeout(() => {
+  seedOriginalArticles();
   fetchAndPublishAINews();
 }, 8000);
 
