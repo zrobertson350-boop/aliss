@@ -189,6 +189,54 @@ app.get("/api/articles", async (req, res) => {
   res.json(articles);
 });
 
+function generateAiHeadline(article) {
+  const title = String(article?.title || "").trim();
+  const source = String(article?.source || "AI Wire").trim();
+  if (!title) return "Live AI update: new developments are coming in.";
+
+  const compactTitle = title.length > 120 ? `${title.slice(0, 117)}...` : title;
+  const tag = Array.isArray(article?.tags) && article.tags.length ? String(article.tags[0]) : "AI";
+  return `Live updates of AI · ${tag}: ${compactTitle} (${source})`;
+}
+
+app.get("/api/live-updates", async (_req, res) => {
+  try {
+    if (!isMongoReady()) {
+      return res.json({
+        headlines: [
+          "Live updates of AI · models are evolving in real time.",
+          "Live updates of AI · frontier labs are shipping weekly improvements.",
+          "Live updates of AI · infrastructure and apps continue to scale."
+        ],
+        updatedAt: new Date().toISOString()
+      });
+    }
+
+    const latestArticles = await Article.find()
+      .sort({ publishedAt: -1 })
+      .limit(12)
+      .lean();
+
+    const headlines = latestArticles.length
+      ? latestArticles.map(generateAiHeadline)
+      : [
+          "Live updates of AI · no posts yet, first headlines are on the way.",
+          "Live updates of AI · monitoring the latest model and product news.",
+          "Live updates of AI · autonomous feed is warming up."
+        ];
+
+    res.json({
+      headlines,
+      updatedAt: new Date().toISOString()
+    });
+  } catch {
+    res.status(500).json({
+      headlines: ["Live updates of AI · feed temporarily unavailable."],
+      updatedAt: new Date().toISOString()
+    });
+  }
+});
+
 // Create article (admin only)
 app.post("/api/articles", auth, async (req, res) => {
   const article = new Article(req.body);

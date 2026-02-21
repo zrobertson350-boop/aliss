@@ -173,19 +173,13 @@ a{color:inherit;text-decoration:none}
 
 <div class="ticker">
   <div class="container">
-    <div class="ticker__track">
-      <span class="ticker__item">• developer platform updates</span>
-      <span class="ticker__item">• safety and governance</span>
-      <span class="ticker__item">• llm eval benchmarks</span>
-      <span class="ticker__item">• multimodal agents</span>
-      <span class="ticker__item">• ai infrastruvture economics</span>
-      <span class="ticker__item">• software architecture patterns</span>
-      <span class="ticker__item">• developer platform updates</span>
-      <span class="ticker__item">• safety and governance</span>
-      <span class="ticker__item">• llm eval benchmarks</span>
-      <span class="ticker__item">• multimodal agents</span>
-      <span class="ticker__item">• ai infrastruvture economics</span>
-      <span class="ticker__item">• software architecture patterns</span>
+    <div class="ticker__track" id="liveTickerTrack">
+      <span class="ticker__item">• live updates of ai</span>
+      <span class="ticker__item">• live updates of ai</span>
+      <span class="ticker__item">• live updates of ai</span>
+      <span class="ticker__item">• live updates of ai</span>
+      <span class="ticker__item">• live updates of ai</span>
+      <span class="ticker__item">• live updates of ai</span>
     </div>
   </div>
 </div>
@@ -713,6 +707,33 @@ async function loadDynamicArticles(){
 }
 
 loadDynamicArticles();
+
+function renderTickerItems(headlines){
+  const tickerTrack=document.getElementById('liveTickerTrack');
+  if(!tickerTrack) return;
+  const cleaned=(Array.isArray(headlines)?headlines:[])
+    .map(h=>String(h||'').trim())
+    .filter(Boolean)
+    .slice(0,8);
+  if(!cleaned.length) return;
+
+  const duplicated=[...cleaned,...cleaned];
+  tickerTrack.innerHTML=duplicated
+    .map(item=>`<span class="ticker__item">• ${escapeHtml(item)}</span>`)
+    .join('');
+}
+
+async function loadLiveTicker(){
+  try{
+    const response=await fetch('/api/live-updates');
+    if(!response.ok) return;
+    const data=await response.json();
+    renderTickerItems(data?.headlines||[]);
+  }catch{}
+}
+
+loadLiveTicker();
+setInterval(loadLiveTicker,180000);
 </script>
 </body>
 </html>
