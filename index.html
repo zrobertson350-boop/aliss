@@ -61,10 +61,26 @@ a{color:inherit;text-decoration:none}
 
 /* Text-only grid — no images, pure editorial */
 .cards-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:0;margin-bottom:36px;border:1px solid var(--divider)}
-.card{background:var(--card-bg);border:0;border-right:1px solid var(--divider);border-bottom:1px solid var(--divider);cursor:pointer;transition:background .2s;display:flex;flex-direction:column}
+.card{background:var(--card-bg);border:0;border-right:1px solid var(--divider);border-bottom:1px solid var(--divider);cursor:pointer;transition:background .2s;display:flex;flex-direction:column;overflow:hidden}
 .card:hover{background:var(--cream)}
 .card-img{display:none}
-.card-body{padding:16px 18px 14px;flex:1;display:flex;flex-direction:column}
+/* Generative art card headers */
+.card-visual{height:110px;position:relative;flex-shrink:0;overflow:hidden;transition:transform .55s cubic-bezier(.25,.46,.45,.94)}
+.card:hover .card-visual{transform:scale(1.06)}
+.card-art{position:absolute;inset:0;width:100%;height:100%}
+.card-visual-tag{position:absolute;bottom:9px;left:11px;font-size:9px;letter-spacing:2px;text-transform:uppercase;font-weight:700;color:rgba(255,255,255,.8);background:rgba(0,0,0,.45);padding:2px 8px;border-radius:2px;backdrop-filter:blur(4px)}
+/* Featured hero SVG art */
+.hero-art-svg{position:absolute;top:0;right:0;bottom:0;width:42%;pointer-events:none;overflow:visible}
+@keyframes heroRingPulse{0%,100%{opacity:.07}50%{opacity:.18}}
+@keyframes heroDotFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+.hero-ring{animation:heroRingPulse 6s ease-in-out infinite}
+.hero-ring2{animation:heroRingPulse 6s ease-in-out infinite;animation-delay:-3s}
+.hero-ring3{animation:heroRingPulse 5s ease-in-out infinite;animation-delay:-1.5s}
+.hero-dot{animation:heroDotFloat 4s ease-in-out infinite}
+.hero-dot2{animation:heroDotFloat 4s ease-in-out infinite;animation-delay:-2s}
+/* Article category accent bar */
+.article-cat-bar{height:4px;max-width:1000px;margin:0 auto;border-radius:0 0 4px 4px;transition:background .3s}
+.card-body{padding:14px 16px 12px;flex:1;display:flex;flex-direction:column}
 .card-tag{font-size:9px;letter-spacing:2.5px;text-transform:uppercase;font-weight:700;color:var(--accent);margin-bottom:8px}
 .card-body h4{font-family:var(--serif);font-size:16px;font-weight:700;line-height:1.3;margin-bottom:8px;color:var(--ink)}
 .card-body p{font-size:13px;color:var(--muted);line-height:1.55;flex:1}
@@ -202,6 +218,16 @@ a{color:inherit;text-decoration:none}
 <div id="page-home" class="page active"><div class="container">
 
 <div class="featured-hero hero-bg-1" id="dynamicFeaturedHero" onclick="navigate('article-karpathy')">
+<svg class="hero-art-svg" viewBox="0 0 400 200" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+  <circle class="hero-ring" cx="300" cy="100" r="140" fill="none" stroke="rgba(255,255,255,.15)" stroke-width="1"/>
+  <circle class="hero-ring2" cx="300" cy="100" r="95" fill="none" stroke="rgba(192,57,43,.25)" stroke-width="1"/>
+  <circle class="hero-ring3" cx="300" cy="100" r="50" fill="rgba(255,255,255,.04)"/>
+  <line x1="160" y1="220" x2="420" y2="-20" stroke="rgba(255,255,255,.03)" stroke-width="70"/>
+  <circle class="hero-dot" cx="210" cy="38" r="3.5" fill="rgba(255,255,255,.25)"/>
+  <circle class="hero-dot2" cx="385" cy="155" r="5" fill="rgba(192,57,43,.35)"/>
+  <circle cx="358" cy="52" r="2" fill="rgba(255,255,255,.18)"/>
+  <circle cx="240" cy="165" r="2.5" fill="rgba(255,255,255,.12)"/>
+</svg>
 <div class="featured-hero-content">
 <div class="tag-label">Featured Profile</div>
 <h2>Andrej Karpathy: <em>The Teacher</em> Who Shaped Modern AI</h2>
@@ -583,6 +609,7 @@ Right now, we just focus on the research, and then the answer to the business qu
     <p class="article-subtitle" id="dynamicArticleSummary"></p>
     <p class="article-meta-bar" id="dynamicArticleMeta"></p>
   </section>
+  <div class="article-cat-bar" id="articleCatBar"></div>
   <div class="article-photo" id="dynamicArticleImage" style="display:none"></div>
   <div class="dynamic-article">
     <article class="article-body" id="dynamicArticleBody"></article>
@@ -718,6 +745,14 @@ async function openDynamicArticle(slug,{replace=false}={}){
     summaryEl.textContent=String(article?.subtitle||summary);
     metaEl.innerHTML=`By <strong>${escapeHtml(source)}</strong> · ${escapeHtml(publishedAt)}`;
 
+    // Category accent bar
+    const catBar=document.getElementById('articleCatBar');
+    if(catBar){
+      const CAT_COLORS={'Profile':'#302b63','Analysis':'#2c5364','Research':'#0f3460','Industry':'#177245','Opinion':'#c0392b','News':'#2c3e50'};
+      const c=CAT_COLORS[tag]||'#2c3e50';
+      catBar.style.background=`linear-gradient(90deg,${c} 0%,rgba(0,0,0,0) 100%)`;
+    }
+
     // No images — text only
     const imageEl=document.getElementById('dynamicArticleImage');
     if(imageEl){ imageEl.innerHTML=''; imageEl.style.display='none'; }
@@ -841,7 +876,7 @@ async function loadDynamicArticles(){
     allArticlesCache=articles;
 
     // Update featured hero with the first generated article that has an image
-    const featured=articles.find(a=>a.isGenerated&&a.imageUrl&&!STATIC_ARTICLE_PAGES.includes(a.slug));
+    const featured=articles.find(a=>a.isGenerated&&!STATIC_ARTICLE_PAGES.includes(a.slug));
     if(featured) updateFeaturedHero(featured);
 
     grid.innerHTML='';
@@ -849,12 +884,22 @@ async function loadDynamicArticles(){
   }catch{}
 }
 
+const HERO_GRADIENTS={
+  'Profile': 'linear-gradient(135deg,#0f0c29 0%,#302b63 50%,#24243e 100%)',
+  'Analysis':'linear-gradient(135deg,#0f2027 0%,#203a43 50%,#2c5364 100%)',
+  'Research':'linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%)',
+  'Industry':'linear-gradient(135deg,#134e5e 0%,#1d4350 50%,#1a1a1a 100%)',
+  'Opinion': 'linear-gradient(135deg,#3d0000 0%,#870000 50%,#141414 100%)',
+  'News':    'linear-gradient(135deg,#141414 0%,#1c2833 50%,#2c3e50 100%)',
+};
+
 function updateFeaturedHero(article){
   const hero=document.getElementById('dynamicFeaturedHero');
   if(!hero) return;
   const slug=String(article.slug||article._id||'');
-  hero.style.cssText='';
   hero.onclick=()=>openDynamicArticle(slug);
+  // Apply category gradient
+  hero.style.background=HERO_GRADIENTS[article.category]||HERO_GRADIENTS['News'];
   const tag=hero.querySelector('.tag-label');
   const h2=hero.querySelector('h2');
   const p=hero.querySelector('p');
@@ -913,10 +958,41 @@ function buildCard(article,index){
   const source=escapeHtml(article.source||'Aliss');
   const tag=escapeHtml(article.category||(article.tags&&article.tags[0])||'News');
   const dateText=article.publishedAt?new Date(article.publishedAt).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):'Recent';
-  const gradient=['ci-1','ci-2','ci-3','ci-4','ci-5','ci-6'][index%6];
+
+  // Category-matched gradient palettes for generative art headers
+  const PALETTES={
+    'Profile': [['#0f0c29','#302b63','#6e5bbc'],['#1a0533','#412683','#7b4fd4']],
+    'Analysis':[['#0f2027','#203a43','#2c7873'],['#0a1628','#1e3a5f','#4a90a4']],
+    'Research':[['#1a1a2e','#16213e','#533483'],['#0d1b2a','#1b3a5c','#415a77']],
+    'Industry':[['#0d2c2c','#1d4350','#56ab91'],['#134e5e','#177245','#71b280']],
+    'Opinion': [['#3d0000','#870000','#c0392b'],['#4a0000','#8b0000','#e74c3c']],
+    'News':    [['#141414','#1c2833','#2c3e50'],['#0a0a0a','#212f3c','#34495e']],
+  };
+  const cat=article.category||'News';
+  const palettes=PALETTES[cat]||PALETTES['News'];
+  const p=palettes[index%palettes.length];
+  const angle=((index*67)+120)%360;
+  const r1=80+(index*19%50); const r2=38+(index*13%28);
+  const cx1=180+(index*41%100); const cy1=70+(index*23%50);
+
   const card=document.createElement('div');
   card.className='card';
-  card.innerHTML=`<div class="card-body"><div class="card-tag">${tag}</div><h4>${title}</h4><p>${summary}</p><div class="card-meta">${dateText} · ${source}</div></div>`;
+  card.innerHTML=`
+    <div class="card-visual" style="background:linear-gradient(${angle}deg,${p[0]} 0%,${p[1]} 55%,${p[2]} 100%)">
+      <svg class="card-art" viewBox="0 0 300 110" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="${cx1}" cy="${cy1}" r="${r1}" fill="rgba(255,255,255,0.055)"/>
+        <circle cx="${300-cx1*.5}" cy="${110-cy1*.5}" r="${r2}" fill="rgba(255,255,255,0.08)"/>
+        <line x1="0" y1="110" x2="300" y2="15" stroke="rgba(255,255,255,0.025)" stroke-width="55"/>
+        <circle cx="${cx1*.3}" cy="${cy1*.4}" r="${Math.round(r2*.45)}" fill="rgba(255,255,255,0.06)"/>
+      </svg>
+      <div class="card-visual-tag">${tag}</div>
+    </div>
+    <div class="card-body">
+      <h4>${title}</h4>
+      <p>${summary}</p>
+      <div class="card-meta">${dateText} · ${source}</div>
+    </div>`;
+
   const slug=String(article?.slug||article?._id||'').trim();
   if(article.isExternal&&article.content){
     card.addEventListener('click',()=>window.open(article.content,'_blank','noopener,noreferrer'));
