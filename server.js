@@ -25,6 +25,7 @@ const limiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 200 });
 app.use(limiter);
 
 const ANTHROPIC_KEY = process.env.ANTHROPIC_API_KEY || process.env.CLAUDE_API_KEY;
+console.log("Anthropic key:", ANTHROPIC_KEY ? `set (${ANTHROPIC_KEY.slice(0,12)}...)` : "MISSING");
 
 const mongoUri = process.env.MONGO_URI;
 if (mongoUri && (mongoUri.startsWith("mongodb://") || mongoUri.startsWith("mongodb+srv://"))) {
@@ -33,12 +34,11 @@ if (mongoUri && (mongoUri.startsWith("mongodb://") || mongoUri.startsWith("mongo
       console.log("MongoDB Connected");
       setTimeout(async () => {
         await migrateSourceToAliss();
-        await migrateImages();
-        await seedOriginalArticles();
-        await seedGeneratedArticles();
+        await seedOriginalArticles();  // seed first so migration has articles to fix
+        await migrateImages();          // then fix all image URLs
+        seedGeneratedArticles();        // run bulk seed in background (no await)
         fetchHNNews();
         refreshTicker();
-        // Polish short articles after seeding is done
         setTimeout(polishShortArticles, 30000);
       }, 5000);
     })
@@ -485,53 +485,65 @@ const ORIGINAL_ARTICLES = [
 async function seedOriginalArticles() {
   if (!isMongoReady()) return;
   for (const article of ORIGINAL_ARTICLES) {
+    // Fetch proper Wikipedia image for each profile
+    const imageUrl = await getWebImageUrl(article.title, strHash(article.slug));
+    console.log(`Profile image for "${article.slug}": ${imageUrl.slice(0, 80)}`);
     await Article.updateOne(
       { slug: article.slug },
-      { $setOnInsert: { ...article, publishedAt: new Date() } },
+      {
+        $setOnInsert: { ...article, publishedAt: new Date() },
+        $set: { imageUrl }   // always update imageUrl on every deploy
+      },
       { upsert: true }
     );
   }
-  console.log("Profile articles seeded.");
+  console.log("Profile articles seeded with Wikipedia images.");
 }
 
 let seeding = false;
 
 // Seed up to 100 articles from AI_TOPICS on first boot
 async function seedGeneratedArticles() {
-  if (seeding || !isMongoReady() || !ANTHROPIC_KEY) return;
+  if (seeding) { console.log("Seed already running, skipping."); return; }
+  if (!isMongoReady()) { console.log("Seed skipped: DB not ready"); return; }
+  if (!ANTHROPIC_KEY) { console.log("Seed skipped: no ANTHROPIC_API_KEY"); return; }
+
   const count = await Article.countDocuments({ isGenerated: true });
-  if (count >= AI_TOPICS.length) return;
+  console.log(`Seed check: ${count} generated articles exist, target ${AI_TOPICS.length}`);
+  if (count >= AI_TOPICS.length) { console.log("All topics already written."); return; }
 
   seeding = true;
-  console.log(`Seeding generated articles (have ${count}, target ${AI_TOPICS.length})...`);
 
   // Find topics not yet written
   const existingTitles = new Set(
     (await Article.find({ isGenerated: true }).select("title").lean()).map(a => a.title.toLowerCase())
   );
-
   const pending = AI_TOPICS.filter(t => {
-    // Check if a similar title exists (rough match on first 40 chars)
-    const key = t.toLowerCase().slice(0, 40);
-    return ![...existingTitles].some(e => e.includes(key.slice(0, 20)));
+    const key = t.toLowerCase().slice(0, 20);
+    return ![...existingTitles].some(e => e.includes(key));
   });
 
-  for (const topic of pending) {
-    try {
-      // Pass recent titles so the writer can cross-reference
-      const recentTitles = (await Article.find({ isGenerated: true })
-        .sort({ publishedAt: -1 }).limit(10).select("title").lean()).map(a => a.title);
-      const article = await generateArticleWithClaude(topic, recentTitles);
-      console.log(`Seeded: ${article?.title?.slice(0, 60)}`);
-      io.emit("newArticle", article);
-      await new Promise(r => setTimeout(r, 4000)); // space out Claude calls
-    } catch (e) {
-      console.error(`Seed failed: ${e.message}`);
-      await new Promise(r => setTimeout(r, 2000));
+  console.log(`Seeding ${pending.length} pending articles...`);
+  try {
+    for (const topic of pending) {
+      try {
+        const recentTitles = (await Article.find({ isGenerated: true })
+          .sort({ publishedAt: -1 }).limit(10).select("title").lean()).map(a => a.title);
+        const article = await generateArticleWithClaude(topic, recentTitles);
+        if (article) {
+          console.log(`✓ Seeded: ${article.title?.slice(0, 60)}`);
+          io.emit("newArticle", article);
+        }
+        await new Promise(r => setTimeout(r, 3000));
+      } catch (e) {
+        console.error(`✗ Seed failed "${topic.slice(0,40)}": ${e.message}`);
+        await new Promise(r => setTimeout(r, 2000));
+      }
     }
+  } finally {
+    seeding = false;
+    console.log("Seeding complete.");
   }
-  seeding = false;
-  console.log("Seeding complete.");
 }
 
 /* ======================
@@ -682,6 +694,29 @@ app.get("/api/seed-status", async (req, res) => {
 app.post("/api/seed-now", (req, res) => {
   res.json({ msg: "Seeding started in background", target: AI_TOPICS.length });
   seedGeneratedArticles().catch(e => console.error("Seed-now failed:", e.message));
+});
+
+// Force re-fetch Wikipedia images for ALL articles in DB
+app.post("/api/fix-images", async (req, res) => {
+  if (!isMongoReady()) return res.status(503).json({ msg: "DB not ready" });
+  res.json({ msg: "Image fix started in background" });
+  try {
+    const articles = await Article.find({}).select("title slug _id imageUrl").lean();
+    let fixed = 0;
+    for (const a of articles) {
+      try {
+        const newUrl = await getWebImageUrl(a.title || "", strHash(a.slug || String(a._id)));
+        if (newUrl !== a.imageUrl) {
+          await Article.updateOne({ _id: a._id }, { $set: { imageUrl: newUrl } });
+          fixed++;
+        }
+        await new Promise(r => setTimeout(r, 400));
+      } catch {}
+    }
+    console.log(`fix-images: updated ${fixed}/${articles.length} image URLs`);
+  } catch (e) {
+    console.error("fix-images failed:", e.message);
+  }
 });
 
 // Trigger one immediate article generation
