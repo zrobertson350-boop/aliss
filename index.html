@@ -1,552 +1,683 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Aliss — Artificial Intelligence + Software Newsletter</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;600&display=swap"
-      rel="stylesheet"
-    />
-    <style>
-      :root {
-        --color-bg: #0b0f0b;
-        --color-surface: #121812;
-        --color-surface-2: #161f16;
-        --color-border: #293329;
-        --color-text: #eaf0e8;
-        --color-muted: #94a094;
-        --color-accent: #c4f042;
-        --color-accent-ink: #162000;
-        --space-1: 0.5rem;
-        --space-2: 0.75rem;
-        --space-3: 1rem;
-        --space-4: 1.5rem;
-        --space-5: 2rem;
-        --space-6: 3rem;
-        --radius: 14px;
-        --container: 1120px;
-      }
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aliss Editorial — AI News, Profiles & Analysis</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Source+Sans+3:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#141414;--paper:#FAFAF7;--cream:#F5F3EE;--accent:#C0392B;--accent-hover:#A93226;--muted:#7A7A72;--muted-light:#A8A8A0;--divider:#DDD9D0;--highlight:#FDF2E9;--tag-bg:#EEEDEA;--card-bg:#FFF;--serif:'Playfair Display',Georgia,serif;--sans:'Source Sans 3','Segoe UI',sans-serif;--mono:'JetBrains Mono',monospace;--max-w:1140px;--content-w:720px}
+*{margin:0;padding:0;box-sizing:border-box}html{scroll-behavior:smooth}
+body{background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:17px;line-height:1.75;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+.container{max-width:var(--max-w);margin:0 auto;padding:0 28px}
+.topbar{background:var(--ink);color:#ccc;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;padding:7px 0}
+.topbar .container{display:flex;justify-content:space-between;align-items:center}
+.topbar a{color:#ccc;transition:color .2s}.topbar a:hover{color:#fff}
+.topbar-right{display:flex;gap:18px}
+.masthead{text-align:center;padding:32px 20px 0}
+.masthead-logo{font-family:var(--serif);font-weight:900;font-size:clamp(34px,5vw,48px);letter-spacing:8px;text-transform:uppercase;color:var(--ink);display:inline-block;cursor:pointer}
+.logo-accent{color:var(--accent)}
+.masthead-tagline{font-size:12px;letter-spacing:4px;text-transform:uppercase;color:var(--muted);margin-top:2px;font-weight:500}
+.main-nav{border-top:1px solid var(--divider);border-bottom:3px double var(--divider);margin-top:20px;overflow-x:auto}
+.main-nav ul{list-style:none;display:flex;justify-content:center}
+.main-nav li a{display:block;padding:13px 24px;font-size:12px;letter-spacing:2.5px;text-transform:uppercase;font-weight:600;color:var(--muted);transition:all .25s;position:relative}
+.main-nav li a::after{content:'';position:absolute;bottom:0;left:50%;width:0;height:2px;background:var(--accent);transition:all .25s;transform:translateX(-50%)}
+.main-nav li a:hover{color:var(--ink)}.main-nav li a:hover::after{width:60%}
+.main-nav li a.active{color:var(--accent)}.main-nav li a.active::after{width:60%}
+.page{display:none}.page.active{display:block}
+@keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
 
-      * {
-        box-sizing: border-box;
-      }
+.featured-hero{margin-top:48px;margin-bottom:56px;cursor:pointer;position:relative;overflow:hidden;border-radius:2px;min-height:420px;display:flex;align-items:flex-end;transition:transform .3s}
+.featured-hero:hover{transform:translateY(-2px)}
+.featured-hero::before{content:'';position:absolute;inset:0;background:linear-gradient(0deg,rgba(0,0,0,.75) 0%,rgba(0,0,0,.15) 60%,transparent 100%);z-index:1}
+.hero-bg-1{background:linear-gradient(135deg,#1a1a2e 0%,#16213e 40%,#0f3460 100%)}
+.featured-hero-content{position:relative;z-index:2;padding:48px;max-width:640px;animation:fadeUp .7s ease-out}
+.featured-hero-content .tag-label{font-size:10px;letter-spacing:3px;text-transform:uppercase;font-weight:700;color:var(--accent);background:rgba(192,57,43,.15);padding:4px 12px;display:inline-block;margin-bottom:16px}
+.featured-hero-content h2{font-family:var(--serif);font-size:clamp(28px,4vw,42px);font-weight:900;line-height:1.15;color:#fff;margin-bottom:14px}
+.featured-hero-content h2 em{font-style:italic;color:#E8A87C}
+.featured-hero-content p{color:rgba(255,255,255,.72);font-size:16px;line-height:1.6;margin-bottom:18px;max-width:520px}
+.featured-hero-content .hero-meta-home{font-size:12px;color:rgba(255,255,255,.45)}
+.featured-hero-content .hero-meta-home strong{color:rgba(255,255,255,.7)}
 
-      html,
-      body {
-        margin: 0;
-        background: var(--color-bg);
-        color: var(--color-text);
-      }
+.section-header{display:flex;align-items:center;gap:16px;margin-bottom:28px}
+.section-header h3{font-family:var(--serif);font-size:22px;font-weight:700;white-space:nowrap}
+.section-header::after{content:'';flex:1;height:1px;background:var(--divider)}
 
-      body {
-        font-family: 'DM Sans', system-ui, sans-serif;
-        line-height: 1.6;
-      }
+.cards-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:28px;margin-bottom:64px}
+.card{background:var(--card-bg);border:1px solid var(--divider);border-radius:2px;overflow:hidden;cursor:pointer;transition:all .3s;display:flex;flex-direction:column}
+.card:hover{transform:translateY(-3px);box-shadow:0 12px 32px rgba(0,0,0,.08)}
+.card-img{height:180px;overflow:hidden}.card-img-inner{width:100%;height:100%;transition:transform .4s}
+.card:hover .card-img-inner{transform:scale(1.04)}
+.ci-1{background:linear-gradient(135deg,#1a1a2e,#0f3460)}
+.ci-2{background:linear-gradient(135deg,#2C3E50,#3498DB,#1ABC9C)}
+.ci-3{background:linear-gradient(135deg,#4a1942,#c74b50)}
+.ci-4{background:linear-gradient(135deg,#E74C3C,#F39C12)}
+.ci-5{background:linear-gradient(135deg,#2d6a4f,#52b788)}
+.ci-6{background:linear-gradient(135deg,#34495e,#2c3e50)}
+.card-body{padding:22px 22px 20px;flex:1;display:flex;flex-direction:column}
+.card-tag{font-size:10px;letter-spacing:2px;text-transform:uppercase;font-weight:700;color:var(--accent);margin-bottom:8px}
+.card-body h4{font-family:var(--serif);font-size:18px;font-weight:700;line-height:1.3;margin-bottom:10px}
+.card-body p{font-size:14px;color:var(--muted);line-height:1.55;flex:1}
+.card-meta{font-size:11px;color:var(--muted-light);margin-top:14px;padding-top:12px;border-top:1px solid var(--divider)}
 
-      a {
-        color: inherit;
-        text-decoration: none;
-      }
+.newsletter-banner{background:var(--ink);color:#fff;padding:48px;display:flex;align-items:center;justify-content:space-between;gap:32px;margin-bottom:64px;border-radius:2px;position:relative;overflow:hidden}
+.newsletter-banner::before{content:'';position:absolute;top:-40%;right:-10%;width:400px;height:400px;background:radial-gradient(circle,rgba(192,57,43,.2) 0%,transparent 70%)}
+.newsletter-text{position:relative;z-index:1}.newsletter-text h3{font-family:var(--serif);font-size:24px;font-weight:700;margin-bottom:6px}
+.newsletter-text p{color:rgba(255,255,255,.6);font-size:15px}
+.newsletter-form{display:flex;gap:10px;position:relative;z-index:1;flex-shrink:0}
+.newsletter-form input{padding:12px 18px;font-size:14px;font-family:var(--sans);border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.08);color:#fff;width:260px;border-radius:2px;outline:none}
+.newsletter-form input::placeholder{color:rgba(255,255,255,.35)}
+.newsletter-form input:focus{border-color:var(--accent)}
+.newsletter-form button{padding:12px 28px;font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase;font-family:var(--sans);background:var(--accent);color:#fff;border:none;border-radius:2px;cursor:pointer;transition:background .2s}
+.newsletter-form button:hover{background:var(--accent-hover)}
+.signup-status{font-size:12px;color:rgba(255,255,255,.78);margin-top:8px;position:relative;z-index:1;min-height:20px}
 
-      .page {
-        width: min(var(--container), 92vw);
-        margin: 0 auto;
-      }
+.article-hero{max-width:860px;margin:0 auto;padding:56px 24px 36px;text-align:center;animation:fadeUp .7s ease-out}
+.article-category{font-size:11px;letter-spacing:4px;text-transform:uppercase;color:var(--accent);font-weight:700;margin-bottom:20px;display:inline-block;border-bottom:2px solid var(--accent);padding-bottom:2px}
+.article-hero h1{font-family:var(--serif);font-size:clamp(34px,5.5vw,58px);font-weight:900;line-height:1.08;margin-bottom:20px}
+.article-hero h1 em{font-style:italic;color:var(--accent)}
+.article-subtitle{font-family:var(--serif);font-size:19px;font-style:italic;color:var(--muted);max-width:580px;margin:0 auto 26px;line-height:1.5}
+.article-meta-bar{font-size:13px;color:var(--muted)}.article-meta-bar strong{color:var(--ink);font-weight:600}
+.fact-strip{max-width:900px;margin:0 auto 48px;padding:0 24px;display:grid;grid-template-columns:repeat(4,1fr);border-top:2px solid var(--ink);border-bottom:2px solid var(--ink);animation:fadeUp .7s ease-out .12s both}
+.fact-item{text-align:center;padding:20px 12px;border-right:1px solid var(--divider)}.fact-item:last-child{border-right:none}
+.fact-label{font-size:10px;letter-spacing:2.5px;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:3px}
+.fact-value{font-family:var(--serif);font-size:17px;font-weight:700}
+.article-body{max-width:var(--content-w);margin:0 auto;padding:0 24px 80px;animation:fadeUp .7s ease-out .24s both}
+.article-body p{margin-bottom:22px}
+.article-body h2{font-family:var(--serif);font-size:26px;font-weight:700;margin:44px 0 16px;padding-top:30px;border-top:1px solid var(--divider)}
+.article-body h2::before{content:'';display:block;width:36px;height:3px;background:var(--accent);margin-bottom:12px}
+.drop-cap::first-letter{float:left;font-family:var(--serif);font-size:68px;font-weight:900;line-height:.82;margin:4px 12px 0 0;color:var(--accent)}
+.pull-quote{margin:38px -20px;padding:26px 34px;border-left:4px solid var(--accent);background:var(--highlight);font-family:var(--serif);font-size:21px;font-style:italic;line-height:1.5;color:#333;position:relative}
+.pull-quote::before{content:'\201C';font-family:var(--serif);font-size:76px;color:var(--accent);opacity:.18;position:absolute;top:-8px;left:12px;line-height:1}
+.pull-quote cite{display:block;font-family:var(--sans);font-size:12px;font-style:normal;font-weight:600;color:var(--muted);margin-top:12px;letter-spacing:1px;text-transform:uppercase}
+.timeline{margin:32px 0;padding:0;list-style:none;border-left:2px solid var(--divider)}
+.timeline li{padding:0 0 22px 26px;position:relative}
+.timeline li::before{content:'';position:absolute;left:-6px;top:7px;width:10px;height:10px;background:var(--accent);border-radius:50%}
+.timeline-year{font-family:var(--mono);font-size:13px;font-weight:500;color:var(--accent);display:block;margin-bottom:1px}
+.timeline-text{font-size:15px;color:#444}
+.contrib-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:28px 0}
+.contrib-card{background:white;border:1px solid var(--divider);padding:18px;position:relative;overflow:hidden}
+.contrib-card::before{content:'';position:absolute;top:0;left:0;width:100%;height:3px;background:var(--accent)}
+.contrib-card h4{font-family:var(--serif);font-size:15px;font-weight:700;margin-bottom:5px}
+.contrib-card p{font-size:13px;color:var(--muted);margin-bottom:0;line-height:1.5}
+.article-tags{display:flex;flex-wrap:wrap;gap:8px;margin:36px 0 20px;padding-top:22px;border-top:1px solid var(--divider)}
+.tag-pill{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;font-weight:600;padding:5px 12px;background:var(--tag-bg);color:var(--muted);border-radius:2px}
 
-      .topbar {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: var(--space-4) 0 var(--space-3);
-      }
+.about-page{max-width:var(--content-w);margin:0 auto;padding:56px 24px 80px}
+.about-page h1{font-family:var(--serif);font-size:42px;font-weight:900;margin-bottom:12px}
+.about-page .subtitle{font-family:var(--serif);font-size:19px;font-style:italic;color:var(--muted);margin-bottom:36px}
+.about-page p{margin-bottom:20px}
+.about-page h2{font-family:var(--serif);font-size:24px;font-weight:700;margin:40px 0 14px}
+.about-pillars{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin:28px 0}
+.pillar{padding:24px;border:1px solid var(--divider);background:var(--card-bg)}
+.pillar h4{font-family:var(--serif);font-size:17px;font-weight:700;margin-bottom:8px;color:var(--accent)}
+.pillar p{font-size:14px;color:var(--muted);margin-bottom:0}
 
-      .topbar__brand {
-        font-family: 'JetBrains Mono', monospace;
-        font-size: 0.85rem;
-        color: var(--color-accent);
-        letter-spacing: 0.04em;
-      }
+.site-footer{background:var(--ink);color:rgba(255,255,255,.5);padding:56px 0 40px}
+.footer-grid{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:40px;margin-bottom:40px}
+.footer-brand .footer-logo{font-family:var(--serif);font-weight:900;font-size:24px;letter-spacing:5px;text-transform:uppercase;color:#fff;display:block;margin-bottom:12px}
+.footer-brand p{font-size:14px;line-height:1.6;max-width:300px}
+.footer-col h5{font-size:11px;letter-spacing:2.5px;text-transform:uppercase;font-weight:700;color:rgba(255,255,255,.8);margin-bottom:16px}
+.footer-col ul{list-style:none}.footer-col li{margin-bottom:8px}
+.footer-col a{font-size:14px;color:rgba(255,255,255,.45);transition:color .2s}.footer-col a:hover{color:#fff}
+.footer-bottom{border-top:1px solid rgba(255,255,255,.08);padding-top:24px;display:flex;justify-content:space-between;align-items:center;font-size:12px}
+.footer-bottom-links{display:flex;gap:20px}
+.footer-bottom-links a{color:rgba(255,255,255,.35);transition:color .2s}.footer-bottom-links a:hover{color:#fff}
 
-      .topbar__meta {
-        color: var(--color-muted);
-        font-family: 'JetBrains Mono', monospace;
-        font-size: 0.8rem;
-      }
+.scroll-top{position:fixed;bottom:32px;right:32px;width:44px;height:44px;background:var(--ink);color:#fff;border:none;border-radius:50%;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;opacity:0;visibility:hidden;transition:all .3s;z-index:100;box-shadow:0 4px 16px rgba(0,0,0,.2)}
+.scroll-top.visible{opacity:1;visibility:visible}.scroll-top:hover{background:var(--accent)}
 
-      .hero {
-        display: grid;
-        grid-template-columns: 1.4fr 1fr;
-        gap: var(--space-5);
-        padding: var(--space-5) 0 var(--space-6);
-      }
+.alice-toggle{position:fixed;left:24px;bottom:24px;background:var(--ink);color:#fff;border:none;border-radius:999px;padding:12px 16px;font-family:var(--sans);font-size:14px;font-weight:600;cursor:pointer;z-index:120;box-shadow:0 10px 24px rgba(0,0,0,.2)}
+.alice-panel{position:fixed;left:24px;bottom:80px;width:min(360px,calc(100vw - 32px));height:460px;background:#fff;border:1px solid var(--divider);border-radius:10px;display:none;flex-direction:column;overflow:hidden;z-index:130;box-shadow:0 18px 42px rgba(0,0,0,.16)}
+.alice-panel.open{display:flex}
+.alice-header{padding:14px 16px;background:var(--ink);color:#fff;display:flex;justify-content:space-between;align-items:center}
+.alice-header h4{font-family:var(--serif);font-size:20px;font-weight:700}
+.alice-close{background:transparent;border:none;color:#fff;cursor:pointer;font-size:20px;line-height:1}
+.alice-messages{flex:1;padding:14px;overflow:auto;background:var(--paper)}
+.alice-msg{max-width:86%;padding:10px 12px;border-radius:10px;margin-bottom:10px;font-size:14px;line-height:1.5}
+.alice-msg.user{margin-left:auto;background:var(--ink);color:#fff}
+.alice-msg.bot{background:#fff;border:1px solid var(--divider)}
+.alice-form{display:flex;gap:8px;padding:12px;border-top:1px solid var(--divider);background:#fff}
+.alice-form input{flex:1;padding:10px 12px;border:1px solid var(--divider);border-radius:8px;font-size:14px;outline:none}
+.alice-form input:focus{border-color:var(--accent)}
+.alice-form button{padding:10px 14px;background:var(--accent);color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:600}
 
-      .hero__eyebrow {
-        font-family: 'JetBrains Mono', monospace;
-        color: var(--color-accent);
-        font-size: 0.75rem;
-        letter-spacing: 0.06em;
-        text-transform: uppercase;
-      }
+@media(max-width:900px){.cards-grid{grid-template-columns:repeat(2,1fr)}.footer-grid{grid-template-columns:1fr 1fr}.about-pillars{grid-template-columns:1fr}}
+@media(max-width:640px){.cards-grid{grid-template-columns:1fr}.fact-strip{grid-template-columns:repeat(2,1fr)}.fact-item:nth-child(2){border-right:none}.contrib-grid{grid-template-columns:1fr}.featured-hero-content{padding:28px}.newsletter-banner{flex-direction:column;padding:32px 24px;text-align:center}.newsletter-form{width:100%}.newsletter-form input{flex:1;width:auto}.footer-grid{grid-template-columns:1fr}.footer-bottom{flex-direction:column;gap:12px;text-align:center}.pull-quote{margin:28px 0}.main-nav ul{justify-content:flex-start}.alice-toggle{left:12px;bottom:12px}.alice-panel{left:12px;bottom:62px;height:420px}}
+</style>
+</head>
+<body>
 
-      .hero__title {
-        font-family: 'Instrument Serif', serif;
-        font-size: clamp(2.4rem, 7vw, 4.8rem);
-        line-height: 1.03;
-        margin: var(--space-2) 0 var(--space-3);
-      }
+<div class="topbar"><div class="container"><span>February 21, 2026</span><div class="topbar-right"><a href="#" onclick="navigate('about');return false">About</a><a href="#">Newsletter</a><a href="#">RSS</a></div></div></div>
 
-      .hero__copy {
-        color: var(--color-muted);
-        max-width: 56ch;
-        margin-bottom: var(--space-4);
-      }
+<header class="masthead"><a class="masthead-logo" onclick="navigate('home');return false"><span class="logo-accent">A</span>l<span class="logo-accent">i</span>ss</a><div class="masthead-tagline">Editorial — AI News, Profiles & Analysis</div></header>
 
-      .hero__cta {
-        display: inline-block;
-        background: var(--color-accent);
-        color: var(--color-accent-ink);
-        padding: 0.75rem 1.2rem;
-        border-radius: 999px;
-        font-weight: 700;
-      }
+<nav class="main-nav"><ul>
+<li><a href="#" class="active" data-nav="home" onclick="navigate('home');return false">Home</a></li>
+<li><a href="#" data-nav="profiles" onclick="navigate('home');return false">Profiles</a></li>
+<li><a href="#" data-nav="research" onclick="navigate('home');return false">Research</a></li>
+<li><a href="#" data-nav="industry" onclick="navigate('home');return false">Industry</a></li>
+<li><a href="#" data-nav="opinion" onclick="navigate('home');return false">Opinion</a></li>
+<li><a href="#" data-nav="about" onclick="navigate('about');return false">About</a></li>
+</ul></nav>
 
-      .hero__panel {
-        background: var(--color-surface);
-        border: 1px solid var(--color-border);
-        border-radius: var(--radius);
-        padding: var(--space-4);
-      }
+<div id="page-home" class="page active"><div class="container">
 
-      .hero__panel-label {
-        font-family: 'JetBrains Mono', monospace;
-        color: var(--color-accent);
-        font-size: 0.75rem;
-      }
+<div class="featured-hero hero-bg-1" onclick="navigate('article-karpathy')">
+<div class="featured-hero-content">
+<div class="tag-label">Featured Profile</div>
+<h2>Andrej Karpathy: <em>The Teacher</em> Who Shaped Modern AI</h2>
+<p>From Rubik's cube tutorials on YouTube to directing Tesla's Autopilot vision — and now reimagining education itself.</p>
+<div class="hero-meta-home">By <strong>Aliss Editorial</strong> · February 21, 2026 · 8 min read</div>
+</div></div>
 
-      .hero__panel-text {
-        margin-top: var(--space-2);
-        color: var(--color-muted);
-      }
+<div class="section-header"><h3>Latest Stories</h3></div>
 
-      .ticker {
-        margin: 0 0 var(--space-6);
-        border-top: 1px solid var(--color-border);
-        border-bottom: 1px solid var(--color-border);
-        overflow: hidden;
-      }
+<div class="cards-grid" id="latestStoriesGrid">
 
-      .ticker__track {
-        white-space: nowrap;
-        display: inline-block;
-        min-width: 100%;
-        padding: var(--space-2) 0;
-        animation: ticker-scroll 28s linear infinite;
-        font-family: 'JetBrains Mono', monospace;
-        color: var(--color-muted);
-      }
+<div class="card" onclick="navigate('article-altman')">
+<div class="card-img"><div class="card-img-inner" style="background:linear-gradient(135deg,#0a0a23,#1e3a5f,#4a90d9)"></div></div>
+<div class="card-body"><div class="card-tag">Profile</div>
+<h4>Sam Altman: The Architect of the AI Gold Rush</h4>
+<p>From Stanford dropout to Y Combinator president to CEO of the most valuable AI company on Earth — how one man bet everything on artificial general intelligence.</p>
+<div class="card-meta">Feb 21, 2026 · 9 min read</div></div></div>
 
-      .ticker__item {
-        margin-right: 2rem;
-      }
+<div class="card" onclick="navigate('article-sutskever')">
+<div class="card-img"><div class="card-img-inner" style="background:linear-gradient(135deg,#1a1a2e,#533483,#e94560)"></div></div>
+<div class="card-body"><div class="card-tag">Profile</div>
+<h4>Ilya Sutskever: The Scientist Who Walked Away</h4>
+<p>He helped build ChatGPT, tried to fire Sam Altman, then vanished. Now he's back with $3 billion and a singular mission: safe superintelligence.</p>
+<div class="card-meta">Feb 21, 2026 · 9 min read</div></div></div>
 
-      .section {
-        margin-bottom: var(--space-6);
-      }
+<div class="card" onclick="navigate('article-karpathy')">
+<div class="card-img"><div class="card-img-inner ci-1"></div></div>
+<div class="card-body"><div class="card-tag">Profile</div>
+<h4>Andrej Karpathy: The Teacher Who Shaped Modern AI</h4>
+<p>From OpenAI founding member to Tesla AI director to educator — a look at one of AI's most trusted voices.</p>
+<div class="card-meta">Feb 21, 2026 · 8 min read</div></div></div>
 
-      .section__title {
-        font-family: 'Instrument Serif', serif;
-        font-size: clamp(1.8rem, 4vw, 2.6rem);
-        margin: 0 0 var(--space-3);
-      }
+<div class="card">
+<div class="card-img"><div class="card-img-inner ci-4"></div></div>
+<div class="card-body"><div class="card-tag">Opinion</div>
+<h4>Vibe Coding: Liberation or Liability?</h4>
+<p>Karpathy coined it, millions adopted it. But what happens when the people building software don't understand code?</p>
+<div class="card-meta">Coming Soon</div></div></div>
 
-      .features__grid {
-        display: grid;
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-        gap: var(--space-3);
-      }
+<div class="card">
+<div class="card-img"><div class="card-img-inner ci-5"></div></div>
+<div class="card-body"><div class="card-tag">Analysis</div>
+<h4>Animals vs. Ghosts: A New Framework for Machine Intelligence</h4>
+<p>Why thinking of LLMs as "summoned ghosts" rather than evolved creatures fundamentally changes how we evaluate them.</p>
+<div class="card-meta">Coming Soon</div></div></div>
 
-      .features__card,
-      .insights__item,
-      .chat,
-      .subscribe {
-        background: var(--color-surface);
-        border: 1px solid var(--color-border);
-        border-radius: var(--radius);
-      }
+<div class="card">
+<div class="card-img"><div class="card-img-inner ci-6"></div></div>
+<div class="card-body"><div class="card-tag">Education</div>
+<h4>Can AI Teach Better Than Humans?</h4>
+<p>Inside Eureka Labs and the growing movement to build AI-native schools that scale world-class instruction to billions.</p>
+<div class="card-meta">Coming Soon</div></div></div>
 
-      .features__card {
-        padding: var(--space-4);
-      }
+</div>
 
-      .features__card-title {
-        margin: 0 0 var(--space-1);
-      }
+<div class="newsletter-banner">
+  <div class="newsletter-text">
+    <h3>Stay Informed</h3>
+    <p>Get our weekly roundup of the most important AI stories, delivered every Friday.</p>
+    <div class="signup-status" id="signupStatus" aria-live="polite"></div>
+  </div>
+  <form class="newsletter-form" id="signupForm">
+    <input type="email" id="signupEmail" placeholder="Your email address" required>
+    <button type="submit" id="subBtn">Subscribe</button>
+  </form>
+</div>
 
-      .features__card-copy {
-        margin: 0;
-        color: var(--color-muted);
-      }
+</div></div>
 
-      .insights__list {
-        display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: var(--space-3);
-      }
+<div id="page-article-altman" class="page">
+<section class="article-hero">
+<div class="article-category">Profile</div>
+<h1>Sam Altman: <em>The Architect</em> of the AI Gold Rush</h1>
+<p class="article-subtitle">From Stanford dropout to Y Combinator president to CEO of the most valuable AI company on Earth — how one man bet everything on AGI.</p>
+<p class="article-meta-bar">By <strong>Aliss Editorial</strong> · February 21, 2026 · 9 min read</p>
+</section>
 
-      .insights__item {
-        padding: var(--space-4);
-      }
+<div class="fact-strip">
+<div class="fact-item"><div class="fact-label">Born</div><div class="fact-value">Apr 22, 1985</div></div>
+<div class="fact-item"><div class="fact-label">Nationality</div><div class="fact-value">American</div></div>
+<div class="fact-item"><div class="fact-label">Known For</div><div class="fact-value">OpenAI / ChatGPT</div></div>
+<div class="fact-item"><div class="fact-label">Current</div><div class="fact-value">CEO, OpenAI</div></div>
+</div>
 
-      .insights__meta {
-        font-family: 'JetBrains Mono', monospace;
-        font-size: 0.75rem;
-        color: var(--color-accent);
-      }
+<article class="article-body">
+<p class="drop-cap">Sam Altman is, by most accounts, the single most consequential figure in the commercialization of artificial intelligence. As CEO of OpenAI, he oversaw the launch of ChatGPT — the fastest-growing consumer application in history — and has since steered the company from a quiet research lab into a juggernaut valued at over $300 billion, projecting revenues of $280 billion by 2030. He is the face of the AI revolution, and depending on who you ask, either its greatest visionary or its most skilled salesman.</p>
 
-      .insights__headline {
-        margin: var(--space-2) 0;
-      }
+<p>Born in Chicago in 1985 and raised in St. Louis, Missouri, Altman received his first Apple Macintosh at the age of eight and immediately began learning to code and disassembling hardware. He attended the prestigious John Burroughs School before enrolling at Stanford University to study computer science. He dropped out after two years — later remarking that he learned more playing poker with classmates than attending lectures.</p>
 
-      .insights__excerpt {
-        margin: 0;
-        color: var(--color-muted);
-      }
+<h2>The Y Combinator Years</h2>
 
-      .chat-wrap {
-        display: grid;
-        grid-template-columns: 1.3fr 1fr;
-        gap: var(--space-3);
-      }
+<p>In 2005, the 19-year-old Altman co-founded Loopt, a location-based social networking app that became one of the first companies funded by Y Combinator. Though Loopt never achieved mass adoption — it was eventually sold to Green Dot for $43 million in 2012 — it earned Altman a seat at the table of Silicon Valley's startup elite.</p>
 
-      .chat {
-        padding: var(--space-3);
-      }
+<p>In 2011, Paul Graham invited Altman to join Y Combinator as a partner, and by 2014 he had risen to president. Under his leadership, YC cemented its reputation as the premier launchpad for tech startups, having helped companies like Airbnb, Stripe, DoorDash, Reddit, and Twitch. He expanded its ambitions, aiming to fund 1,000 new companies per year and investing in "hard technology" beyond typical software plays.</p>
 
-      .chat__header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: var(--space-2);
-      }
+<p>Altman left Y Combinator in 2019 to focus full-time on OpenAI, though the transition was not entirely smooth — reports later emerged of tensions around his departure and self-appointment as chairman.</p>
 
-      .chat__name {
-        margin: 0;
-      }
+<h2>Career Timeline</h2>
 
-      .chat__model {
-        font-family: 'JetBrains Mono', monospace;
-        font-size: 0.72rem;
-        color: var(--color-muted);
-      }
+<ul class="timeline">
+<li><span class="timeline-year">1985</span><span class="timeline-text">Born in Chicago; raised in St. Louis, Missouri</span></li>
+<li><span class="timeline-year">2003–2005</span><span class="timeline-text">Studied computer science at Stanford; dropped out to found Loopt</span></li>
+<li><span class="timeline-year">2005</span><span class="timeline-text">Co-founded Loopt, one of the first Y Combinator–backed companies</span></li>
+<li><span class="timeline-year">2011–2019</span><span class="timeline-text">Partner, then president of Y Combinator; oversaw ~1,900 companies</span></li>
+<li><span class="timeline-year">2015</span><span class="timeline-text">Co-founded OpenAI with Elon Musk and others as a nonprofit research lab</span></li>
+<li><span class="timeline-year">2019</span><span class="timeline-text">Left YC to become full-time CEO of OpenAI; introduced the "capped-profit" model</span></li>
+<li><span class="timeline-year">2022</span><span class="timeline-text">Launched ChatGPT — reached 100 million users in two months</span></li>
+<li><span class="timeline-year">Nov 2023</span><span class="timeline-text">Briefly ousted by OpenAI's board; reinstated within five days</span></li>
+<li><span class="timeline-year">2025</span><span class="timeline-text">OpenAI's annualized revenue crossed $20 billion; published "The Gentle Singularity"</span></li>
+<li><span class="timeline-year">2026</span><span class="timeline-text">Announced enterprise pivot as top priority; OpenAI begins testing ads in ChatGPT</span></li>
+</ul>
 
-      .chat__messages {
-        display: flex;
-        flex-direction: column;
-        gap: var(--space-2);
-        min-height: 220px;
-        max-height: 360px;
-        overflow: auto;
-        margin-bottom: var(--space-3);
-      }
+<h2>Building OpenAI</h2>
 
-      .chat__bubble {
-        padding: 0.7rem 0.8rem;
-        border-radius: 10px;
-        max-width: 88%;
-      }
+<p>OpenAI was founded in 2015 as a nonprofit, with $1 billion in backing from Altman, Elon Musk, Peter Thiel, and others. The mission was explicit: develop artificial general intelligence for the benefit of all humanity. Musk departed in 2018 over potential conflicts with Tesla's AI work, leaving Altman to carry the project forward.</p>
 
-      .chat__bubble--bot {
-        background: var(--color-surface-2);
-        border: 1px solid var(--color-border);
-      }
+<p>Recognizing that AI research required staggering resources, Altman introduced a "capped-profit" model in 2019 — a novel corporate structure in which profits are limited in order to keep the mission front and center. Microsoft subsequently invested billions, becoming OpenAI's primary compute partner and commercial ally.</p>
 
-      .chat__bubble--user {
-        background: var(--color-accent);
-        color: var(--color-accent-ink);
-        margin-left: auto;
-      }
+<p>The November 2022 launch of ChatGPT — originally conceived as a demo built on GPT-3.5 — changed everything. It reached 100 million users in roughly two months, a speed record no consumer product had previously achieved. Suddenly, Altman was not just a startup CEO. He was the public face of a technological revolution.</p>
 
-      .chat__form {
-        display: flex;
-        gap: var(--space-2);
-      }
+<div class="pull-quote">
+We started OpenAI because we believed AGI was possible, and that it could be the most impactful technology in human history. At the time, very few people cared.
+<cite>— Sam Altman, "Ten Years" blog post, 2025</cite>
+</div>
 
-      .chat__input,
-      .subscribe__input {
-        width: 100%;
-        background: #0f140f;
-        border: 1px solid var(--color-border);
-        border-radius: 10px;
-        color: var(--color-text);
-        padding: 0.75rem;
-        font: inherit;
-      }
+<h2>The Firing and Return</h2>
 
-      .chat__btn,
-      .subscribe__btn {
-        border: 0;
-        border-radius: 10px;
-        padding: 0.75rem 1rem;
-        font-weight: 700;
-        cursor: pointer;
-        background: var(--color-accent);
-        color: var(--color-accent-ink);
-      }
+<p>In November 2023, Altman was abruptly fired by OpenAI's board of directors, who cited a loss of confidence in his candor. The dramatic episode — reportedly triggered in part by a 52-page memo from co-founder Ilya Sutskever — sent shockwaves through the tech world. Nearly the entire staff threatened to resign in solidarity with Altman. Within five days, he was reinstated, and the board was restructured. The crisis made Altman appear, paradoxically, more indispensable than ever.</p>
 
-      .subscribe {
-        padding: var(--space-4);
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-      }
+<h2>Key Contributions</h2>
 
-      .subscribe__title {
-        margin: 0 0 var(--space-2);
-      }
+<div class="contrib-grid">
+<div class="contrib-card"><h4>ChatGPT</h4><p>Oversaw the launch of the fastest-growing consumer app in history, now approaching 900 million weekly users.</p></div>
+<div class="contrib-card"><h4>Y Combinator</h4><p>As president, helped shape ~1,900 companies including Airbnb, Stripe, DoorDash, and Reddit.</p></div>
+<div class="contrib-card"><h4>Capped-Profit Model</h4><p>Pioneered a novel corporate structure balancing nonprofit mission with commercial scale.</p></div>
+<div class="contrib-card"><h4>AI Policy Voice</h4><p>Testified before Congress and became the tech industry's primary interlocutor on AI governance.</p></div>
+</div>
 
-      .subscribe__copy {
-        margin: 0 0 var(--space-3);
-        color: var(--color-muted);
-      }
+<h2>The Hype Question</h2>
 
-      .subscribe__form {
-        display: flex;
-        flex-direction: column;
-        gap: var(--space-2);
-      }
+<p>Altman is both celebrated and scrutinized for his role as AI's chief evangelist. MIT Technology Review has described him as the field's "ultimate hype man," noting that his claims about AI's potential often arrive well before the evidence. He has compared OpenAI's work to the Manhattan Project and predicted that AI will surpass human intelligence in virtually every domain by 2030.</p>
 
-      .reveal {
-        opacity: 0;
-        transform: translateY(20px);
-        transition: opacity 0.5s ease, transform 0.5s ease;
-      }
+<p>Critics argue that this rhetoric conveniently doubles as a fundraising pitch — each vision of world-changing AGI is also, implicitly, a case for more capital and friendlier regulation. Supporters counter that Altman's predictions have, so far, been directionally right more often than not.</p>
 
-      .reveal.is-visible {
-        opacity: 1;
-        transform: translateY(0);
-      }
+<p>In his June 2025 essay "The Gentle Singularity," Altman laid out a 15-year vision in which AI produces novel scientific discoveries, transforms the labor market, and reshapes the social contract. He predicted that 2026 would bring AI systems capable of generating genuinely original insights — a claim that remains to be tested.</p>
 
-      @keyframes ticker-scroll {
-        0% {
-          transform: translateX(0);
-        }
-        100% {
-          transform: translateX(-50%);
-        }
-      }
+<div class="pull-quote">
+Intelligence too cheap to meter is well within grasp. This may sound crazy to say, but if we told you in 2020 we were going to be where we are today, it probably sounded more crazy.
+<cite>— Sam Altman, OpenAI blog, 2025</cite>
+</div>
 
-      @media (max-width: 980px) {
-        .hero,
-        .chat-wrap {
-          grid-template-columns: 1fr;
-        }
+<h2>Looking Forward</h2>
 
-        .features__grid,
-        .insights__list {
-          grid-template-columns: repeat(2, minmax(0, 1fr));
-        }
-      }
+<p>At 40, Altman is steering OpenAI through its most consequential chapter. The company has crossed $20 billion in annualized revenue, begun testing advertising in ChatGPT, and signaled that enterprise will be its top priority in 2026. It projects revenue exceeding $280 billion by 2030 — a figure that, if achieved, would make it one of the most valuable companies in history.</p>
 
-      @media (max-width: 680px) {
-        .features__grid,
-        .insights__list {
-          grid-template-columns: 1fr;
-        }
-      }
-    </style>
-  </head>
-  <body>
-    <div class="page">
-      <header class="topbar">
-        <div class="topbar__brand">ALISS / AI + SOFTWARE NEWSLETTER</div>
-        <div class="topbar__meta">Weekly • Signal over noise</div>
-      </header>
+<p>But the road is not without obstacles. Competition from Anthropic, Google, and others is intensifying. Questions about OpenAI's governance, conflicts of interest, and the gap between benchmarks and real-world reliability persist. And the broader question — whether the AI revolution will deliver on its extraordinary promises or become the most expensive disappointment in tech history — remains open.</p>
 
-      <section class="hero reveal">
-        <div>
-          <div class="hero__eyebrow">For software engineers, researchers, founders</div>
-          <h1 class="hero__title">Hello, welcome to Aliss</h1>
-          <p class="hero__copy">
-            Aliss distills the most important breakthroughs in artificial intelligence and software into a concise weekly read.
-          </p>
-          <a href="#subscribe" class="hero__cta">Get the next issue</a>
+<p>What is beyond dispute is that Sam Altman, more than any other individual, has shaped the terms of the debate. Whether history judges him as a prophet or a promoter, the age of AI is, in large part, the age of Altman.</p>
+
+<div class="article-tags">
+<span class="tag-pill">OpenAI</span><span class="tag-pill">ChatGPT</span><span class="tag-pill">AGI</span><span class="tag-pill">Y Combinator</span><span class="tag-pill">Silicon Valley</span><span class="tag-pill">AI Policy</span><span class="tag-pill">Entrepreneurship</span>
+</div>
+</article>
+</div>
+
+<div id="page-article-sutskever" class="page">
+<section class="article-hero">
+<div class="article-category">Profile</div>
+<h1>Ilya Sutskever: <em>The Scientist</em> Who Walked Away</h1>
+<p class="article-subtitle">He helped build ChatGPT, tried to fire Sam Altman, then vanished. Now he's back with $3 billion and a singular mission: safe superintelligence.</p>
+<p class="article-meta-bar">By <strong>Aliss Editorial</strong> · February 21, 2026 · 9 min read</p>
+</section>
+
+<div class="fact-strip">
+<div class="fact-item"><div class="fact-label">Born</div><div class="fact-value">1986</div></div>
+<div class="fact-item"><div class="fact-label">Nationality</div><div class="fact-value">Israeli-Canadian</div></div>
+<div class="fact-item"><div class="fact-label">Known For</div><div class="fact-value">AlexNet / OpenAI</div></div>
+<div class="fact-item"><div class="fact-label">Current</div><div class="fact-value">CEO, SSI</div></div>
+</div>
+
+<article class="article-body">
+<p class="drop-cap">Ilya Sutskever is the rare figure in artificial intelligence who can credibly claim to have shaped the field's most important breakthroughs over the past decade — and then walked away from the empire he helped build. As co-founder and chief scientist of OpenAI, he was instrumental in developing the research that led to GPT and ChatGPT. He established the "scaling ethos" that defined an era. And then, in a move that stunned the industry, he voted to fire Sam Altman, expressed regret, disappeared from public view, and ultimately left to start something entirely new.</p>
+
+<p>Born in 1986 in Nizhny Novgorod (then Gorky) in the Soviet Union, Sutskever immigrated to Israel at age five with his Jewish family, growing up in Jerusalem. He later moved to Canada, where he would earn his bachelor's in mathematics and his master's and PhD in computer science at the University of Toronto — all under the supervision of Geoffrey Hinton, the godfather of deep learning.</p>
+
+<h2>The Foundations of Deep Learning</h2>
+
+<p>In 2012, Sutskever, along with Hinton and Alex Krizhevsky, created AlexNet — the convolutional neural network that won the ImageNet competition by a dramatic margin and ignited the modern deep learning revolution. It was a watershed moment: the paper demonstrated that neural networks, given enough data and compute, could outperform hand-engineered systems at visual recognition.</p>
+
+<p>After a brief postdoc with Andrew Ng at Stanford, Sutskever joined Google Brain, where he contributed to foundational work including the sequence-to-sequence learning algorithm, TensorFlow, and was among the co-authors on the AlphaGo paper. His time at Google cemented his reputation as one of the most productive and influential researchers in machine learning.</p>
+
+<p>At the end of 2015, Sutskever left Google to co-found OpenAI, where he served as chief scientist for over eight years. During that period, he was credited with establishing the lab's core conviction that scaling — making models bigger with more data and compute — was the path to artificial general intelligence.</p>
+
+<h2>Career Timeline</h2>
+
+<ul class="timeline">
+<li><span class="timeline-year">1986</span><span class="timeline-text">Born in Nizhny Novgorod, Soviet Union; emigrated to Israel at age 5</span></li>
+<li><span class="timeline-year">2005–2013</span><span class="timeline-text">B.Sc. in Mathematics, M.Sc. and PhD in Computer Science at University of Toronto under Geoffrey Hinton</span></li>
+<li><span class="timeline-year">2012</span><span class="timeline-text">Co-created AlexNet with Hinton and Krizhevsky — igniting the deep learning revolution</span></li>
+<li><span class="timeline-year">2013–2015</span><span class="timeline-text">Research scientist at Google Brain; co-developed sequence-to-sequence learning, contributed to TensorFlow and AlphaGo</span></li>
+<li><span class="timeline-year">2015</span><span class="timeline-text">Co-founded OpenAI as chief scientist</span></li>
+<li><span class="timeline-year">Nov 2023</span><span class="timeline-text">Voted with the board to fire Sam Altman; expressed regret days later</span></li>
+<li><span class="timeline-year">May 2024</span><span class="timeline-text">Departed OpenAI; announced new venture</span></li>
+<li><span class="timeline-year">June 2024</span><span class="timeline-text">Co-founded Safe Superintelligence Inc. (SSI) with Daniel Gross and Daniel Levy</span></li>
+<li><span class="timeline-year">Apr 2025</span><span class="timeline-text">SSI raised $2 billion at a $32 billion valuation — with no product</span></li>
+<li><span class="timeline-year">Jul 2025</span><span class="timeline-text">Became CEO of SSI after co-founder Daniel Gross departed for Meta</span></li>
+<li><span class="timeline-year">Nov 2025</span><span class="timeline-text">Gave rare interview declaring the "age of scaling" is ending</span></li>
+</ul>
+
+<h2>The Altman Crisis</h2>
+
+<p>In November 2023, Sutskever authored a 52-page memo — drawing heavily on information from then-CTO Mira Murati — that accused Altman of dishonesty, manipulation, and fostering internal division. He submitted the memo to the board and joined in voting to terminate Altman's position as CEO. In an all-hands meeting shortly after, he called it "the board doing its duty."</p>
+
+<p>Within days, however, the backlash was overwhelming. Nearly all of OpenAI's staff threatened to leave. Altman was reinstated, the board was reconstituted, and Sutskever was left in an ambiguous position — reportedly absent from the office and cut off from his team's work. By May 2024, he quietly announced his departure, saying only that he was pursuing something "very personally meaningful."</p>
+
+<div class="pull-quote">
+We're moving from the age of scaling to the age of research. Is the belief that if you just 100x the scale, everything would be transformed? I don't think that's true.
+<cite>— Ilya Sutskever, Dwarkesh Podcast, November 2025</cite>
+</div>
+
+<h2>Safe Superintelligence Inc.</h2>
+
+<p>In June 2024, Sutskever launched Safe Superintelligence Inc. alongside Daniel Gross, Apple's former AI lead, and Daniel Levy, an OpenAI researcher. The company's website was little more than a mission statement: one goal, one product — a safe superintelligence.</p>
+
+<p>The fundraising was extraordinary. SSI raised $1 billion by September 2024, then another $2 billion in April 2025, reaching a $32 billion valuation — despite having no product, no revenue, and no public demonstrations. Investors included Greenoaks, Andreessen Horowitz, Lightspeed Venture Partners, DST Global, Alphabet, and Nvidia. The company operates between Palo Alto and Tel Aviv, and is notably one of Google Cloud's largest external customers for tensor processing units.</p>
+
+<p>When Gross departed to join Meta in July 2025 — following a rejected acquisition offer from Mark Zuckerberg — Sutskever stepped into the CEO role, an unusual position for someone who had spent his career as a pure researcher.</p>
+
+<h2>Key Contributions</h2>
+
+<div class="contrib-grid">
+<div class="contrib-card"><h4>AlexNet</h4><p>Co-created the neural network that launched the modern deep learning revolution by winning ImageNet 2012.</p></div>
+<div class="contrib-card"><h4>OpenAI's Scaling Ethos</h4><p>Established the conviction that scaling models with more data and compute was the path to AGI.</p></div>
+<div class="contrib-card"><h4>Sequence-to-Sequence</h4><p>Co-developed the seq2seq algorithm at Google Brain, foundational to modern language models.</p></div>
+<div class="contrib-card"><h4>Safe Superintelligence Inc.</h4><p>Founded SSI with $3 billion and a singular mission: build superintelligence safely, with no distractions.</p></div>
+</div>
+
+<h2>The End of Scaling</h2>
+
+<p>In a rare November 2025 interview with Dwarkesh Patel, Sutskever made his most striking public argument yet: the "age of scaling" — the era from roughly 2020 to 2025 when throwing more compute at bigger models reliably produced better results — is ending. The returns from simply adding parameters have diminished. The next breakthroughs, he argued, will come from new training methods and fundamental research insights, not larger GPU clusters.</p>
+
+<p>He pointed to a problem he calls "jaggedness" — the observation that today's models can ace benchmarks but fail at trivially simple tasks in deployment. They oscillate between errors in ways that suggest something deeply incomplete about their understanding. For Sutskever, this gap between benchmark performance and real-world reliability is the central challenge of the field.</p>
+
+<p>His vision for SSI is accordingly different from the competition. Rather than releasing incremental products to fund research — as OpenAI and Anthropic do — SSI focuses entirely on the research problem itself. The product is the intelligence. Safety is not a compliance afterthought but a training philosophy, baked in from the first line of code.</p>
+
+<div class="pull-quote">
+Right now, we just focus on the research, and then the answer to the business question will reveal itself. The difference in future superintelligence lies not in who has more GPUs, but in who can find new training methods.
+<cite>— Ilya Sutskever, Dwarkesh Podcast, November 2025</cite>
+</div>
+
+<h2>Looking Forward</h2>
+
+<p>Sutskever occupies a singular position in AI. He is the scientist who proved that scaling works, and then declared the age of scaling over. He helped build one of the most powerful organizations in technology, then tried to tear it down from within. He raised $3 billion on the promise of a product that doesn't yet exist, and whose timeline he openly admits is uncertain.</p>
+
+<p>In 2025, he received an honorary doctorate from the University of Toronto. In early 2026, he was awarded the National Academy of Sciences Award for the Industrial Application of Science. His former mentor, Geoffrey Hinton, has publicly supported his stance on AI safety.</p>
+
+<p>Whether SSI delivers on its extraordinary promises remains an open question. But Sutskever's bet is clear: the future of intelligence belongs not to whoever has the most compute, but to whoever makes the next fundamental discovery. In a field defined by scale, he is wagering everything on ideas.</p>
+
+<div class="article-tags">
+<span class="tag-pill">Safe Superintelligence</span><span class="tag-pill">OpenAI</span><span class="tag-pill">Deep Learning</span><span class="tag-pill">AlexNet</span><span class="tag-pill">Geoffrey Hinton</span><span class="tag-pill">AI Safety</span><span class="tag-pill">Scaling Laws</span><span class="tag-pill">AGI</span>
+</div>
+</article>
+</div>
+
+<div id="page-article-karpathy" class="page">
+<section class="article-hero">
+<div class="article-category">Profile</div>
+<h1>Andrej Karpathy: <em>The Teacher</em> Who Shaped Modern AI</h1>
+<p class="article-subtitle">From Rubik's cube tutorials on YouTube to directing Tesla's Autopilot vision — and now reimagining education itself.</p>
+<p class="article-meta-bar">By <strong>Aliss Editorial</strong> · February 21, 2026 · 8 min read</p>
+</section>
+
+<div class="fact-strip">
+<div class="fact-item"><div class="fact-label">Born</div><div class="fact-value">Oct 23, 1986</div></div>
+<div class="fact-item"><div class="fact-label">Nationality</div><div class="fact-value">Slovak</div></div>
+<div class="fact-item"><div class="fact-label">Known For</div><div class="fact-value">Deep Learning</div></div>
+<div class="fact-item"><div class="fact-label">Current</div><div class="fact-value">Eureka Labs</div></div>
+</div>
+
+<article class="article-body">
+<p class="drop-cap">Andrej Karpathy is one of those rare figures in technology who moves fluidly between the worlds of cutting-edge research, large-scale product engineering, and public education. Born in Bratislava, Czechoslovakia, in 1986, he emigrated with his family to Toronto at the age of fifteen. What began as a quiet immigrant story would eventually lead him to the founding team of OpenAI, the helm of Tesla's AI division, and a new venture that aims to reinvent how the world learns.</p>
+
+<p>His early internet presence was unassuming: a YouTube channel called <em>badmephisto</em>, where he posted Rubik's cube tutorials that racked up millions of views and were used by speedcubers around the world. It was a hint of what would become his defining trait — an instinct for making complex things accessible.</p>
+
+<h2>Academic Foundations</h2>
+
+<p>Karpathy earned dual bachelor's degrees in Computer Science and Physics at the University of Toronto in 2009, followed by a master's at the University of British Columbia, where he worked on physically simulated figures under Michiel van de Panne. He then moved to Stanford for his PhD, working under Fei-Fei Li at the Stanford Vision Lab, with additional mentorship from luminaries like Andrew Ng, Daphne Koller, and Sebastian Thrun.</p>
+
+<p>During his PhD, his research focused on convolutional and recurrent neural networks applied at the intersection of computer vision and natural language processing — work that contributed to early breakthroughs in image captioning. Along the way, he squeezed in internships at Google Brain, Google Research, and DeepMind.</p>
+
+<p>Perhaps his most lasting academic contribution was pedagogical. In 2015, he designed and became the primary instructor of Stanford's CS 231n: Convolutional Neural Networks for Visual Recognition — widely regarded as the course that introduced deep learning to an entire generation of practitioners. Enrollment exploded from 150 students in its first year to 750 by 2017.</p>
+
+<h2>Career Timeline</h2>
+
+<ul class="timeline">
+<li><span class="timeline-year">2006</span><span class="timeline-text">Launched YouTube channel <em>badmephisto</em> with Rubik's cube tutorials (9M+ views)</span></li>
+<li><span class="timeline-year">2009–2011</span><span class="timeline-text">B.Sc. at University of Toronto; M.Sc. at University of British Columbia</span></li>
+<li><span class="timeline-year">2011–2015</span><span class="timeline-text">PhD at Stanford under Fei-Fei Li; internships at Google Brain, Google Research, DeepMind</span></li>
+<li><span class="timeline-year">2015</span><span class="timeline-text">Created CS 231n at Stanford — became one of the university's most popular classes</span></li>
+<li><span class="timeline-year">2016</span><span class="timeline-text">Co-founded OpenAI as a founding member</span></li>
+<li><span class="timeline-year">2017–2022</span><span class="timeline-text">Senior Director of AI at Tesla, leading the Autopilot Vision team</span></li>
+<li><span class="timeline-year">2023</span><span class="timeline-text">Briefly returned to OpenAI; launched "Neural Networks: Zero to Hero" series</span></li>
+<li><span class="timeline-year">2024</span><span class="timeline-text">Founded Eureka Labs, an AI-native education company</span></li>
+<li><span class="timeline-year">2025</span><span class="timeline-text">Coined "vibe coding"; published influential LLM Year in Review</span></li>
+</ul>
+
+<h2>OpenAI & Tesla</h2>
+
+<p>In 2016, Karpathy became a founding member of OpenAI. He left the following year to join Tesla as Senior Director of AI, where he led the computer vision team responsible for Autopilot. At Tesla, his work centered on processing massive amounts of real-world visual data in real time — a challenge at the intersection of deep learning research and industrial-scale deployment.</p>
+
+<p>He departed Tesla in 2022, briefly returning to OpenAI in 2023, before ultimately striking out on his own.</p>
+
+<div class="pull-quote">We're at this intermediate stage. The models are amazing. They still need a lot of work.<cite>— Andrej Karpathy, Dwarkesh Podcast, October 2025</cite></div>
+
+<h2>The Educator</h2>
+
+<p>If Karpathy is known for any single quality, it is his ability to explain. His YouTube channel has become a canonical resource for understanding large language models from the ground up. His "Neural Networks: Zero to Hero" series walks viewers through building neural networks from scratch.</p>
+
+<p>This commitment to education culminated in the founding of Eureka Labs in July 2024 — an "AI-native school" that pairs human expertise with AI teaching assistants. The company's first product, LLM101n, is an undergraduate-level course designed to teach students how to train their own AI model.</p>
+
+<h2>Key Contributions</h2>
+
+<div class="contrib-grid">
+<div class="contrib-card"><h4>CS 231n</h4><p>Stanford's foundational deep learning course, which trained a generation of AI practitioners.</p></div>
+<div class="contrib-card"><h4>Tesla Autopilot Vision</h4><p>Led the computer vision team building real-time neural networks for autonomous driving.</p></div>
+<div class="contrib-card"><h4>Eureka Labs</h4><p>An AI-native education platform combining expert curricula with AI teaching assistants.</p></div>
+<div class="contrib-card"><h4>"Vibe Coding"</h4><p>Coined the term in February 2025, capturing how AI tools let hobbyists build software via prompts.</p></div>
+</div>
+
+<h2>A Sober Voice in 2025</h2>
+
+<p>In a widely shared October 2025 interview with Dwarkesh Patel, Karpathy argued that AGI remains at least a decade away and cautioned that many companies are overstating AI agent reliability. His year-end review for 2025 became a landmark document, tracing the rise of RLVR and introducing his memorable framing of LLMs as "summoned ghosts" rather than "evolved animals."</p>
+
+<div class="pull-quote">LLMs are not evolved animals but summoned ghosts — entities optimized under entirely different constraints than biological intelligence.<cite>— Andrej Karpathy, 2025 LLM Year in Review</cite></div>
+
+<h2>Looking Forward</h2>
+
+<p>At 39, Karpathy sits at a unique crossroads. He has helped build two of the most consequential AI organizations in history, trained thousands of students, and now runs a startup aimed at democratizing education through AI. His insistence on building things from scratch — embodied in his mantra "if I can't build it, I don't understand it" — continues to set him apart.</p>
+
+<p>Whether through his YouTube lectures, his sharp commentary on X, or the courses emerging from Eureka Labs, Andrej Karpathy remains what he has always been: a teacher first, and one of the most trusted voices navigating the uncertain terrain between where AI is and where it's going.</p>
+
+<div class="article-tags">
+<span class="tag-pill">Artificial Intelligence</span><span class="tag-pill">Deep Learning</span><span class="tag-pill">OpenAI</span><span class="tag-pill">Tesla</span><span class="tag-pill">Eureka Labs</span><span class="tag-pill">Education</span><span class="tag-pill">LLMs</span>
+</div>
+</article>
+</div>
+
+<div id="page-about" class="page">
+<div class="about-page">
+<h1>About Aliss</h1>
+<p class="subtitle">Thoughtful coverage of artificial intelligence — for people who think critically about the future.</p>
+<p>Aliss Editorial is an independent publication dedicated to covering the people, ideas, and technologies shaping the age of artificial intelligence. We believe that understanding AI requires more than press releases and benchmark scores — it demands context, nuance, and a willingness to ask hard questions.</p>
+<p>We publish in-depth profiles of the researchers and builders who are defining the field, long-form analysis of emerging trends, and opinion pieces that challenge the prevailing narratives.</p>
+<h2>What We Cover</h2>
+<div class="about-pillars">
+<div class="pillar"><h4>Profiles</h4><p>Deep dives into the people behind the breakthroughs — researchers, founders, engineers, and educators shaping AI.</p></div>
+<div class="pillar"><h4>Research</h4><p>Accessible explanations of important papers, techniques, and paradigm shifts in machine learning.</p></div>
+<div class="pillar"><h4>Industry</h4><p>Coverage of the companies, products, and business strategies competing to define the AI landscape.</p></div>
+</div>
+<h2>Our Values</h2>
+<p>We prioritize accuracy over speed, depth over volume, and intellectual honesty over hype. Aliss is ad-free. We believe our editorial independence is our most valuable asset.</p>
+<h2>Contact</h2>
+<p>Have a story idea, correction, or partnership inquiry? Reach us at <strong>editorial@aliss.com</strong></p>
+</div>
+</div>
+
+<footer class="site-footer"><div class="container">
+<div class="footer-grid">
+<div class="footer-brand"><span class="footer-logo"><span class="logo-accent">A</span>l<span class="logo-accent">i</span>ss</span><p>Independent, thoughtful coverage of artificial intelligence — the people, the research, and the ideas that matter.</p></div>
+<div class="footer-col"><h5>Sections</h5><ul><li><a href="#" onclick="navigate('home');return false">Home</a></li><li><a href="#">Profiles</a></li><li><a href="#">Research</a></li><li><a href="#">Industry</a></li><li><a href="#">Opinion</a></li></ul></div>
+<div class="footer-col"><h5>Company</h5><ul><li><a href="#" onclick="navigate('about');return false">About</a></li><li><a href="#">Contact</a></li><li><a href="#">Advertise</a></li><li><a href="#">Careers</a></li></ul></div>
+<div class="footer-col"><h5>Follow</h5><ul><li><a href="#">X / Twitter</a></li><li><a href="#">LinkedIn</a></li><li><a href="#">RSS Feed</a></li><li><a href="#">Newsletter</a></li></ul></div>
+</div>
+<div class="footer-bottom"><span>&copy; 2026 Aliss Editorial. All rights reserved.</span><div class="footer-bottom-links"><a href="#">Privacy Policy</a><a href="#">Terms</a><a href="#">Accessibility</a></div></div>
+</div></footer>
+
+<button class="alice-toggle" id="aliceToggle" type="button">Chat with Alice</button>
+<div class="alice-panel" id="alicePanel">
+  <div class="alice-header">
+    <h4>Alice</h4>
+    <button class="alice-close" id="aliceClose" type="button" aria-label="Close chat">×</button>
+  </div>
+  <div class="alice-messages" id="aliceMessages">
+    <div class="alice-msg bot">Hi, I’m Alice. Ask me anything about AI news on Aliss.</div>
+  </div>
+  <form class="alice-form" id="aliceForm">
+    <input type="text" id="aliceInput" placeholder="Type your question" required>
+    <button type="submit">Send</button>
+  </form>
+</div>
+
+<button class="scroll-top" id="scrollTop" onclick="window.scrollTo({top:0,behavior:'smooth'})">&#8593;</button>
+
+<script>
+function navigate(pageId){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  (document.getElementById('page-'+pageId)||document.getElementById('page-home')).classList.add('active');
+  document.querySelectorAll('.main-nav a').forEach(a=>a.classList.remove('active'));
+  const n=document.querySelector(`.main-nav a[data-nav="${pageId}"]`);
+  if(n)n.classList.add('active');
+  if(pageId.startsWith('article'))document.querySelector('.main-nav a[data-nav="profiles"]')?.classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+window.addEventListener('scroll',()=>{document.getElementById('scrollTop').classList.toggle('visible',window.scrollY>400)});
+
+const signupForm=document.getElementById('signupForm');
+const signupEmail=document.getElementById('signupEmail');
+const signupStatus=document.getElementById('signupStatus');
+signupForm?.addEventListener('submit',async function(e){
+  e.preventDefault();
+  const email=signupEmail.value.trim().toLowerCase();
+  if(!email.includes('@')){
+    signupStatus.textContent='Please enter a valid email address.';
+    return;
+  }
+  const existing=JSON.parse(localStorage.getItem('alissSignups')||'[]');
+  if(!existing.includes(email)){
+    existing.push(email);
+    localStorage.setItem('alissSignups',JSON.stringify(existing));
+  }
+  try{
+    await fetch('/api/signup',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email})});
+  }catch{}
+  signupStatus.textContent='Thanks for signing up.';
+  signupEmail.value='';
+});
+
+const aliceToggle=document.getElementById('aliceToggle');
+const alicePanel=document.getElementById('alicePanel');
+const aliceClose=document.getElementById('aliceClose');
+const aliceForm=document.getElementById('aliceForm');
+const aliceInput=document.getElementById('aliceInput');
+const aliceMessages=document.getElementById('aliceMessages');
+
+function appendAliceMessage(role,text){
+  const div=document.createElement('div');
+  div.className='alice-msg '+role;
+  div.textContent=text;
+  aliceMessages.appendChild(div);
+  aliceMessages.scrollTop=aliceMessages.scrollHeight;
+}
+
+aliceToggle?.addEventListener('click',()=>alicePanel.classList.toggle('open'));
+aliceClose?.addEventListener('click',()=>alicePanel.classList.remove('open'));
+
+aliceForm?.addEventListener('submit',async function(e){
+  e.preventDefault();
+  const prompt=aliceInput.value.trim();
+  if(!prompt)return;
+  appendAliceMessage('user',prompt);
+  aliceInput.value='';
+  appendAliceMessage('bot','Alice is thinking...');
+  const thinking=aliceMessages.lastElementChild;
+  try{
+    const response=await fetch('/api/alice-chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:prompt})});
+    if(!response.ok)throw new Error('Chat request failed');
+    const data=await response.json();
+    const reply=(data&&data.reply)?String(data.reply):'No reply returned from server.';
+    thinking.textContent=reply;
+  }catch{
+    thinking.textContent='Alice is not connected yet. Add your Claude integration on /api/alice-chat.';
+  }
+});
+
+function escapeHtml(value){
+  return String(value)
+    .replaceAll('&','&amp;')
+    .replaceAll('<','&lt;')
+    .replaceAll('>','&gt;')
+    .replaceAll('"','&quot;')
+    .replaceAll("'",'&#39;');
+}
+
+async function loadDynamicArticles(){
+  const grid=document.getElementById('latestStoriesGrid');
+  if(!grid) return;
+  try{
+    const response=await fetch('/api/articles');
+    if(!response.ok) return;
+    const articles=await response.json();
+    if(!Array.isArray(articles)||!articles.length) return;
+
+    grid.innerHTML='';
+    const topArticles=articles.slice(0,6);
+    topArticles.forEach((article,index)=>{
+      const title=escapeHtml(article.title||'Untitled');
+      const summary=escapeHtml(article.summary||article.content||'No summary available.');
+      const source=escapeHtml(article.source||'Aliss');
+      const tag=escapeHtml((article.tags&&article.tags[0])||'News');
+      const dateText=article.publishedAt ? new Date(article.publishedAt).toLocaleDateString() : 'Recent';
+      const gradient=['ci-1','ci-2','ci-3','ci-4','ci-5','ci-6'][index%6];
+
+      const card=document.createElement('div');
+      card.className='card';
+      card.innerHTML=`
+        <div class="card-img"><div class="card-img-inner ${gradient}"></div></div>
+        <div class="card-body">
+          <div class="card-tag">${tag}</div>
+          <h4>${title}</h4>
+          <p>${summary}</p>
+          <div class="card-meta">${dateText} · ${source}</div>
         </div>
-        <aside class="hero__panel">
-          <div class="hero__panel-label">Latest focus</div>
-          <p class="hero__panel-text">
-            AI agents, developer tooling, software architecture, model evals, and what actually matters this week.
-          </p>
-        </aside>
-      </section>
-    </div>
+      `;
 
-    <section class="ticker">
-      <div class="ticker__track">
-        <span class="ticker__item">• LLM eval benchmarks</span>
-        <span class="ticker__item">• Multimodal agents</span>
-        <span class="ticker__item">• AI infrastructure economics</span>
-        <span class="ticker__item">• Software architecture patterns</span>
-        <span class="ticker__item">• Developer platform updates</span>
-        <span class="ticker__item">• Safety and governance</span>
-        <span class="ticker__item">• LLM eval benchmarks</span>
-        <span class="ticker__item">• Multimodal agents</span>
-        <span class="ticker__item">• AI infrastructure economics</span>
-        <span class="ticker__item">• Software architecture patterns</span>
-        <span class="ticker__item">• Developer platform updates</span>
-        <span class="ticker__item">• Safety and governance</span>
-      </div>
-    </section>
-
-    <main class="page">
-      <section class="section features reveal">
-        <h2 class="section__title">Why readers choose Aliss</h2>
-        <div class="features__grid">
-          <article class="features__card">
-            <h3 class="features__card-title">Research + release triage</h3>
-            <p class="features__card-copy">Paper and software release summaries that separate novelty from noise in minutes.</p>
-          </article>
-          <article class="features__card">
-            <h3 class="features__card-title">Builder lens</h3>
-            <p class="features__card-copy">Practical implications for teams shipping AI products and software platforms right now.</p>
-          </article>
-          <article class="features__card">
-            <h3 class="features__card-title">Opinionated insight</h3>
-            <p class="features__card-copy">Sharp takes on where model capability, software stacks, and market momentum are headed.</p>
-          </article>
-          <article class="features__card">
-            <h3 class="features__card-title">Actionable briefs</h3>
-            <p class="features__card-copy">Clear next steps, engineering risks, and software opportunities for operators.</p>
-          </article>
-        </div>
-      </section>
-
-      <section class="section insights reveal">
-        <h2 class="section__title">Latest insights</h2>
-        <div class="insights__list">
-          <article class="insights__item">
-            <div class="insights__meta">Issue 021</div>
-            <h3 class="insights__headline">The real bottleneck in agent reliability</h3>
-            <p class="insights__excerpt">Why evaluation design and software guardrails matter more than model size for dependable agents.</p>
-          </article>
-          <article class="insights__item">
-            <div class="insights__meta">Issue 020</div>
-            <h3 class="insights__headline">Inference costs are becoming software strategy</h3>
-            <p class="insights__excerpt">How latency, architecture choices, and caching reshape product and platform roadmaps.</p>
-          </article>
-          <article class="insights__item">
-            <div class="insights__meta">Issue 019</div>
-            <h3 class="insights__headline">Open models caught up faster than expected</h3>
-            <p class="insights__excerpt">What parity means for software teams choosing between API-first and self-hosted stacks.</p>
-          </article>
-        </div>
-      </section>
-
-      <section class="section chat-wrap reveal">
-        <div class="chat">
-          <div class="chat__header">
-            <h2 class="chat__name">Aliss — AI Assistant</h2>
-            <span class="chat__model">claude-sonnet-4-20250514</span>
-          </div>
-          <div class="chat__messages" id="chatMessages">
-            <div class="chat__bubble chat__bubble--bot">
-              I’m Aliss. Ask about AI trends, software engineering strategy, papers, or a quick weekly briefing.
-            </div>
-          </div>
-          <form class="chat__form" id="chatForm">
-            <input class="chat__input" id="chatInput" type="text" placeholder="Ask Aliss about AI and software…" required />
-            <button class="chat__btn" type="submit">Send</button>
-          </form>
-        </div>
-
-        <aside class="subscribe" id="subscribe">
-          <div>
-            <h3 class="subscribe__title">Subscribe to Aliss</h3>
-            <p class="subscribe__copy">A concise weekly signal for people building artificial intelligence and software.</p>
-          </div>
-          <form class="subscribe__form" id="subscribeForm">
-            <input class="subscribe__input" type="email" name="email" placeholder="you@company.com" required />
-            <button class="subscribe__btn" type="submit">Subscribe</button>
-          </form>
-        </aside>
-      </section>
-    </main>
-
-    <script>
-      const revealElements = document.querySelectorAll('.reveal');
-      const observer = new IntersectionObserver(
-        (entries) => {
-          entries.forEach((entry) => {
-            if (entry.isIntersecting) {
-              entry.target.classList.add('is-visible');
-              observer.unobserve(entry.target);
-            }
-          });
-        },
-        { threshold: 0.15 }
-      );
-
-      revealElements.forEach((element) => observer.observe(element));
-
-      const chatForm = document.getElementById('chatForm');
-      const chatInput = document.getElementById('chatInput');
-      const chatMessages = document.getElementById('chatMessages');
-      const subscribeForm = document.getElementById('subscribeForm');
-
-      const systemPrompt = 'You are Aliss, an AI research assistant for a newsletter about artificial intelligence and software.';
-      const modelName = 'claude-sonnet-4-20250514';
-
-      function appendMessage(text, type) {
-        const bubble = document.createElement('div');
-        bubble.className = `chat__bubble ${type === 'user' ? 'chat__bubble--user' : 'chat__bubble--bot'}`;
-        bubble.textContent = text;
-        chatMessages.appendChild(bubble);
-        chatMessages.scrollTop = chatMessages.scrollHeight;
+      if(article.isExternal&&article.content){
+        card.addEventListener('click',()=>window.open(article.content,'_blank','noopener,noreferrer'));
       }
+      grid.appendChild(card);
+    });
+  }catch{}
+}
 
-      chatForm.addEventListener('submit', async (event) => {
-        event.preventDefault();
-        const userMessage = chatInput.value.trim();
-        if (!userMessage) {
-          return;
-        }
-
-        appendMessage(userMessage, 'user');
-        chatInput.value = '';
-
-        try {
-          const response = await fetch('/api/chat', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              system: systemPrompt,
-              model: modelName,
-              message: userMessage,
-              persona: 'Sharp, concise, well-informed, slightly opinionated'
-            })
-          });
-
-          if (!response.ok) {
-            throw new Error('Chat request failed');
-          }
-
-          const data = await response.json();
-          appendMessage(data.reply || 'No response received.', 'bot');
-        } catch (error) {
-          appendMessage('Aliss could not connect. Add a backend /api/chat proxy to use Claude in production.', 'bot');
-        }
-      });
-
-      subscribeForm.addEventListener('submit', (event) => {
-        event.preventDefault();
-        const emailInput = subscribeForm.querySelector('input[type="email"]');
-        if (emailInput && emailInput.value.trim()) {
-          emailInput.value = '';
-          alert('Subscribed. Welcome to Aliss.');
-        }
-      });
-    </script>
-  </body>
+loadDynamicArticles();
+</script>
+</body>
 </html>
