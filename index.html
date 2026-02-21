@@ -3,32 +3,550 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Simple Website</title>
+    <title>Aliss — AI Newsletter + Research Assistant</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
     <style>
+      :root {
+        --color-bg: #0b0f0b;
+        --color-surface: #121812;
+        --color-surface-2: #161f16;
+        --color-border: #293329;
+        --color-text: #eaf0e8;
+        --color-muted: #94a094;
+        --color-accent: #c4f042;
+        --color-accent-ink: #162000;
+        --space-1: 0.5rem;
+        --space-2: 0.75rem;
+        --space-3: 1rem;
+        --space-4: 1.5rem;
+        --space-5: 2rem;
+        --space-6: 3rem;
+        --radius: 14px;
+        --container: 1120px;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
       body {
         margin: 0;
-        min-height: 100vh;
+        background: var(--color-bg);
+        color: var(--color-text);
+      }
+
+      body {
+        font-family: 'DM Sans', system-ui, sans-serif;
+        line-height: 1.6;
+      }
+
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+
+      .page {
+        width: min(var(--container), 92vw);
+        margin: 0 auto;
+      }
+
+      .topbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: var(--space-4) 0 var(--space-3);
+      }
+
+      .topbar__brand {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.85rem;
+        color: var(--color-accent);
+        letter-spacing: 0.04em;
+      }
+
+      .topbar__meta {
+        color: var(--color-muted);
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.8rem;
+      }
+
+      .hero {
         display: grid;
-        place-items: center;
-        font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-        background: #f7f7f8;
-        color: #111827;
+        grid-template-columns: 1.4fr 1fr;
+        gap: var(--space-5);
+        padding: var(--space-5) 0 var(--space-6);
       }
-      .card {
-        padding: 2rem;
-        border-radius: 12px;
-        background: white;
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
-        text-align: center;
+
+      .hero__eyebrow {
+        font-family: 'JetBrains Mono', monospace;
+        color: var(--color-accent);
+        font-size: 0.75rem;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
       }
-      h1 { margin: 0 0 0.5rem; }
-      p { margin: 0; color: #4b5563; }
+
+      .hero__title {
+        font-family: 'Instrument Serif', serif;
+        font-size: clamp(2.4rem, 7vw, 4.8rem);
+        line-height: 1.03;
+        margin: var(--space-2) 0 var(--space-3);
+      }
+
+      .hero__copy {
+        color: var(--color-muted);
+        max-width: 56ch;
+        margin-bottom: var(--space-4);
+      }
+
+      .hero__cta {
+        display: inline-block;
+        background: var(--color-accent);
+        color: var(--color-accent-ink);
+        padding: 0.75rem 1.2rem;
+        border-radius: 999px;
+        font-weight: 700;
+      }
+
+      .hero__panel {
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius);
+        padding: var(--space-4);
+      }
+
+      .hero__panel-label {
+        font-family: 'JetBrains Mono', monospace;
+        color: var(--color-accent);
+        font-size: 0.75rem;
+      }
+
+      .hero__panel-text {
+        margin-top: var(--space-2);
+        color: var(--color-muted);
+      }
+
+      .ticker {
+        margin: 0 0 var(--space-6);
+        border-top: 1px solid var(--color-border);
+        border-bottom: 1px solid var(--color-border);
+        overflow: hidden;
+      }
+
+      .ticker__track {
+        white-space: nowrap;
+        display: inline-block;
+        min-width: 100%;
+        padding: var(--space-2) 0;
+        animation: ticker-scroll 28s linear infinite;
+        font-family: 'JetBrains Mono', monospace;
+        color: var(--color-muted);
+      }
+
+      .ticker__item {
+        margin-right: 2rem;
+      }
+
+      .section {
+        margin-bottom: var(--space-6);
+      }
+
+      .section__title {
+        font-family: 'Instrument Serif', serif;
+        font-size: clamp(1.8rem, 4vw, 2.6rem);
+        margin: 0 0 var(--space-3);
+      }
+
+      .features__grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: var(--space-3);
+      }
+
+      .features__card,
+      .insights__item,
+      .chat,
+      .subscribe {
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius);
+      }
+
+      .features__card {
+        padding: var(--space-4);
+      }
+
+      .features__card-title {
+        margin: 0 0 var(--space-1);
+      }
+
+      .features__card-copy {
+        margin: 0;
+        color: var(--color-muted);
+      }
+
+      .insights__list {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: var(--space-3);
+      }
+
+      .insights__item {
+        padding: var(--space-4);
+      }
+
+      .insights__meta {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.75rem;
+        color: var(--color-accent);
+      }
+
+      .insights__headline {
+        margin: var(--space-2) 0;
+      }
+
+      .insights__excerpt {
+        margin: 0;
+        color: var(--color-muted);
+      }
+
+      .chat-wrap {
+        display: grid;
+        grid-template-columns: 1.3fr 1fr;
+        gap: var(--space-3);
+      }
+
+      .chat {
+        padding: var(--space-3);
+      }
+
+      .chat__header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: var(--space-2);
+      }
+
+      .chat__name {
+        margin: 0;
+      }
+
+      .chat__model {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.72rem;
+        color: var(--color-muted);
+      }
+
+      .chat__messages {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-2);
+        min-height: 220px;
+        max-height: 360px;
+        overflow: auto;
+        margin-bottom: var(--space-3);
+      }
+
+      .chat__bubble {
+        padding: 0.7rem 0.8rem;
+        border-radius: 10px;
+        max-width: 88%;
+      }
+
+      .chat__bubble--bot {
+        background: var(--color-surface-2);
+        border: 1px solid var(--color-border);
+      }
+
+      .chat__bubble--user {
+        background: var(--color-accent);
+        color: var(--color-accent-ink);
+        margin-left: auto;
+      }
+
+      .chat__form {
+        display: flex;
+        gap: var(--space-2);
+      }
+
+      .chat__input,
+      .subscribe__input {
+        width: 100%;
+        background: #0f140f;
+        border: 1px solid var(--color-border);
+        border-radius: 10px;
+        color: var(--color-text);
+        padding: 0.75rem;
+        font: inherit;
+      }
+
+      .chat__btn,
+      .subscribe__btn {
+        border: 0;
+        border-radius: 10px;
+        padding: 0.75rem 1rem;
+        font-weight: 700;
+        cursor: pointer;
+        background: var(--color-accent);
+        color: var(--color-accent-ink);
+      }
+
+      .subscribe {
+        padding: var(--space-4);
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+      }
+
+      .subscribe__title {
+        margin: 0 0 var(--space-2);
+      }
+
+      .subscribe__copy {
+        margin: 0 0 var(--space-3);
+        color: var(--color-muted);
+      }
+
+      .subscribe__form {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-2);
+      }
+
+      .reveal {
+        opacity: 0;
+        transform: translateY(20px);
+        transition: opacity 0.5s ease, transform 0.5s ease;
+      }
+
+      .reveal.is-visible {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      @keyframes ticker-scroll {
+        0% {
+          transform: translateX(0);
+        }
+        100% {
+          transform: translateX(-50%);
+        }
+      }
+
+      @media (max-width: 980px) {
+        .hero,
+        .chat-wrap {
+          grid-template-columns: 1fr;
+        }
+
+        .features__grid,
+        .insights__list {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+      }
+
+      @media (max-width: 680px) {
+        .features__grid,
+        .insights__list {
+          grid-template-columns: 1fr;
+        }
+      }
     </style>
   </head>
   <body>
-    <main class="card">
-      <h1>Hello, welcome to Aliss</h1>
-      <p>It’s running locally in your dev container.</p>
+    <div class="page">
+      <header class="topbar">
+        <div class="topbar__brand">ALISS / AI NEWSLETTER</div>
+        <div class="topbar__meta">Weekly • Signal over noise</div>
+      </header>
+
+      <section class="hero reveal">
+        <div>
+          <div class="hero__eyebrow">For researchers, engineers, founders</div>
+          <h1 class="hero__title">Hello, welcome to Aliss</h1>
+          <p class="hero__copy">
+            Aliss distills the most important AI research, product moves, and frontier ideas into a concise weekly read.
+          </p>
+          <a href="#subscribe" class="hero__cta">Get the next issue</a>
+        </div>
+        <aside class="hero__panel">
+          <div class="hero__panel-label">Latest focus</div>
+          <p class="hero__panel-text">
+            Agentic workflows, model evals, inference economics, open-source tooling, and what actually matters this week.
+          </p>
+        </aside>
+      </section>
+    </div>
+
+    <section class="ticker">
+      <div class="ticker__track">
+        <span class="ticker__item">• LLM eval benchmarks</span>
+        <span class="ticker__item">• Multimodal agents</span>
+        <span class="ticker__item">• AI infrastructure economics</span>
+        <span class="ticker__item">• Open-source model releases</span>
+        <span class="ticker__item">• Enterprise AI rollouts</span>
+        <span class="ticker__item">• Safety and governance</span>
+        <span class="ticker__item">• LLM eval benchmarks</span>
+        <span class="ticker__item">• Multimodal agents</span>
+        <span class="ticker__item">• AI infrastructure economics</span>
+        <span class="ticker__item">• Open-source model releases</span>
+        <span class="ticker__item">• Enterprise AI rollouts</span>
+        <span class="ticker__item">• Safety and governance</span>
+      </div>
+    </section>
+
+    <main class="page">
+      <section class="section features reveal">
+        <h2 class="section__title">Why readers choose Aliss</h2>
+        <div class="features__grid">
+          <article class="features__card">
+            <h3 class="features__card-title">Research triage</h3>
+            <p class="features__card-copy">Paper summaries that separate novelty from noise in minutes.</p>
+          </article>
+          <article class="features__card">
+            <h3 class="features__card-title">Builder lens</h3>
+            <p class="features__card-copy">Practical implications for teams shipping AI products right now.</p>
+          </article>
+          <article class="features__card">
+            <h3 class="features__card-title">Opinionated insight</h3>
+            <p class="features__card-copy">Sharp takes on where capability and market momentum are headed.</p>
+          </article>
+          <article class="features__card">
+            <h3 class="features__card-title">Actionable briefs</h3>
+            <p class="features__card-copy">Clear next steps, risks, and opportunities for operators.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="section insights reveal">
+        <h2 class="section__title">Latest insights</h2>
+        <div class="insights__list">
+          <article class="insights__item">
+            <div class="insights__meta">Issue 021</div>
+            <h3 class="insights__headline">The real bottleneck in agent reliability</h3>
+            <p class="insights__excerpt">Why evaluation design matters more than model size for dependable agentic systems.</p>
+          </article>
+          <article class="insights__item">
+            <div class="insights__meta">Issue 020</div>
+            <h3 class="insights__headline">Inference costs are becoming strategy</h3>
+            <p class="insights__excerpt">How latency, architecture choices, and caching reshape product roadmaps.</p>
+          </article>
+          <article class="insights__item">
+            <div class="insights__meta">Issue 019</div>
+            <h3 class="insights__headline">Open models caught up faster than expected</h3>
+            <p class="insights__excerpt">What parity means for startups choosing between API-first and self-hosted stacks.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="section chat-wrap reveal">
+        <div class="chat">
+          <div class="chat__header">
+            <h2 class="chat__name">Aliss — AI Assistant</h2>
+            <span class="chat__model">claude-sonnet-4-20250514</span>
+          </div>
+          <div class="chat__messages" id="chatMessages">
+            <div class="chat__bubble chat__bubble--bot">
+              I’m Aliss. Ask about model trends, papers, product strategy, or a quick briefing from this week in AI.
+            </div>
+          </div>
+          <form class="chat__form" id="chatForm">
+            <input class="chat__input" id="chatInput" type="text" placeholder="Ask Aliss anything about AI…" required />
+            <button class="chat__btn" type="submit">Send</button>
+          </form>
+        </div>
+
+        <aside class="subscribe" id="subscribe">
+          <div>
+            <h3 class="subscribe__title">Subscribe to Aliss</h3>
+            <p class="subscribe__copy">A concise weekly signal for people building and studying AI.</p>
+          </div>
+          <form class="subscribe__form" id="subscribeForm">
+            <input class="subscribe__input" type="email" name="email" placeholder="you@company.com" required />
+            <button class="subscribe__btn" type="submit">Subscribe</button>
+          </form>
+        </aside>
+      </section>
     </main>
+
+    <script>
+      const revealElements = document.querySelectorAll('.reveal');
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              entry.target.classList.add('is-visible');
+              observer.unobserve(entry.target);
+            }
+          });
+        },
+        { threshold: 0.15 }
+      );
+
+      revealElements.forEach((element) => observer.observe(element));
+
+      const chatForm = document.getElementById('chatForm');
+      const chatInput = document.getElementById('chatInput');
+      const chatMessages = document.getElementById('chatMessages');
+      const subscribeForm = document.getElementById('subscribeForm');
+
+      const systemPrompt = 'You are Aliss, an AI research assistant for a newsletter about AI.';
+      const modelName = 'claude-sonnet-4-20250514';
+
+      function appendMessage(text, type) {
+        const bubble = document.createElement('div');
+        bubble.className = `chat__bubble ${type === 'user' ? 'chat__bubble--user' : 'chat__bubble--bot'}`;
+        bubble.textContent = text;
+        chatMessages.appendChild(bubble);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+      }
+
+      chatForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const userMessage = chatInput.value.trim();
+        if (!userMessage) {
+          return;
+        }
+
+        appendMessage(userMessage, 'user');
+        chatInput.value = '';
+
+        try {
+          const response = await fetch('/api/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              system: systemPrompt,
+              model: modelName,
+              message: userMessage,
+              persona: 'Sharp, concise, well-informed, slightly opinionated'
+            })
+          });
+
+          if (!response.ok) {
+            throw new Error('Chat request failed');
+          }
+
+          const data = await response.json();
+          appendMessage(data.reply || 'No response received.', 'bot');
+        } catch (error) {
+          appendMessage('Aliss could not connect. Add a backend /api/chat proxy to use Claude in production.', 'bot');
+        }
+      });
+
+      subscribeForm.addEventListener('submit', (event) => {
+        event.preventDefault();
+        const emailInput = subscribeForm.querySelector('input[type="email"]');
+        if (emailInput && emailInput.value.trim()) {
+          emailInput.value = '';
+          alert('Subscribed. Welcome to Aliss.');
+        }
+      });
+    </script>
   </body>
 </html>
