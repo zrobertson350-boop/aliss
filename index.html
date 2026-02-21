@@ -43,11 +43,11 @@ a{color:inherit;text-decoration:none}
 .search-clear{padding:0 12px;color:var(--muted);cursor:pointer;font-size:16px;border:none;background:none;display:none}
 .search-results-label{font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:20px}
 
-/* Featured story — text only, no image */
-.featured-hero{margin-top:20px;margin-bottom:28px;cursor:pointer;background:var(--ink);border-radius:2px;padding:36px 44px;transition:background .25s;animation:fadeUp .6s ease-out}
-.featured-hero:hover{background:#1e1e1e}
+/* Featured story */
+.featured-hero{margin-top:20px;margin-bottom:28px;cursor:pointer;background:var(--ink);border-radius:2px;padding:36px 44px;transition:filter .3s;animation:fadeUp .6s ease-out;position:relative;overflow:hidden}
+.featured-hero:hover{filter:brightness(1.1)}
 .hero-bg-1{}
-.featured-hero-content{}
+.featured-hero-content{position:relative;z-index:2}
 .featured-hero-content .tag-label{font-size:10px;letter-spacing:3px;text-transform:uppercase;font-weight:700;color:var(--accent);display:inline-block;margin-bottom:14px;border-bottom:2px solid var(--accent);padding-bottom:2px}
 .featured-hero-content h2{font-family:var(--serif);font-size:clamp(26px,3.5vw,42px);font-weight:900;line-height:1.1;color:#fff;margin-bottom:12px}
 .featured-hero-content h2 em{font-style:italic;color:#E8A87C}
@@ -218,15 +218,23 @@ a{color:inherit;text-decoration:none}
 <div id="page-home" class="page active"><div class="container">
 
 <div class="featured-hero hero-bg-1" id="dynamicFeaturedHero" onclick="navigate('article-karpathy')">
-<svg class="hero-art-svg" viewBox="0 0 400 200" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
-  <circle class="hero-ring" cx="300" cy="100" r="140" fill="none" stroke="rgba(255,255,255,.15)" stroke-width="1"/>
-  <circle class="hero-ring2" cx="300" cy="100" r="95" fill="none" stroke="rgba(192,57,43,.25)" stroke-width="1"/>
-  <circle class="hero-ring3" cx="300" cy="100" r="50" fill="rgba(255,255,255,.04)"/>
-  <line x1="160" y1="220" x2="420" y2="-20" stroke="rgba(255,255,255,.03)" stroke-width="70"/>
-  <circle class="hero-dot" cx="210" cy="38" r="3.5" fill="rgba(255,255,255,.25)"/>
-  <circle class="hero-dot2" cx="385" cy="155" r="5" fill="rgba(192,57,43,.35)"/>
-  <circle cx="358" cy="52" r="2" fill="rgba(255,255,255,.18)"/>
-  <circle cx="240" cy="165" r="2.5" fill="rgba(255,255,255,.12)"/>
+<svg class="hero-art-svg" viewBox="0 0 400 200" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg" style="z-index:1">
+  <defs>
+    <radialGradient id="rg1" cx="75%" cy="50%" r="60%">
+      <stop offset="0%" stop-color="rgba(255,255,255,0.08)"/>
+      <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+    </radialGradient>
+  </defs>
+  <rect x="0" y="0" width="400" height="200" fill="url(#rg1)"/>
+  <circle class="hero-ring" cx="300" cy="100" r="140" fill="none" stroke="rgba(255,255,255,.22)" stroke-width="1.5"/>
+  <circle class="hero-ring2" cx="300" cy="100" r="95" fill="none" stroke="rgba(192,57,43,.4)" stroke-width="1.5"/>
+  <circle class="hero-ring3" cx="300" cy="100" r="50" fill="rgba(255,255,255,.06)"/>
+  <line x1="140" y1="240" x2="440" y2="-40" stroke="rgba(255,255,255,.05)" stroke-width="80"/>
+  <circle class="hero-dot" cx="200" cy="35" r="4" fill="rgba(255,255,255,.4)"/>
+  <circle class="hero-dot2" cx="390" cy="160" r="6" fill="rgba(192,57,43,.55)"/>
+  <circle cx="355" cy="50" r="2.5" fill="rgba(255,255,255,.3)"/>
+  <circle cx="235" cy="170" r="3" fill="rgba(255,255,255,.2)"/>
+  <circle cx="340" cy="140" r="1.5" fill="rgba(255,255,255,.25)"/>
 </svg>
 <div class="featured-hero-content">
 <div class="tag-label">Featured Profile</div>
@@ -980,10 +988,17 @@ function buildCard(article,index){
   card.innerHTML=`
     <div class="card-visual" style="background:linear-gradient(${angle}deg,${p[0]} 0%,${p[1]} 55%,${p[2]} 100%)">
       <svg class="card-art" viewBox="0 0 300 110" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="${cx1}" cy="${cy1}" r="${r1}" fill="rgba(255,255,255,0.055)"/>
-        <circle cx="${300-cx1*.5}" cy="${110-cy1*.5}" r="${r2}" fill="rgba(255,255,255,0.08)"/>
-        <line x1="0" y1="110" x2="300" y2="15" stroke="rgba(255,255,255,0.025)" stroke-width="55"/>
-        <circle cx="${cx1*.3}" cy="${cy1*.4}" r="${Math.round(r2*.45)}" fill="rgba(255,255,255,0.06)"/>
+        <defs>
+          <radialGradient id="cg${index}" cx="70%" cy="40%" r="65%">
+            <stop offset="0%" stop-color="rgba(255,255,255,0.12)"/>
+            <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+          </radialGradient>
+        </defs>
+        <rect x="0" y="0" width="300" height="110" fill="url(#cg${index})"/>
+        <circle cx="${cx1}" cy="${cy1}" r="${r1}" fill="rgba(255,255,255,0.1)"/>
+        <circle cx="${300-cx1*.5}" cy="${110-cy1*.5}" r="${r2}" fill="rgba(255,255,255,0.14)"/>
+        <line x1="0" y1="110" x2="300" y2="15" stroke="rgba(255,255,255,0.06)" stroke-width="55"/>
+        <circle cx="${cx1*.3}" cy="${cy1*.4}" r="${Math.round(r2*.45)}" fill="rgba(255,255,255,0.1)"/>
       </svg>
       <div class="card-visual-tag">${tag}</div>
     </div>
