@@ -60,6 +60,22 @@ a{color:inherit;text-decoration:none}
 .section-header h3{font-family:var(--serif);font-size:22px;font-weight:700;white-space:nowrap}
 .section-header::after{content:'';flex:1;height:1px;background:var(--divider)}
 
+/* Live Updates */
+.live-updates{margin-bottom:40px}
+.live-updates-header{display:flex;align-items:baseline;gap:14px;margin-bottom:16px}
+.live-updates-header h3{font-family:var(--serif);font-size:22px;font-weight:700;white-space:nowrap}
+.live-updates-date{font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);font-weight:600}
+.live-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--accent);margin-right:8px;animation:pulse 2s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.85)}}
+.live-updates-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:0;border:1px solid var(--divider)}
+.live-item{padding:20px 24px;border-right:1px solid var(--divider);border-bottom:1px solid var(--divider);background:var(--card-bg)}
+.live-item:nth-child(3n){border-right:none}
+.live-item-num{font-family:var(--mono);font-size:11px;color:var(--accent);font-weight:600;margin-bottom:8px}
+.live-item h4{font-family:var(--serif);font-size:15px;font-weight:700;line-height:1.3;margin-bottom:8px;color:var(--ink)}
+.live-item p{font-size:13px;color:var(--muted);line-height:1.55;margin:0}
+@media(max-width:900px){.live-updates-grid{grid-template-columns:repeat(2,1fr)}.live-item:nth-child(3n){border-right:1px solid var(--divider)}.live-item:nth-child(2n){border-right:none}}
+@media(max-width:640px){.live-updates-grid{grid-template-columns:1fr}.live-item{border-right:none!important}}
+
 /* Text-only grid — no images, pure editorial */
 .cards-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:0;margin-bottom:48px;border:1px solid var(--divider)}
 .card{background:var(--card-bg);border:0;border-right:1px solid var(--divider);border-bottom:1px solid var(--divider);cursor:pointer;transition:background .2s;display:flex;flex-direction:column}
@@ -195,6 +211,14 @@ a{color:inherit;text-decoration:none}
 <p>From Rubik's cube tutorials on YouTube to directing Tesla's Autopilot vision — and now reimagining education itself.</p>
 <div class="hero-meta-home">By <strong>Aliss Editorial</strong> · February 21, 2026 · 8 min read</div>
 </div></div>
+
+<div class="live-updates" id="liveUpdatesSection" style="display:none">
+  <div class="live-updates-header">
+    <h3><span class="live-dot"></span>Today in AI</h3>
+    <span class="live-updates-date" id="liveUpdatesDate"></span>
+  </div>
+  <div class="live-updates-grid" id="liveUpdatesGrid"></div>
+</div>
 
 <div class="section-header"><h3>Latest Stories</h3></div>
 
@@ -779,6 +803,39 @@ function escapeHtml(value){
 
 let articlesShown=500;
 
+/* ---- Relevance sort ---- */
+const CATEGORY_WEIGHT={'Profile':5,'Analysis':4,'Research':3,'Opinion':2,'Industry':2};
+function sortByRelevance(articles){
+  return [...articles].sort((a,b)=>{
+    const wa=CATEGORY_WEIGHT[a.category]||1;
+    const wb=CATEGORY_WEIGHT[b.category]||1;
+    if(wb!==wa) return wb-wa;
+    return new Date(b.publishedAt||0)-new Date(a.publishedAt||0);
+  });
+}
+
+/* ---- Daily briefing ---- */
+async function loadDailyBriefing(){
+  try{
+    const res=await fetch('/api/daily-briefing');
+    if(!res.ok) return;
+    const data=await res.json();
+    if(!data?.items?.length) return;
+    const section=document.getElementById('liveUpdatesSection');
+    const grid=document.getElementById('liveUpdatesGrid');
+    const dateEl=document.getElementById('liveUpdatesDate');
+    if(!section||!grid) return;
+    if(dateEl) dateEl.textContent=data.date||'';
+    grid.innerHTML=data.items.map((item,i)=>`
+      <div class="live-item">
+        <div class="live-item-num">0${i+1}</div>
+        <h4>${escapeHtml(item.headline)}</h4>
+        <p>${escapeHtml(item.detail)}</p>
+      </div>`).join('');
+    section.style.display='block';
+  }catch{}
+}
+
 const STATIC_CARDS=[
   {slug:'article-altman',category:'Profile',title:'Sam Altman: The Architect of the AI Gold Rush',summary:'From Stanford dropout to Y Combinator president to CEO of the most valuable AI company on Earth — how one man bet everything on artificial general intelligence.',publishedAt:'2026-02-21',isStatic:true},
   {slug:'article-sutskever',category:'Profile',title:'Ilya Sutskever: The Scientist Who Walked Away',summary:'He helped build ChatGPT, tried to fire Sam Altman, then vanished. Now he\'s back with $3 billion and a singular mission: safe superintelligence.',publishedAt:'2026-02-21',isStatic:true},
@@ -793,10 +850,10 @@ async function loadDynamicArticles(){
     if(!response.ok) return;
     const articles=await response.json();
     if(!Array.isArray(articles)) return;
-    allArticlesCache=[...STATIC_CARDS,...articles];
+    allArticlesCache=sortByRelevance([...STATIC_CARDS,...articles]);
 
-    // Update featured hero with the first generated article
-    const featured=articles.find(a=>a.isGenerated&&!STATIC_ARTICLE_PAGES.includes(a.slug));
+    // Update featured hero with the top profile article
+    const featured=allArticlesCache.find(a=>a.isGenerated&&!STATIC_ARTICLE_PAGES.includes(a.slug));
     if(featured) updateFeaturedHero(featured);
 
     grid.innerHTML='';
@@ -825,6 +882,7 @@ function updateFeaturedHero(article){
 }
 
 loadDynamicArticles();
+loadDailyBriefing();
 
 function renderTickerItems(headlines){
   const tickerTrack=document.getElementById('liveTickerTrack');

@@ -37,6 +37,7 @@ if (SUPABASE_URL && SUPABASE_KEY) {
     seedGeneratedArticles();
     fetchHNNews();
     refreshTicker();
+    refreshDailyBriefing();
     setTimeout(polishShortArticles, 30000);
   }, 5000);
 } else {
@@ -989,6 +990,66 @@ cron.schedule("0 * * * *",    fetchHNNews);
 cron.schedule("*/30 * * * *", autoGenerateArticle);
 cron.schedule("*/15 * * * *", refreshTicker);
 cron.schedule("0 */3 * * *",  polishShortArticles);
+cron.schedule("0 6 * * *",    refreshDailyBriefing);
+
+/* ======================
+   DAILY BRIEFING
+====================== */
+
+let dailyBriefingCache = { date: null, items: [] };
+
+async function generateDailyBriefing() {
+  if (!ANTHROPIC_KEY) return [];
+  const today = new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
+  try {
+    let context = "";
+    if (isDbReady()) {
+      const { data } = await supabase
+        .from("aliss_articles")
+        .select("title,category")
+        .order("published_at", { ascending: false })
+        .limit(12);
+      context = (data || []).map(a => a.title).join("; ");
+    }
+    const raw = await callClaude(
+      `You are an AI news editor for Aliss, a sharp AI-focused publication. Write concise, factual daily briefing items about real, current AI industry developments. Be specific — reference actual companies, products, and people. No fluff, no generic statements.`,
+      `Write 6 AI news briefing items for ${today}. Each item should be a distinct, specific development in AI — covering things like model releases, funding rounds, research breakthroughs, regulatory moves, or key executive decisions. These should feel like real news, grounded in what's actually happening in AI in early 2026.
+
+Recent Aliss coverage for context: ${context || "OpenAI, Anthropic, Google DeepMind, AI safety, scaling laws"}
+
+Return ONLY a JSON array of 6 objects with "headline" (max 12 words, punchy) and "detail" (1-2 sentences, specific and informative). No other text.
+Example: [{"headline":"OpenAI Cuts API Prices by 50% for Enterprise","detail":"OpenAI slashed pricing on GPT-4o for enterprise customers, aiming to accelerate adoption ahead of Google's next Gemini release."}]`,
+      1200
+    );
+    const match = raw.match(/\[[\s\S]*\]/);
+    if (!match) return [];
+    const items = JSON.parse(match[0]);
+    return Array.isArray(items) ? items.filter(i => i.headline && i.detail) : [];
+  } catch (e) {
+    console.error("Daily briefing generation failed:", e.message);
+    return [];
+  }
+}
+
+async function refreshDailyBriefing() {
+  const today = new Date().toISOString().slice(0, 10);
+  if (dailyBriefingCache.date === today && dailyBriefingCache.items.length) return;
+  console.log("Generating daily briefing for", today);
+  const items = await generateDailyBriefing();
+  if (items.length) {
+    dailyBriefingCache = { date: today, items };
+    console.log("Daily briefing ready:", items[0]?.headline);
+  }
+}
+
+app.get("/api/daily-briefing", async (req, res) => {
+  const today = new Date().toISOString().slice(0, 10);
+  if (dailyBriefingCache.date !== today || !dailyBriefingCache.items.length) {
+    await refreshDailyBriefing();
+  }
+  const dateLabel = new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" });
+  res.json({ date: dateLabel, items: dailyBriefingCache.items });
+});
 
 /* ======================
    STATIC FRONTEND
