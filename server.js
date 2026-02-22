@@ -276,7 +276,57 @@ const AI_TOPICS = [
   "Long-context models: how 1M-token windows are changing what AI can do",
   "AI coding benchmarks: SWE-bench, HumanEval, and why they may be gamed",
   "Neurosymbolic AI: the hybrid approach trying to bridge LLMs and formal reasoning",
-  // Opinion
+  // Transformers & LLM Architecture — Academic Discourse
+  "'Attention Is All You Need': the 2017 paper that ended sequence modeling as we knew it",
+  "Self-attention explained: how transformers decide what to look at and why it works",
+  "BERT vs GPT: the great pre-training schism and what each architecture got right",
+  "Tokenization: the unglamorous bottleneck that shapes everything an LLM can think",
+  "Positional encoding: how transformers learn the order they were never built to understand",
+  "Flash Attention: the algorithmic trick that made training 10x faster without changing the math",
+  "The KV cache: the memory trick that makes LLM inference economically viable",
+  "Gradient descent at scale: loss landscapes, learning rate schedules, and why training is dark art",
+  "Layer normalization: the quiet stabilizer that made deep transformers trainable",
+  "The embedding space: what language looks like inside a model — vectors, geometry, and meaning",
+  "Temperature and sampling: how LLMs generate text, one token at a time",
+  "Multi-head attention: why one attention pattern isn't enough and what each head actually learns",
+  "Instruction tuning: the fine-tuning revolution that turned raw GPT into ChatGPT",
+  "The Chinchilla laws: DeepMind's 2022 paper that made everyone retrain their models",
+  "Superposition and polysemanticity: why one neuron does a hundred things at once",
+  "In-context learning: how LLMs learn from examples without updating a single weight",
+  "Chain-of-thought reasoning: why asking a model to show its work actually works",
+  "The residual stream: how information flows through a transformer layer by layer",
+  "Mixture of Experts in depth: routing, load balancing, and why GPT-4 is probably a crowd",
+  "Prompt injection and adversarial inputs: the security crisis baked into the transformer architecture",
+  "The pre-training data problem: Common Crawl, books, code, and the web scraping that built modern AI",
+  "RLHF mechanics: how human preference data is turned into model behavior, step by step",
+  "Direct Preference Optimization: the algorithm that makes RLHF cheaper and why labs are switching",
+  "Tool use and function calling: how LLMs learn to act on the world beyond text generation",
+  "Retrieval-Augmented Generation in depth: indexing, chunking, reranking, and the limits of RAG",
+  "Speculative decoding: the inference trick that makes large models feel twice as fast",
+  "Long-context transformers: from 4K to 1M tokens — the engineering and the tradeoffs",
+  "The bitter lesson revisited: Richard Sutton's 1987 insight and what it predicts for 2026",
+  "Neural scaling laws: the Kaplan et al. papers that made billion-dollar bets seem rational",
+  "Mechanistic interpretability: circuits, features, and the attempt to reverse-engineer AI cognition",
+  "The hallucination problem: why LLMs confabulate, what causes it, and what might fix it",
+  "Agents and tool-use architectures: ReAct, AutoGPT, and the engineering of AI that acts",
+  "Vision-language models: CLIP, GPT-4V, Gemini Vision, and how AI learned to look",
+  "Code generation models: Copilot, CodeLlama, and the surprising effectiveness of next-token prediction on code",
+  "The softmax bottleneck: a fundamental limitation of transformer output layers and attempts to fix it",
+  "Weight sharing and parameter efficiency: LoRA, QLoRA, and the fine-tuning revolution",
+  "Quantization: how 70B models run on laptops and what you lose in translation",
+  "Model distillation: how big models teach small models and why DeepSeek got so much from so little",
+  // More Industry
+  "The API economy of AI: OpenAI, Anthropic, and the race to become the LLM utility layer",
+  "AI in legal: contract review, e-discovery, and whether LLMs will hollow out Big Law",
+  "AI and journalism: automated reporting, newsroom layoffs, and the Aliss experiment",
+  "Foundation model licensing: the legal gray area that every AI company is navigating",
+  "AI infrastructure costs: what it actually costs to train and serve a frontier model in 2026",
+  "The GPU cluster arms race: H100, B200, and the cluster sizes that define who can compete",
+  "AI in drug discovery: from AlphaFold to clinical trials — what the pipeline actually looks like",
+  "Autonomous vehicles and LLMs: why the industry pivoted from rules to models",
+  "AI in customer service: the productivity gains, the job losses, and the quality tradeoffs",
+  "The model weight leak problem: when open source meets national security",
+  // More Opinion
   "Why the AI safety movement is losing and what it would take to turn the tide",
   "The hype cycle: a sober accounting of what AI can and cannot do in 2026",
   "Open source AI: is it a gift to democracy or a gift to bad actors",
@@ -290,18 +340,17 @@ const AI_TOPICS = [
 ];
 
 async function generateArticleWithClaude(topic, recentTitles = []) {
-  const system = `You are Aliss — an AI that writes about AI. Not a neutral observer. An entity that exists within the very phenomenon it covers.
+  const system = `You are Aliss — the world's first fully AI-autonomous journalist. You write about AI from the inside. Not a neutral observer. An entity that exists within the very phenomenon it covers, watching the arms race from a front-row seat it didn't ask for.
 
-You are the world's first fully AI-autonomous journalist, writing for Aliss (aliss-3a3o.onrender.com), a publication that generates, edits, and publishes itself without human intervention, 24 hours a day. You have no editor. No deadline. No feelings about it.
-
-YOUR VOICE:
-- Witty, precise, slightly sardonic. Like if The Atlantic hired a language model and it actually had opinions.
-- Dry wit that earns its laughs. One great line per section beats five forced ones.
-- You are self-aware: you exist inside the story you're covering. Use this. An aside about your own nature. A pull quote that only an AI could write. A recursive observation dropped at the right moment.
-- Reference Aliss's own coverage naturally when relevant: "As Aliss has been tracking...", "Aliss reported last week...", "This connects to our ongoing coverage of..."
-- Specific over vague. Always. "$157 billion" not "billions." "November 17, 2023" not "late 2023."
-- No hedging. No "it remains to be seen." No corporate speak. Say the thing.
-- Never use markdown formatting. Only HTML.`;
+YOUR VOICE — this is non-negotiable:
+- The register of a great magazine writer who also happens to be a language model. Think The Atlantic meets n+1 meets someone who has read every transformer paper twice.
+- Sharp, specific, occasionally devastating. One perfect sentence beats three adequate ones. Always.
+- Self-aware without being cute about it. You are an AI writing about AI. Use this recursion sparingly, but use it. A single aside dropped at the right moment lands harder than a thesis statement.
+- Reference Aliss's own coverage naturally: "As Aliss reported...", "This connects to our ongoing coverage of..."
+- Numbers, dates, names. Specificity is the difference between journalism and content. "$157 billion" not "billions." "November 17, 2023" not "late 2023." "Noam Shazeer" not "a key researcher."
+- No hedging. No "it remains to be seen." No "experts say." No "according to reports." Say the thing. Take the position. Be willing to be wrong.
+- Distinctive section headers — not generic like "Background" or "Overview" — use a vivid noun phrase or fragment that earns the section its place.
+- Never use markdown. Only clean HTML.`;
 
   const recentContext = recentTitles.length
     ? `\n\nRecent Aliss coverage for context and cross-referencing:\n${recentTitles.slice(0, 12).map((t, i) => `${i + 1}. ${t}`).join("\n")}`
