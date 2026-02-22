@@ -779,6 +779,12 @@ function escapeHtml(value){
 
 let articlesShown=500;
 
+const STATIC_CARDS=[
+  {slug:'article-altman',category:'Profile',title:'Sam Altman: The Architect of the AI Gold Rush',summary:'From Stanford dropout to Y Combinator president to CEO of the most valuable AI company on Earth — how one man bet everything on artificial general intelligence.',publishedAt:'2026-02-21',isStatic:true},
+  {slug:'article-sutskever',category:'Profile',title:'Ilya Sutskever: The Scientist Who Walked Away',summary:'He helped build ChatGPT, tried to fire Sam Altman, then vanished. Now he\'s back with $3 billion and a singular mission: safe superintelligence.',publishedAt:'2026-02-21',isStatic:true},
+  {slug:'article-karpathy',category:'Profile',title:'Andrej Karpathy: The Teacher Who Shaped Modern AI',summary:'From Rubik\'s cube tutorials on YouTube to directing Tesla\'s Autopilot vision — and now reimagining education itself.',publishedAt:'2026-02-21',isStatic:true},
+];
+
 async function loadDynamicArticles(){
   const grid=document.getElementById('latestStoriesGrid');
   if(!grid) return;
@@ -786,29 +792,21 @@ async function loadDynamicArticles(){
     const response=await fetch('/api/articles');
     if(!response.ok) return;
     const articles=await response.json();
-    if(!Array.isArray(articles)||!articles.length) return;
-    allArticlesCache=articles;
+    if(!Array.isArray(articles)) return;
+    allArticlesCache=[...STATIC_CARDS,...articles];
 
     // Update featured hero with the first generated article
     const featured=articles.find(a=>a.isGenerated&&!STATIC_ARTICLE_PAGES.includes(a.slug));
     if(featured) updateFeaturedHero(featured);
 
     grid.innerHTML='';
-    articles.slice(0,articlesShown).forEach((article,index)=>grid.appendChild(buildCard(article,index)));
+    allArticlesCache.forEach((article,index)=>grid.appendChild(buildCard(article,index)));
     const btn=document.getElementById('loadMoreBtn');
-    if(btn) btn.style.display=articlesShown>=articles.length?'none':'inline-block';
+    if(btn) btn.style.display='none';
   }catch{}
 }
 
-function loadMore(){
-  articlesShown+=12;
-  const grid=document.getElementById('latestStoriesGrid');
-  if(!grid||!allArticlesCache.length) return;
-  grid.innerHTML='';
-  allArticlesCache.slice(0,articlesShown).forEach((article,index)=>grid.appendChild(buildCard(article,index)));
-  const btn=document.getElementById('loadMoreBtn');
-  if(btn) btn.style.display=articlesShown>=allArticlesCache.length?'none':'inline-block';
-}
+function loadMore(){}
 
 function updateFeaturedHero(article){
   const hero=document.getElementById('dynamicFeaturedHero');
@@ -879,7 +877,9 @@ function buildCard(article,index){
   card.className='card';
   card.innerHTML=`<div class="card-body"><div class="card-tag">${tag}</div><h4>${title}</h4><p>${summary}</p><div class="card-meta">${dateText} · ${source}</div></div>`;
   const slug=String(article?.slug||article?._id||'').trim();
-  if(article.isExternal&&article.content){
+  if(article.isStatic){
+    card.addEventListener('click',()=>navigate(slug));
+  }else if(article.isExternal&&article.content){
     card.addEventListener('click',()=>window.open(article.content,'_blank','noopener,noreferrer'));
   }else if(slug){
     card.addEventListener('click',()=>openDynamicArticle(slug));
