@@ -199,7 +199,24 @@ a{color:inherit;text-decoration:none}
 @media(max-width:640px){.cards-grid{grid-template-columns:repeat(2,1fr)}.fact-strip{grid-template-columns:repeat(2,1fr)}.fact-item:nth-child(2){border-right:none}.contrib-grid{grid-template-columns:1fr}.featured-hero-content{padding:20px}.newsletter-banner{flex-direction:column;padding:20px 18px;text-align:center}.newsletter-form{width:100%}.newsletter-form input{flex:1;width:auto}.footer-grid{grid-template-columns:1fr}.footer-bottom{flex-direction:column;gap:12px;text-align:center}.pull-quote{margin:20px 0}.main-nav ul{justify-content:flex-start}}
 
 /* Sign In button in topbar */
-.signin-btn{padding:5px 14px;border:1px solid rgba(255,255,255,.3);border-radius:2px;color:#ccc!important;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;font-weight:600;transition:all .2s}.signin-btn:hover{border-color:rgba(255,255,255,.8)!important;color:#fff!important}
+.signin-btn{padding:5px 14px;border:1px solid rgba(255,255,255,.3);border-radius:2px;color:#ccc!important;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;font-weight:600;transition:all .2s;cursor:pointer}.signin-btn:hover{border-color:rgba(255,255,255,.8)!important;color:#fff!important}
+.auth-user-btn{display:none;align-items:center;gap:6px;padding:5px 14px;border:1px solid rgba(255,255,255,.3);border-radius:2px;color:#ccc;font-size:11px;letter-spacing:1.2px;text-transform:uppercase;font-weight:600;cursor:pointer;background:none;transition:all .2s;position:relative}.auth-user-btn:hover{border-color:rgba(255,255,255,.7);color:#fff}
+.auth-dropdown{position:absolute;top:calc(100% + 10px);right:0;background:#fff;border:1px solid var(--divider);min-width:180px;box-shadow:0 8px 28px rgba(0,0,0,.14);z-index:500;display:none;animation:fadeUp .18s ease-out}.auth-dropdown.open{display:block}
+.auth-dropdown button,.auth-dropdown a{display:block;width:100%;text-align:left;padding:12px 18px;font-size:13px;color:var(--ink);border:none;background:none;cursor:pointer;font-family:var(--sans);transition:background .15s;text-decoration:none}.auth-dropdown button:hover,.auth-dropdown a:hover{background:var(--cream)}
+.auth-dropdown-divider{height:1px;background:var(--divider);margin:4px 0}
+/* Auth Modal */
+.auth-overlay{position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:1000;display:flex;align-items:center;justify-content:center;opacity:0;visibility:hidden;transition:opacity .25s,visibility .25s}.auth-overlay.open{opacity:1;visibility:visible}
+.auth-modal{background:#fff;width:100%;max-width:440px;padding:44px 40px;position:relative;animation:fadeUp .28s ease-out;box-shadow:0 24px 64px rgba(0,0,0,.2)}
+.auth-modal-close{position:absolute;top:16px;right:18px;border:none;background:none;font-size:22px;cursor:pointer;color:var(--muted);line-height:1;padding:4px 8px}.auth-modal-close:hover{color:var(--ink)}
+.auth-logo{font-family:var(--serif);font-weight:900;font-size:22px;letter-spacing:6px;text-transform:uppercase;text-align:center;margin-bottom:28px}.auth-logo .la{color:var(--accent)}
+.auth-tabs{display:flex;border-bottom:2px solid var(--divider);margin-bottom:28px}
+.auth-tab{flex:1;padding:10px;text-align:center;font-size:11px;letter-spacing:2.5px;text-transform:uppercase;font-weight:700;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .2s}.auth-tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.auth-field{margin-bottom:18px}
+.auth-field label{display:block;font-size:10px;letter-spacing:2px;text-transform:uppercase;font-weight:700;color:var(--muted);margin-bottom:7px}
+.auth-field input{width:100%;padding:13px 15px;border:1px solid var(--divider);font-size:15px;font-family:var(--sans);outline:none;transition:border-color .2s;color:var(--ink);border-radius:2px}.auth-field input:focus{border-color:var(--accent)}
+.auth-submit{width:100%;padding:15px;background:var(--accent);color:#fff;border:none;font-size:11px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;font-family:var(--sans);cursor:pointer;margin-top:4px;transition:background .2s;border-radius:2px}.auth-submit:hover:not(:disabled){background:var(--accent-hover)}.auth-submit:disabled{opacity:.55;cursor:not-allowed}
+.auth-msg{font-size:13px;margin-top:14px;min-height:20px;text-align:center;line-height:1.5}.auth-msg.error{color:#c0392b}.auth-msg.success{color:#27ae60}
+.auth-footer-note{font-size:12px;color:var(--muted);text-align:center;margin-top:18px;line-height:1.5}
 
 /* Industry — The Most Ambitious Category */
 :root{--industry:#B8860B;--industry-bright:#F5A623;--industry-bg:#1C1608;--industry-paper:#FDF8EC;--industry-divider:#D4AF37}
@@ -228,7 +245,7 @@ a{color:inherit;text-decoration:none}
 </head>
 <body>
 
-<div class="topbar"><div class="container"><a href="#" onclick="showSignIn();return false" class="signin-btn">Sign In</a><div class="topbar-right"><a href="#" onclick="navigate('about');return false">About</a><a href="#">Newsletter</a><a href="#">RSS</a></div></div></div>
+<div class="topbar"><div class="container"><div id="authTopbarControl" style="position:relative"><a href="#" onclick="showSignIn();return false" class="signin-btn" id="signinTopbarBtn">Sign In</a><button class="auth-user-btn" id="userTopbarBtn" onclick="toggleUserDropdown()"><span id="userEmailDisplay"></span><span style="font-size:8px;margin-left:4px">&#9660;</span><div class="auth-dropdown" id="userDropdown"><button onclick="doSignOut()">Sign Out</button></div></button></div><div class="topbar-right"><a href="#" onclick="navigate('about');return false">About</a><a href="#">Newsletter</a><a href="#">RSS</a></div></div></div>
 
 <header class="masthead"><a class="masthead-logo" onclick="navigate('home');return false"><span class="logo-accent">A</span>l<span class="logo-accent">i</span>ss</a><div class="masthead-tagline">Welcome to the Future.</div></header>
 
@@ -681,6 +698,32 @@ Right now, we just focus on the research, and then the answer to the business qu
   <div class="dynamic-article">
     <article class="article-body" id="dynamicArticleBody"></article>
     <p class="article-notice" id="dynamicArticleNotice"></p>
+  </div>
+</div>
+
+<!-- Auth Modal -->
+<div class="auth-overlay" id="authOverlay" onclick="if(event.target===this)closeAuthModal()">
+  <div class="auth-modal" role="dialog" aria-modal="true" aria-label="Sign in to Aliss AI">
+    <button class="auth-modal-close" onclick="closeAuthModal()" aria-label="Close">&#x2715;</button>
+    <div class="auth-logo"><span class="la">A</span>l<span class="la">i</span>ss <span style="font-size:14px;letter-spacing:3px">AI</span></div>
+    <div class="auth-tabs">
+      <div class="auth-tab active" id="tabSignin" onclick="switchAuthTab('signin')">Sign In</div>
+      <div class="auth-tab" id="tabSignup" onclick="switchAuthTab('signup')">Create Account</div>
+    </div>
+    <div id="authFormSignin">
+      <div class="auth-field"><label>Email</label><input type="email" id="siEmail" placeholder="your@email.com" autocomplete="email" onkeydown="if(event.key==='Enter')doSignIn()"></div>
+      <div class="auth-field"><label>Password</label><input type="password" id="siPassword" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doSignIn()"></div>
+      <button class="auth-submit" id="siBtn" onclick="doSignIn()">Sign In</button>
+      <div class="auth-msg" id="siMsg"></div>
+      <div class="auth-footer-note">Don't have an account? <a href="#" onclick="switchAuthTab('signup');return false" style="color:var(--accent);font-weight:600">Create one free.</a></div>
+    </div>
+    <div id="authFormSignup" style="display:none">
+      <div class="auth-field"><label>Email</label><input type="email" id="suEmail" placeholder="your@email.com" autocomplete="email" onkeydown="if(event.key==='Enter')doSignUp()"></div>
+      <div class="auth-field"><label>Password</label><input type="password" id="suPassword" placeholder="Min. 8 characters" autocomplete="new-password" onkeydown="if(event.key==='Enter')doSignUp()"></div>
+      <button class="auth-submit" id="suBtn" onclick="doSignUp()">Create Account</button>
+      <div class="auth-msg" id="suMsg"></div>
+      <div class="auth-footer-note">Already have an account? <a href="#" onclick="switchAuthTab('signin');return false" style="color:var(--accent);font-weight:600">Sign in.</a></div>
+    </div>
   </div>
 </div>
 
@@ -1177,11 +1220,9 @@ async function loadIndustryFeatured(){
 }
 
 function showSignIn(){
-  navigate('home');
-  setTimeout(()=>{
-    const banner=document.querySelector('.newsletter-banner');
-    if(banner) banner.scrollIntoView({behavior:'smooth',block:'center'});
-  },100);
+  document.getElementById('authOverlay').classList.add('open');
+  document.body.style.overflow='hidden';
+  setTimeout(()=>document.getElementById('siEmail')?.focus(),100);
 }
 
 /* ======================
@@ -1228,6 +1269,127 @@ function filterCategory(category, navKey){
     filtered.forEach((a,i)=>grid.appendChild(buildCard(a,i)));
   });
 }
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+/* ======================
+   SUPABASE AUTH
+====================== */
+const _sb = supabase.createClient(
+  'https://gimbtirbbifgsutcihec.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdpbWJ0aXJiYmlmZ3N1dGNpaGVjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE1MzQ2MzEsImV4cCI6MjA4NzExMDYzMX0.5cAvn0TLhFTqM1gmYpJVNtlZd8_xEdwm5LcKNIV26mA'
+);
+
+function _setTopbarUser(user){
+  const signinBtn=document.getElementById('signinTopbarBtn');
+  const userBtn=document.getElementById('userTopbarBtn');
+  const emailEl=document.getElementById('userEmailDisplay');
+  if(user){
+    if(signinBtn) signinBtn.style.display='none';
+    if(userBtn){ userBtn.style.display='flex'; }
+    if(emailEl){
+      const e=user.email||'';
+      emailEl.textContent=e.length>22?e.slice(0,20)+'…':e;
+    }
+  }else{
+    if(signinBtn) signinBtn.style.display='';
+    if(userBtn){ userBtn.style.display='none'; }
+  }
+}
+
+_sb.auth.onAuthStateChange((_event, session)=>{
+  _setTopbarUser(session?.user||null);
+});
+_sb.auth.getSession().then(({data})=>{
+  _setTopbarUser(data?.session?.user||null);
+});
+
+function closeAuthModal(){
+  document.getElementById('authOverlay').classList.remove('open');
+  document.body.style.overflow='';
+  document.getElementById('siMsg').textContent='';
+  document.getElementById('suMsg').textContent='';
+}
+
+function switchAuthTab(tab){
+  document.getElementById('tabSignin').classList.toggle('active',tab==='signin');
+  document.getElementById('tabSignup').classList.toggle('active',tab==='signup');
+  document.getElementById('authFormSignin').style.display=tab==='signin'?'block':'none';
+  document.getElementById('authFormSignup').style.display=tab==='signup'?'block':'none';
+  const focusId=tab==='signin'?'siEmail':'suEmail';
+  setTimeout(()=>document.getElementById(focusId)?.focus(),50);
+}
+
+function toggleUserDropdown(){
+  document.getElementById('userDropdown').classList.toggle('open');
+}
+document.addEventListener('click',e=>{
+  const btn=document.getElementById('userTopbarBtn');
+  if(btn&&!btn.contains(e.target)){
+    document.getElementById('userDropdown')?.classList.remove('open');
+  }
+});
+
+async function doSignIn(){
+  const email=document.getElementById('siEmail').value.trim();
+  const password=document.getElementById('siPassword').value;
+  const msg=document.getElementById('siMsg');
+  const btn=document.getElementById('siBtn');
+  if(!email||!password){msg.className='auth-msg error';msg.textContent='Email and password are required.';return;}
+  btn.disabled=true;btn.textContent='Signing in…';msg.className='auth-msg';msg.textContent='';
+  try{
+    const {error}=await _sb.auth.signInWithPassword({email,password});
+    if(error) throw error;
+    msg.className='auth-msg success';msg.textContent='Welcome back!';
+    setTimeout(closeAuthModal,900);
+  }catch(e){
+    msg.className='auth-msg error';
+    msg.textContent=e.message==='Invalid login credentials'
+      ?'Incorrect email or password.'
+      :(e.message||'Sign in failed. Please try again.');
+  }finally{
+    btn.disabled=false;btn.textContent='Sign In';
+  }
+}
+
+async function doSignUp(){
+  const email=document.getElementById('suEmail').value.trim();
+  const password=document.getElementById('suPassword').value;
+  const msg=document.getElementById('suMsg');
+  const btn=document.getElementById('suBtn');
+  if(!email||!password){msg.className='auth-msg error';msg.textContent='Email and password are required.';return;}
+  if(password.length<8){msg.className='auth-msg error';msg.textContent='Password must be at least 8 characters.';return;}
+  if(!email.includes('@')){msg.className='auth-msg error';msg.textContent='Please enter a valid email address.';return;}
+  btn.disabled=true;btn.textContent='Creating account…';msg.className='auth-msg';msg.textContent='';
+  try{
+    const {data,error}=await _sb.auth.signUp({email,password});
+    if(error) throw error;
+    if(data?.session){
+      // Email confirmation disabled — signed in immediately
+      msg.className='auth-msg success';msg.textContent='Account created. Welcome to Aliss AI!';
+      setTimeout(closeAuthModal,900);
+    }else{
+      msg.className='auth-msg success';
+      msg.textContent='Check your inbox — we sent you a confirmation link.';
+    }
+  }catch(e){
+    msg.className='auth-msg error';
+    msg.textContent=e.message||'Sign up failed. Please try again.';
+  }finally{
+    btn.disabled=false;btn.textContent='Create Account';
+  }
+}
+
+async function doSignOut(){
+  document.getElementById('userDropdown')?.classList.remove('open');
+  await _sb.auth.signOut();
+}
+
+// Close modal on Escape
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape') closeAuthModal();
+});
 </script>
 </body>
 </html>
