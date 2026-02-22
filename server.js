@@ -672,7 +672,7 @@ app.get("/api/articles", async (req, res) => {
       .from("aliss_articles")
       .select("id,slug,title,subtitle,summary,tags,category,source,is_external,is_generated,published_at")
       .order("published_at", { ascending: false })
-      .limit(60);
+      .limit(500);
     if (error || !articles?.length) return res.json(fallback);
     res.json(articles.map(normalizeArticle));
   } catch {
