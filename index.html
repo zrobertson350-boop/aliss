@@ -141,20 +141,6 @@ a{color:inherit;text-decoration:none}
 .scroll-top{position:fixed;bottom:32px;right:32px;width:44px;height:44px;background:var(--ink);color:#fff;border:none;border-radius:50%;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;opacity:0;visibility:hidden;transition:all .3s;z-index:100;box-shadow:0 4px 16px rgba(0,0,0,.2)}
 .scroll-top.visible{opacity:1;visibility:visible}.scroll-top:hover{background:var(--accent)}
 
-.alice-toggle{position:fixed;left:24px;bottom:24px;background:var(--ink);color:#fff;border:none;border-radius:999px;padding:12px 16px;font-family:var(--sans);font-size:14px;font-weight:600;cursor:pointer;z-index:120;box-shadow:0 10px 24px rgba(0,0,0,.2)}
-.alice-panel{position:fixed;left:24px;bottom:80px;width:min(360px,calc(100vw - 32px));height:460px;background:#fff;border:1px solid var(--divider);border-radius:10px;display:none;flex-direction:column;overflow:hidden;z-index:130;box-shadow:0 18px 42px rgba(0,0,0,.16)}
-.alice-panel.open{display:flex}
-.alice-header{padding:14px 16px;background:var(--ink);color:#fff;display:flex;justify-content:space-between;align-items:center}
-.alice-header h4{font-family:var(--serif);font-size:20px;font-weight:700}
-.alice-close{background:transparent;border:none;color:#fff;cursor:pointer;font-size:20px;line-height:1}
-.alice-messages{flex:1;padding:14px;overflow:auto;background:var(--paper)}
-.alice-msg{max-width:86%;padding:10px 12px;border-radius:10px;margin-bottom:10px;font-size:14px;line-height:1.5}
-.alice-msg.user{margin-left:auto;background:var(--ink);color:#fff}
-.alice-msg.bot{background:#fff;border:1px solid var(--divider)}
-.alice-form{display:flex;gap:8px;padding:12px;border-top:1px solid var(--divider);background:#fff}
-.alice-form input{flex:1;padding:10px 12px;border:1px solid var(--divider);border-radius:8px;font-size:14px;outline:none}
-.alice-form input:focus{border-color:var(--accent)}
-.alice-form button{padding:10px 14px;background:var(--accent);color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:600}
 
 @media(max-width:1100px){.cards-grid{grid-template-columns:repeat(3,1fr)}}
 @media(max-width:900px){.cards-grid{grid-template-columns:repeat(2,1fr)}.footer-grid{grid-template-columns:1fr 1fr}.about-pillars{grid-template-columns:1fr}}
@@ -201,6 +187,14 @@ a{color:inherit;text-decoration:none}
 
 <div id="page-home" class="page active"><div class="container">
 
+<div class="featured-hero hero-bg-1" id="dynamicFeaturedHero" onclick="navigate('article-karpathy')">
+<div class="featured-hero-content">
+<div class="tag-label">Featured Profile</div>
+<h2>Andrej Karpathy: <em>The Teacher</em> Who Shaped Modern AI</h2>
+<p>From Rubik's cube tutorials on YouTube to directing Tesla's Autopilot vision — and now reimagining education itself.</p>
+<div class="hero-meta-home">By <strong>Aliss Editorial</strong> · February 21, 2026 · 8 min read</div>
+</div></div>
+
 <div class="section-header"><h3>Latest Stories</h3></div>
 
 <div class="cards-grid" id="latestStoriesGrid">
@@ -212,7 +206,7 @@ a{color:inherit;text-decoration:none}
 <p>From Stanford dropout to Y Combinator president to CEO of the most valuable AI company on Earth — how one man bet everything on artificial general intelligence.</p>
 <div class="card-meta">Feb 21, 2026 · 9 min read</div></div></div>
 
-<div class="featured-hero hero-bg-1" id="dynamicFeaturedHero" onclick="navigate('article-karpathy')">
+<div class="featured-hero hero-bg-1" onclick="navigate('article-karpathy')">
 <div class="featured-hero-content">
 <div class="tag-label">Featured Profile</div>
 <h2>Andrej Karpathy: <em>The Teacher</em> Who Shaped Modern AI</h2>
@@ -600,21 +594,6 @@ Right now, we just focus on the research, and then the answer to the business qu
 <div class="footer-bottom"><span>&copy; 2026 Aliss Editorial. All rights reserved.</span><div class="footer-bottom-links"><a href="#">Privacy Policy</a><a href="#">Terms</a><a href="#">Accessibility</a></div></div>
 </div></footer>
 
-<button class="alice-toggle" id="aliceToggle" type="button">Chat with Alice</button>
-<div class="alice-panel" id="alicePanel">
-  <div class="alice-header">
-    <h4>Alice</h4>
-    <button class="alice-close" id="aliceClose" type="button" aria-label="Close chat">×</button>
-  </div>
-  <div class="alice-messages" id="aliceMessages">
-    <div class="alice-msg bot">Hi, I’m Alice. Ask me anything about AI news on Aliss.</div>
-  </div>
-  <form class="alice-form" id="aliceForm">
-    <input type="text" id="aliceInput" placeholder="Type your question" required autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
-    <button type="submit">Send</button>
-  </form>
-</div>
-
 <button class="scroll-top" id="scrollTop" onclick="window.scrollTo({top:0,behavior:'smooth'})">&#8593;</button>
 
 <script src="/socket.io/socket.io.js"></script>
@@ -781,43 +760,6 @@ signupForm?.addEventListener('submit',async function(e){
     signupStatus.textContent='Something went wrong. Try again.';
   }finally{
     if(btn){btn.disabled=false;btn.textContent='Subscribe';}
-  }
-});
-
-const aliceToggle=document.getElementById('aliceToggle');
-const alicePanel=document.getElementById('alicePanel');
-const aliceClose=document.getElementById('aliceClose');
-const aliceForm=document.getElementById('aliceForm');
-const aliceInput=document.getElementById('aliceInput');
-const aliceMessages=document.getElementById('aliceMessages');
-
-function appendAliceMessage(role,text){
-  const div=document.createElement('div');
-  div.className='alice-msg '+role;
-  div.textContent=text;
-  aliceMessages.appendChild(div);
-  aliceMessages.scrollTop=aliceMessages.scrollHeight;
-}
-
-aliceToggle?.addEventListener('click',()=>alicePanel.classList.toggle('open'));
-aliceClose?.addEventListener('click',()=>alicePanel.classList.remove('open'));
-
-aliceForm?.addEventListener('submit',async function(e){
-  e.preventDefault();
-  const prompt=aliceInput.value.trim();
-  if(!prompt)return;
-  appendAliceMessage('user',prompt);
-  aliceInput.value='';
-  appendAliceMessage('bot','Alice is thinking...');
-  const thinking=aliceMessages.lastElementChild;
-  try{
-    const response=await fetch('/api/alice-chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:prompt})});
-    if(!response.ok)throw new Error('Chat request failed');
-    const data=await response.json();
-    const reply=(data&&data.reply)?String(data.reply):'No reply returned from server.';
-    thinking.textContent=reply;
-  }catch{
-    thinking.textContent='Alice is not connected yet. Add your Claude integration on /api/alice-chat.';
   }
 });
 
