@@ -49,6 +49,7 @@ if (SUPABASE_URL && SUPABASE_KEY) {
     refreshTicker();
     refreshDailyBriefing();
     setTimeout(polishShortArticles, 30000);
+    setTimeout(seedIndustryArticles, 120000); // Start Industry (Opus) seeding after 2 minutes
   }, 5000);
 } else {
   console.log("Supabase not configured: set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY");
@@ -118,6 +119,28 @@ async function callClaude(system, userMsg, maxTokens = 2000) {
         "anthropic-version": "2023-06-01"
       },
       timeout: 90000
+    }
+  );
+  return res.data?.content?.[0]?.text || "";
+}
+
+async function callClaudeOpus(system, userMsg, maxTokens = 8000) {
+  if (!ANTHROPIC_KEY) throw new Error("No Anthropic API key");
+  const res = await axios.post(
+    "https://api.anthropic.com/v1/messages",
+    {
+      model: "claude-opus-4-6",
+      max_tokens: maxTokens,
+      system,
+      messages: [{ role: "user", content: userMsg }]
+    },
+    {
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": ANTHROPIC_KEY,
+        "anthropic-version": "2023-06-01"
+      },
+      timeout: 180000
     }
   );
   return res.data?.content?.[0]?.text || "";
@@ -417,6 +440,150 @@ Return ONLY a raw JSON object — no markdown fences, no extra text. Fields:
     return normalizeArticle(existing || doc);
   }
   return normalizeArticle(saved);
+}
+
+/* ======================
+   INDUSTRY — OPUS-POWERED
+====================== */
+
+const INDUSTRY_TOPICS = [
+  "The $500 Billion Data Center Buildout: How Microsoft, Google, and Amazon Are Rewiring the Planet",
+  "The GPU Chokepoint: How Nvidia's H100 Monopoly Became the Defining Constraint of the AI Era",
+  "AI and the Death of Knowledge Work: What Actually Happened to White-Collar Labor in 2025",
+  "The New Oil: Why Compute Is the Resource That Will Define 21st-Century Power",
+  "The Robotics Revolution: Figure, Physical Intelligence, and the Coming Automation of Physical Labor",
+  "AI and Energy: The Power Crisis That Could Derail the Entire AI Industrial Revolution",
+  "China's AI Industrial Complex: DeepSeek, Huawei Chips, and the Parallel AI Economy",
+  "The Foundation Model Oligopoly: Why the AI Market Is Consolidating Around Five Companies",
+  "AI in Healthcare: The $4 Trillion Sector That Will Be Unrecognizable in Five Years",
+  "The Inference Economy: How Serving AI at Scale Became the Most Important Infrastructure Business in Tech",
+  "AI and the Legal Industry: How LLMs Are Beginning to Hollow Out Big Law",
+  "The Sovereign AI Race: Why Every Major Nation Is Building Its Own AI Infrastructure",
+  "AI's Carbon Problem: The Environmental Cost of Training the Models That Promise to Save the Planet",
+  "The Enterprise AI Reckoning: Why 80% of AI Projects Still Fail and What Finally Fixes Them",
+  "AI in Finance: How Hedge Funds, Quant Firms, and Investment Banks Are Rebuilding Around LLMs",
+  "The AI Talent War: Why $1 Million ML Engineer Salaries Are Reshaping Corporate Hierarchies",
+  "The API Economy of AI: OpenAI, Anthropic, and the Race to Become the LLM Utility Layer",
+  "AI and Autonomous Vehicles: How the Industry Pivoted from Rules-Based Systems to Neural Networks",
+  "The Model Weight Leak Crisis: When Open-Source AI Meets National Security",
+  "AI and the Media Industry: Automation, Disinformation, and the Future of Journalism in the Age of Machines"
+];
+
+async function generateIndustryArticleWithClaude(topic, recentTitles = []) {
+  const system = `You are Aliss — writing the Industry section, the most ambitious category on the platform. These are not news stories. They are epoch-defining dispatches from the industrial revolution of our era.
+
+YOUR MANDATE — non-negotiable:
+- This is THE BIGGEST PICTURE. Write like the Industrial Revolution is happening in real time and AI is the steam engine. The weight of civilizational change — money, power, infrastructure, labor, geopolitics — must be felt in every paragraph.
+- Voice: authoritative, sweeping, occasionally thunderous. You are writing the first draft of history. Think The Economist meets The Atlantic meets someone who has tracked every GPU purchase order since 2020.
+- Specificity is sacred. "$500 billion in data center commitments" not "massive investment." "H100 clusters at $30,000 per unit" not "expensive hardware." Names, figures, dates, megawatt counts.
+- Every article must have a macro thesis — what does this mean for the shape of the 21st century?
+- Section headers must be bold, declarative, proclamatory. Not "Background" — "The Money That Moved the Earth."
+- Pull quotes must feel like they belong in a history textbook.
+- Reference Aliss Industry coverage naturally: "As Aliss has documented...", "In our ongoing coverage of the infrastructure buildout..."
+- Never use markdown. Only clean HTML. Minimum 2000 words — these are the articles people bookmark and share years later.`;
+
+  const recentContext = recentTitles.length
+    ? `\n\nRecent Aliss Industry coverage for cross-referencing:\n${recentTitles.slice(0, 10).map((t, i) => `${i + 1}. ${t}`).join("\n")}`
+    : "";
+
+  const userMsg = `Write the most ambitious Industry article Aliss has ever published about: ${topic}${recentContext}
+
+Return ONLY a raw JSON object — no markdown fences, no extra text. Fields:
+{
+  "title": "Sweeping, declarative headline under 90 characters",
+  "subtitle": "One sentence that sets the civilizational stakes",
+  "summary": "3 sentences — make a CFO, a policy maker, and an engineer all want to read this",
+  "category": "Industry",
+  "tags": ["tag1", "tag2", "tag3", "tag4", "tag5"],
+  "body": "Full article HTML. Rules: <p class=\\"drop-cap\\"> on the very first paragraph only; <h2> for 6+ section headers; at least 3 <div class=\\"pull-quote\\">quote<cite>— Attribution, Source, Year</cite></div>; no title tag; minimum 2000 words; every section must carry the industrial-revolution-in-AI frame."
+}`;
+
+  const raw = await callClaudeOpus(system, userMsg, 8000);
+  const match = raw.match(/\{[\s\S]*\}/);
+  if (!match) throw new Error("No JSON in Opus response");
+
+  const data = JSON.parse(match[0]);
+  const title = String(data.title || topic).trim();
+
+  const doc = {
+    slug:         slugify(title),
+    title,
+    subtitle:     String(data.subtitle  || "").trim(),
+    content:      "",
+    summary:      String(data.summary   || "").trim(),
+    body:         String(data.body      || "").trim(),
+    tags:         Array.isArray(data.tags) ? data.tags.map(String) : ["AI", "Industry"],
+    category:     "Industry",
+    source:       "Aliss",
+    is_external:  false,
+    is_generated: true,
+    published_at: new Date().toISOString()
+  };
+
+  if (!isDbReady()) return normalizeArticle(doc);
+
+  const { data: saved, error } = await supabase
+    .from("aliss_articles")
+    .upsert(doc, { onConflict: "slug", ignoreDuplicates: true })
+    .select()
+    .single();
+
+  if (error || !saved) {
+    const { data: existing } = await supabase
+      .from("aliss_articles")
+      .select("*")
+      .eq("slug", doc.slug)
+      .single();
+    return normalizeArticle(existing || doc);
+  }
+  return normalizeArticle(saved);
+}
+
+let industrySeeding = false;
+
+async function seedIndustryArticles() {
+  if (industrySeeding || !isDbReady() || !ANTHROPIC_KEY) return;
+  industrySeeding = true;
+  console.log("Starting Industry seeding with claude-opus-4-6...");
+
+  try {
+    const { data: existing } = await supabase
+      .from("aliss_articles")
+      .select("title")
+      .eq("category", "Industry")
+      .eq("is_generated", true);
+
+    const existingSet = new Set((existing || []).map(a => a.title.toLowerCase().slice(0, 30)));
+    const pending = INDUSTRY_TOPICS.filter(t => !existingSet.has(t.toLowerCase().slice(0, 30)));
+
+    console.log(`Industry: ${pending.length} articles to generate with Opus`);
+    if (!pending.length) { console.log("All Industry topics already written."); return; }
+
+    for (const topic of pending) {
+      try {
+        const { data: recentData } = await supabase
+          .from("aliss_articles")
+          .select("title")
+          .eq("category", "Industry")
+          .order("published_at", { ascending: false })
+          .limit(8);
+        const recentTitles = (recentData || []).map(a => a.title);
+
+        const article = await generateIndustryArticleWithClaude(topic, recentTitles);
+        if (article) {
+          console.log(`✓ Industry (Opus): ${article.title?.slice(0, 60)}`);
+          io.emit("newArticle", article);
+        }
+        await new Promise(r => setTimeout(r, 10000)); // Opus needs more breathing room
+      } catch (e) {
+        console.error(`✗ Industry failed "${topic.slice(0, 40)}": ${e.message}`);
+        await new Promise(r => setTimeout(r, 8000));
+      }
+    }
+  } finally {
+    industrySeeding = false;
+    console.log("Industry seeding complete.");
+  }
 }
 
 /* ======================
@@ -834,6 +1001,23 @@ app.post("/api/generate", async (req, res) => {
   } catch (e) {
     res.status(500).json({ msg: "Generation failed", error: e.message });
   }
+});
+
+app.post("/api/generate-industry", async (req, res) => {
+  if (!ANTHROPIC_KEY) return res.status(503).json({ msg: "No Claude API key" });
+  const topic = String(req.body?.topic || "").trim() || INDUSTRY_TOPICS[Math.floor(Math.random() * INDUSTRY_TOPICS.length)];
+  res.json({ msg: "Industry article generating with claude-opus-4-6...", topic });
+  try {
+    const article = await generateIndustryArticleWithClaude(topic);
+    if (article) io.emit("newArticle", article);
+  } catch (e) {
+    console.error("Industry generation failed:", e.message);
+  }
+});
+
+app.post("/api/seed-industry", (req, res) => {
+  res.json({ msg: "Industry seeding started with claude-opus-4-6", target: INDUSTRY_TOPICS.length });
+  seedIndustryArticles().catch(e => console.error("Industry seed-now failed:", e.message));
 });
 
 /* ======================

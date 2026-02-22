@@ -197,11 +197,38 @@ a{color:inherit;text-decoration:none}
 @media(max-width:1100px){.cards-grid{grid-template-columns:repeat(3,1fr)}}
 @media(max-width:900px){.cards-grid{grid-template-columns:repeat(2,1fr)}.footer-grid{grid-template-columns:1fr 1fr}.about-pillars{grid-template-columns:1fr}}
 @media(max-width:640px){.cards-grid{grid-template-columns:repeat(2,1fr)}.fact-strip{grid-template-columns:repeat(2,1fr)}.fact-item:nth-child(2){border-right:none}.contrib-grid{grid-template-columns:1fr}.featured-hero-content{padding:20px}.newsletter-banner{flex-direction:column;padding:20px 18px;text-align:center}.newsletter-form{width:100%}.newsletter-form input{flex:1;width:auto}.footer-grid{grid-template-columns:1fr}.footer-bottom{flex-direction:column;gap:12px;text-align:center}.pull-quote{margin:20px 0}.main-nav ul{justify-content:flex-start}}
+
+/* Sign In button in topbar */
+.signin-btn{padding:5px 14px;border:1px solid rgba(255,255,255,.3);border-radius:2px;color:#ccc!important;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;font-weight:600;transition:all .2s}.signin-btn:hover{border-color:rgba(255,255,255,.8)!important;color:#fff!important}
+
+/* Industry — The Most Ambitious Category */
+:root{--industry:#B8860B;--industry-bright:#F5A623;--industry-bg:#1C1608;--industry-paper:#FDF8EC;--industry-divider:#D4AF37}
+.card-industry{grid-column:span 2;border-left:4px solid var(--industry)!important}
+.card-industry .card-tag{color:var(--industry)!important;font-weight:700}
+.card-industry .card-body h4{font-size:20px;font-weight:900;line-height:1.3}
+#industryFeaturedSection{background:var(--industry-bg);padding:32px 40px;margin-bottom:36px;border-radius:12px;display:none}
+.industry-section-eyebrow{font-size:10px;letter-spacing:4px;text-transform:uppercase;color:var(--industry);font-weight:700;margin-bottom:4px}
+.industry-big-headline{font-family:var(--serif);font-size:clamp(22px,2.6vw,34px);font-weight:900;color:#fff;margin-bottom:24px;line-height:1.1;border-bottom:1px solid rgba(212,175,55,.2);padding-bottom:20px}
+.industry-feat-grid{display:grid;grid-template-columns:1.85fr 1fr;gap:0}
+.industry-lead{padding-right:32px;border-right:1px solid rgba(212,175,55,.2);cursor:pointer}
+.industry-lead:hover .industry-lead-title{color:var(--industry-bright)}
+.industry-lead-eyebrow{font-size:10px;letter-spacing:3px;text-transform:uppercase;font-weight:700;color:var(--industry);margin-bottom:10px;display:block}
+.industry-lead-title{font-family:var(--serif);font-size:clamp(18px,1.9vw,26px);font-weight:900;color:#fff;line-height:1.2;margin-bottom:10px;transition:color .2s}
+.industry-lead p{color:rgba(255,255,255,.5);font-size:14px;line-height:1.65;max-width:440px}
+.industry-lead-meta{font-size:11px;color:rgba(255,255,255,.25);margin-top:14px}
+.industry-secondary{padding-left:28px;display:flex;flex-direction:column}
+.industry-sec-card{padding:14px 0;border-bottom:1px solid rgba(212,175,55,.12);cursor:pointer}
+.industry-sec-card:last-child{border-bottom:none}
+.industry-sec-card:hover h4{color:var(--industry-bright)}
+.industry-sec-card h4{font-family:var(--serif);font-size:15px;font-weight:700;color:#fff;line-height:1.3;margin-bottom:5px;transition:color .2s}
+.industry-sec-card p{font-size:12px;color:rgba(255,255,255,.38);line-height:1.5}
+@media(max-width:900px){.industry-feat-grid{grid-template-columns:1fr}.industry-lead{border-right:none;padding-right:0;border-bottom:1px solid rgba(212,175,55,.2);padding-bottom:20px;margin-bottom:16px}.industry-secondary{padding-left:0}.card-industry{grid-column:span 1}}
+@media(max-width:640px){.card-industry{grid-column:span 1}}
 </style>
 </head>
 <body>
 
-<div class="topbar"><div class="container"><span>February 21, 2026</span><div class="topbar-right"><a href="#" onclick="navigate('about');return false">About</a><a href="#">Newsletter</a><a href="#">RSS</a></div></div></div>
+<div class="topbar"><div class="container"><a href="#" onclick="showSignIn();return false" class="signin-btn">Sign In</a><div class="topbar-right"><a href="#" onclick="navigate('about');return false">About</a><a href="#">Newsletter</a><a href="#">RSS</a></div></div></div>
 
 <header class="masthead"><a class="masthead-logo" onclick="navigate('home');return false"><span class="logo-accent">A</span>l<span class="logo-accent">i</span>ss</a><div class="masthead-tagline">Welcome to the Future.</div></header>
 
@@ -253,6 +280,15 @@ a{color:inherit;text-decoration:none}
     <span class="live-updates-date" id="liveUpdatesDate"></span>
   </div>
   <div class="live-updates-grid" id="liveUpdatesGrid"></div>
+</div>
+
+<div id="industryFeaturedSection">
+  <div class="industry-section-eyebrow">Industry</div>
+  <div class="industry-big-headline">The Biggest Picture</div>
+  <div class="industry-feat-grid">
+    <div class="industry-lead" id="industryLeadCard"></div>
+    <div class="industry-secondary" id="industrySecondaryCards"></div>
+  </div>
 </div>
 
 <div class="section-header"><h3>Latest Stories</h3></div>
@@ -655,7 +691,7 @@ Right now, we just focus on the research, and then the answer to the business qu
 <div class="footer-col"><h5>Company</h5><ul><li><a href="#" onclick="navigate('about');return false">About</a></li><li><a href="#">Contact</a></li><li><a href="#">Advertise</a></li><li><a href="#">Careers</a></li></ul></div>
 <div class="footer-col"><h5>Follow</h5><ul><li><a href="#">X / Twitter</a></li><li><a href="#">LinkedIn</a></li><li><a href="#">RSS Feed</a></li><li><a href="#">Newsletter</a></li></ul></div>
 </div>
-<div class="footer-bottom"><span>&copy; 2026 Aliss Editorial. All rights reserved.copy; 2026 Aliss AI. All rights reserved.</span><div class="footer-bottom-links"><a href="#">Privacy Policy</a><a href="#">Terms</a><a href="#">Accessibility</a></div></div>
+<div class="footer-bottom"><span>&copy; 2026 Aliss AI. All rights reserved.</span><div class="footer-bottom-links"><a href="#">Privacy Policy</a><a href="#">Terms</a><a href="#">Accessibility</a></div></div>
 </div></footer>
 
 <button class="scroll-top" id="scrollTop" onclick="window.scrollTo({top:0,behavior:'smooth'})">&#8593;</button>
@@ -927,7 +963,7 @@ function escapeHtml(value){
 let articlesShown=500;
 
 /* ---- Relevance sort ---- */
-const CATEGORY_WEIGHT={'Profile':5,'Analysis':4,'Research':3,'Opinion':2,'Industry':2};
+const CATEGORY_WEIGHT={'Industry':6,'Profile':5,'Analysis':4,'Research':3,'Opinion':2};
 function sortByRelevance(articles){
   return [...articles].sort((a,b)=>{
     const wa=CATEGORY_WEIGHT[a.category]||1;
@@ -983,6 +1019,7 @@ async function loadDynamicArticles(){
     allArticlesCache.forEach((article,index)=>grid.appendChild(buildCard(article,index)));
     const btn=document.getElementById('loadMoreBtn');
     if(btn) btn.style.display='none';
+    loadIndustryFeatured();
   }catch{}
 }
 
@@ -1055,7 +1092,7 @@ function buildCard(article,index){
   const dateText=article.publishedAt?new Date(article.publishedAt).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):'Recent';
   const gradient=['ci-1','ci-2','ci-3','ci-4','ci-5','ci-6'][index%6];
   const card=document.createElement('div');
-  card.className='card';
+  card.className='card'+((article.category||'').toLowerCase()==='industry'?' card-industry':'');
   card.innerHTML=`<div class="card-body"><div class="card-tag">${tag}</div><h4>${title}</h4><p>${summary}</p><div class="card-meta">${dateText} · ${source}</div></div>`;
   const slug=String(article?.slug||article?._id||'').trim();
   if(article.isStatic){
@@ -1112,6 +1149,40 @@ searchClear?.addEventListener('click',()=>{
   const lbl=document.getElementById('searchResultsLabel');
   if(lbl) lbl.remove();
 });
+
+/* ======================
+   INDUSTRY FEATURED SECTION
+====================== */
+async function loadIndustryFeatured(){
+  try{
+    const section=document.getElementById('industryFeaturedSection');
+    const leadCard=document.getElementById('industryLeadCard');
+    const secCards=document.getElementById('industrySecondaryCards');
+    if(!section||!leadCard||!secCards) return;
+    await ensureArticlesCache();
+    const industryArticles=allArticlesCache.filter(a=>(a.category||'').toLowerCase()==='industry');
+    if(industryArticles.length<1){section.style.display='none';return;}
+    const lead=industryArticles[0];
+    const secondary=industryArticles.slice(1,4);
+    const leadSlug=String(lead.slug||lead._id||'');
+    const leadDate=lead.publishedAt?new Date(lead.publishedAt).toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}):'Recent';
+    leadCard.innerHTML=`<span class="industry-lead-eyebrow">Industry</span><div class="industry-lead-title">${escapeHtml(lead.title||'')}</div><p>${escapeHtml((lead.subtitle||lead.summary||'').slice(0,160))}</p><div class="industry-lead-meta">By Aliss AI &middot; ${leadDate}</div>`;
+    leadCard.onclick=()=>openDynamicArticle(leadSlug);
+    secCards.innerHTML=secondary.map(a=>{
+      const s=String(a.slug||a._id||'');
+      return `<div class="industry-sec-card" onclick="openDynamicArticle('${s.replace(/'/g,"\\'")}')"><h4>${escapeHtml(a.title||'')}</h4><p>${escapeHtml((a.subtitle||a.summary||'').slice(0,90))}</p></div>`;
+    }).join('');
+    section.style.display='block';
+  }catch{}
+}
+
+function showSignIn(){
+  navigate('home');
+  setTimeout(()=>{
+    const banner=document.querySelector('.newsletter-banner');
+    if(banner) banner.scrollIntoView({behavior:'smooth',block:'center'});
+  },100);
+}
 
 /* ======================
    NAV CATEGORY FILTER
