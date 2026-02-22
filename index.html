@@ -44,7 +44,8 @@ a{color:inherit;text-decoration:none}
 .search-results-label{font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:20px}
 
 /* Featured story — text only, no image */
-.featured-hero{cursor:pointer;background:var(--ink);border-radius:16px;padding:36px 44px;transition:background .25s;animation:fadeUp .6s ease-out;grid-column:1/-1;margin:0}
+.featured-hero{margin-top:20px;margin-bottom:28px;cursor:pointer;background:var(--ink);border-radius:16px;padding:36px 44px;transition:background .25s;animation:fadeUp .6s ease-out}
+.featured-hero-grid{grid-column:1/-1;margin:0 0 0 0;border-radius:16px}
 .featured-hero:hover{background:#1e1e1e}
 .hero-bg-1{}
 .featured-hero-content{}
@@ -144,7 +145,7 @@ a{color:inherit;text-decoration:none}
 
 @media(max-width:1100px){.cards-grid{grid-template-columns:repeat(3,1fr)}}
 @media(max-width:900px){.cards-grid{grid-template-columns:repeat(2,1fr)}.footer-grid{grid-template-columns:1fr 1fr}.about-pillars{grid-template-columns:1fr}}
-@media(max-width:640px){.cards-grid{grid-template-columns:repeat(2,1fr)}.fact-strip{grid-template-columns:repeat(2,1fr)}.fact-item:nth-child(2){border-right:none}.contrib-grid{grid-template-columns:1fr}.featured-hero-content{padding:20px}.newsletter-banner{flex-direction:column;padding:20px 18px;text-align:center}.newsletter-form{width:100%}.newsletter-form input{flex:1;width:auto}.footer-grid{grid-template-columns:1fr}.footer-bottom{flex-direction:column;gap:12px;text-align:center}.pull-quote{margin:20px 0}.main-nav ul{justify-content:flex-start}.alice-toggle{left:12px;bottom:12px}.alice-panel{left:12px;bottom:62px;height:420px}}
+@media(max-width:640px){.cards-grid{grid-template-columns:repeat(2,1fr)}.fact-strip{grid-template-columns:repeat(2,1fr)}.fact-item:nth-child(2){border-right:none}.contrib-grid{grid-template-columns:1fr}.featured-hero-content{padding:20px}.newsletter-banner{flex-direction:column;padding:20px 18px;text-align:center}.newsletter-form{width:100%}.newsletter-form input{flex:1;width:auto}.footer-grid{grid-template-columns:1fr}.footer-bottom{flex-direction:column;gap:12px;text-align:center}.pull-quote{margin:20px 0}.main-nav ul{justify-content:flex-start}}
 </style>
 </head>
 <body>
@@ -206,7 +207,7 @@ a{color:inherit;text-decoration:none}
 <p>From Stanford dropout to Y Combinator president to CEO of the most valuable AI company on Earth — how one man bet everything on artificial general intelligence.</p>
 <div class="card-meta">Feb 21, 2026 · 9 min read</div></div></div>
 
-<div class="featured-hero hero-bg-1" onclick="navigate('article-karpathy')">
+<div class="featured-hero featured-hero-grid hero-bg-1" onclick="navigate('article-karpathy')">
 <div class="featured-hero-content">
 <div class="tag-label">Featured Profile</div>
 <h2>Andrej Karpathy: <em>The Teacher</em> Who Shaped Modern AI</h2>
@@ -249,6 +250,10 @@ a{color:inherit;text-decoration:none}
 <p>Inside Eureka Labs and the growing movement to build AI-native schools that scale world-class instruction to billions.</p>
 <div class="card-meta">Coming Soon</div></div></div>
 
+</div>
+
+<div style="text-align:center;margin:24px 0 32px">
+  <button id="loadMoreBtn" onclick="loadMore()" style="padding:12px 36px;font-family:var(--sans);font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase;background:transparent;color:var(--ink);border:2px solid var(--ink);border-radius:4px;cursor:pointer;transition:all .2s" onmouseover="this.style.background='var(--ink)';this.style.color='#fff'" onmouseout="this.style.background='transparent';this.style.color='var(--ink)'">Load More</button>
 </div>
 
 <div class="newsletter-banner">
@@ -772,6 +777,8 @@ function escapeHtml(value){
     .replaceAll("'",'&#39;');
 }
 
+let articlesShown=12;
+
 async function loadDynamicArticles(){
   const grid=document.getElementById('latestStoriesGrid');
   if(!grid) return;
@@ -782,13 +789,25 @@ async function loadDynamicArticles(){
     if(!Array.isArray(articles)||!articles.length) return;
     allArticlesCache=articles;
 
-    // Update featured hero with the first generated article that has an image
-    const featured=articles.find(a=>a.isGenerated&&a.imageUrl&&!STATIC_ARTICLE_PAGES.includes(a.slug));
+    // Update featured hero with the first generated article
+    const featured=articles.find(a=>a.isGenerated&&!STATIC_ARTICLE_PAGES.includes(a.slug));
     if(featured) updateFeaturedHero(featured);
 
     grid.innerHTML='';
-    articles.slice(0,24).forEach((article,index)=>grid.appendChild(buildCard(article,index)));
+    articles.slice(0,articlesShown).forEach((article,index)=>grid.appendChild(buildCard(article,index)));
+    const btn=document.getElementById('loadMoreBtn');
+    if(btn) btn.style.display=articlesShown>=articles.length?'none':'inline-block';
   }catch{}
+}
+
+function loadMore(){
+  articlesShown+=12;
+  const grid=document.getElementById('latestStoriesGrid');
+  if(!grid||!allArticlesCache.length) return;
+  grid.innerHTML='';
+  allArticlesCache.slice(0,articlesShown).forEach((article,index)=>grid.appendChild(buildCard(article,index)));
+  const btn=document.getElementById('loadMoreBtn');
+  if(btn) btn.style.display=articlesShown>=allArticlesCache.length?'none':'inline-block';
 }
 
 function updateFeaturedHero(article){
