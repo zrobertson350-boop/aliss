@@ -22,6 +22,16 @@ app.use(helmet({ contentSecurityPolicy: false }));
 const limiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 200 });
 app.use(limiter);
 
+// Security headers
+app.use((req, res, next) => {
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.setHeader("X-Frame-Options", "SAMEORIGIN");
+  res.setHeader("X-XSS-Protection", "1; mode=block");
+  res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
+  res.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
+  next();
+});
+
 const ANTHROPIC_KEY = process.env.ANTHROPIC_API_KEY || process.env.CLAUDE_API_KEY;
 console.log("Anthropic key:", ANTHROPIC_KEY ? `set (${ANTHROPIC_KEY.slice(0, 12)}...)` : "MISSING");
 
@@ -1098,6 +1108,58 @@ app.get("/api/daily-briefing", async (req, res) => {
   }
   const dateLabel = new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" });
   res.json({ date: dateLabel, items: dailyBriefingCache.items });
+});
+
+/* ======================
+   SEO: SITEMAP & ROBOTS
+====================== */
+
+app.get("/robots.txt", (_req, res) => {
+  res.type("text/plain").send(
+`User-agent: *
+Allow: /
+Sitemap: https://aliss-3a3o.onrender.com/sitemap.xml`
+  );
+});
+
+app.get("/sitemap.xml", async (req, res) => {
+  const base = "https://aliss-3a3o.onrender.com";
+  const staticUrls = [
+    { loc: base, priority: "1.0", changefreq: "hourly" },
+    { loc: `${base}/?page=about`, priority: "0.5", changefreq: "monthly" },
+    { loc: `${base}/?page=article-altman`, priority: "0.9", changefreq: "weekly" },
+    { loc: `${base}/?page=article-sutskever`, priority: "0.9", changefreq: "weekly" },
+    { loc: `${base}/?page=article-karpathy`, priority: "0.9", changefreq: "weekly" },
+  ];
+
+  let dynamicUrls = [];
+  if (isDbReady()) {
+    try {
+      const { data } = await supabase
+        .from("aliss_articles")
+        .select("slug,published_at,category")
+        .order("published_at", { ascending: false })
+        .limit(500);
+      dynamicUrls = (data || []).map(a => ({
+        loc: `${base}/?page=article&slug=${encodeURIComponent(a.slug)}`,
+        lastmod: a.published_at ? a.published_at.slice(0, 10) : "",
+        priority: a.category === "Profile" ? "0.9" : "0.8",
+        changefreq: "weekly"
+      }));
+    } catch {}
+  }
+
+  const allUrls = [...staticUrls, ...dynamicUrls];
+  const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${allUrls.map(u => `  <url>
+    <loc>${u.loc}</loc>${u.lastmod ? `\n    <lastmod>${u.lastmod}</lastmod>` : ""}
+    <changefreq>${u.changefreq || "weekly"}</changefreq>
+    <priority>${u.priority || "0.8"}</priority>
+  </url>`).join("\n")}
+</urlset>`;
+
+  res.type("application/xml").send(xml);
 });
 
 /* ======================

@@ -4,6 +4,41 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Aliss AI — Intelligence on Artificial Intelligence</title>
+
+<!-- Base SEO -->
+<meta name="description" content="Aliss AI covers the AI arms race — in-depth profiles, analysis, research and daily briefings on artificial intelligence, machine learning, large language models, and the people shaping the future.">
+<meta name="keywords" content="artificial intelligence, AI news, machine learning, OpenAI, Anthropic, large language models, GPT, Claude, Gemini, AI research, AI safety, deep learning, transformers, LLM, neural networks, AI arms race, AGI">
+<meta name="author" content="Aliss AI">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://aliss-3a3o.onrender.com" id="canonicalTag">
+
+<!-- Open Graph -->
+<meta property="og:type" content="website" id="ogType">
+<meta property="og:site_name" content="Aliss AI">
+<meta property="og:title" content="Aliss AI — Intelligence on Artificial Intelligence" id="ogTitle">
+<meta property="og:description" content="Aliss AI covers the AI arms race — in-depth profiles, analysis, research and daily briefings on artificial intelligence and the people shaping the future." id="ogDescription">
+<meta property="og:url" content="https://aliss-3a3o.onrender.com" id="ogUrl">
+<meta property="og:image" content="https://aliss-3a3o.onrender.com/og-image.png" id="ogImage">
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@alissai">
+<meta name="twitter:title" content="Aliss AI — Intelligence on Artificial Intelligence" id="twitterTitle">
+<meta name="twitter:description" content="Aliss AI covers the AI arms race — profiles, analysis, and research on the people and technologies shaping artificial intelligence." id="twitterDescription">
+
+<!-- JSON-LD: Site identity -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "NewsMediaOrganization",
+  "name": "Aliss AI",
+  "url": "https://aliss-3a3o.onrender.com",
+  "description": "The world's first fully AI-autonomous news network covering the AI arms race.",
+  "sameAs": ["https://aliss-3a3o.onrender.com"]
+}
+</script>
+<script type="application/ld+json" id="articleSchema"></script>
+
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Source+Sans+3:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root{--ink:#141414;--paper:#FAFAF7;--cream:#F5F3EE;--accent:#C0392B;--accent-hover:#A93226;--muted:#7A7A72;--muted-light:#A8A8A0;--divider:#DDD9D0;--highlight:#FDF2E9;--tag-bg:#EEEDEA;--card-bg:#FFF;--serif:'Playfair Display',Georgia,serif;--sans:'Source Sans 3','Segoe UI',sans-serif;--mono:'JetBrains Mono',monospace;--max-w:1280px;--content-w:900px}
@@ -634,6 +669,52 @@ socket.on('newArticle',()=>loadDynamicArticles());
 </script>
 
 <script>
+/* ======================
+   SEO META HELPERS
+====================== */
+function updateSEOMeta({title, description, url, type='article', keywords='', publishedAt='', author='Aliss AI'}){
+  const baseUrl='https://aliss-3a3o.onrender.com';
+  const fullUrl=url?`${baseUrl}/?${url}`:baseUrl;
+  const t=title||'Aliss AI — Intelligence on Artificial Intelligence';
+  const d=description||'Aliss AI covers the AI arms race — in-depth profiles, analysis, and research on artificial intelligence.';
+
+  document.title=title?`${title} — Aliss AI`:'Aliss AI — Intelligence on Artificial Intelligence';
+  const set=(id,val)=>{const el=document.getElementById(id);if(el)el.content=val;};
+  const setHref=(id,val)=>{const el=document.getElementById(id);if(el)el.href=val;};
+  const setAttr=(id,attr,val)=>{const el=document.getElementById(id);if(el)el.setAttribute(attr,val);};
+
+  set('ogTitle',t); set('ogDescription',d); set('ogUrl',fullUrl);
+  setAttr('ogType','content',type==='article'?'article':'website');
+  set('twitterTitle',t); set('twitterDescription',d);
+  setHref('canonicalTag',fullUrl);
+
+  // Update keywords meta
+  let kwEl=document.querySelector('meta[name="keywords"]');
+  if(kwEl&&keywords) kwEl.setAttribute('content',`${keywords}, artificial intelligence, AI news, Aliss AI`);
+
+  // JSON-LD Article schema
+  const schema=document.getElementById('articleSchema');
+  if(schema&&type==='article'&&title){
+    schema.textContent=JSON.stringify({
+      "@context":"https://schema.org",
+      "@type":"Article",
+      "headline":title,
+      "description":d,
+      "author":{"@type":"Organization","name":author},
+      "publisher":{"@type":"Organization","name":"Aliss AI","url":baseUrl},
+      "url":fullUrl,
+      "datePublished":publishedAt||new Date().toISOString(),
+      "mainEntityOfPage":{"@type":"WebPage","@id":fullUrl}
+    });
+  }else if(schema){
+    schema.textContent='';
+  }
+}
+
+function resetSEOMeta(){
+  updateSEOMeta({type:'website'});
+}
+
 function getPageFromUrl(){
   const params=new URLSearchParams(window.location.search);
   return params.get('page')||'home';
@@ -645,6 +726,7 @@ function getSlugFromUrl(){
 }
 
 function renderPage(pageId,{scroll=true}={}){
+  if(pageId==='home') resetSEOMeta();
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   (document.getElementById('page-'+pageId)||document.getElementById('page-home')).classList.add('active');
   document.querySelectorAll('.main-nav a').forEach(a=>a.classList.remove('active'));
@@ -726,6 +808,18 @@ async function openDynamicArticle(slug,{replace=false}={}){
     summaryEl.textContent=String(article?.subtitle||summary);
     metaEl.innerHTML=`By <strong>${escapeHtml(source)}</strong> · ${escapeHtml(publishedAt)}`;
 
+    // Update SEO meta for this article
+    const tags=Array.isArray(article?.tags)?article.tags:[];
+    updateSEOMeta({
+      title,
+      description:String(article?.subtitle||summary).slice(0,160),
+      url:`page=article&slug=${encodeURIComponent(slug)}`,
+      type:'article',
+      keywords:tags.join(', '),
+      publishedAt:article?.publishedAt||'',
+      author:source
+    });
+
     // No images — text only
     const imageEl=document.getElementById('dynamicArticleImage');
     if(imageEl){ imageEl.innerHTML=''; imageEl.style.display='none'; }
@@ -737,6 +831,20 @@ async function openDynamicArticle(slug,{replace=false}={}){
       bodyEl.innerHTML=`<p>${escapeHtml(summary)}</p><p><a href="${escapeHtml(article.content)}" target="_blank" rel="noopener noreferrer" style="color:var(--accent);font-weight:600">Read full article &#8594;</a></p>`;
     }else{
       bodyEl.innerHTML=formatArticleBodyText(article?.content||summary);
+    }
+
+    // Make tag pills clickable
+    if(tags.length){
+      const tagsHtml=tags.map(t=>`<button class="tag-pill" onclick="searchTag('${escapeHtml(t)}')" style="cursor:pointer;border:none" title="Search: ${escapeHtml(t)}">${escapeHtml(t)}</button>`).join('');
+      const existing=bodyEl.querySelector('.article-tags');
+      if(!existing){
+        const tagDiv=document.createElement('div');
+        tagDiv.className='article-tags';
+        tagDiv.innerHTML=tagsHtml;
+        bodyEl.appendChild(tagDiv);
+      }else{
+        existing.innerHTML=tagsHtml;
+      }
     }
 
     noticeEl.textContent='';
@@ -791,6 +899,21 @@ signupForm?.addEventListener('submit',async function(e){
     if(btn){btn.disabled=false;btn.textContent='Subscribe';}
   }
 });
+
+function searchTag(tag){
+  // Navigate home and trigger search
+  navigate('home');
+  setTimeout(()=>{
+    const si=document.getElementById('searchInput');
+    const sc=document.getElementById('searchClear');
+    if(!si) return;
+    si.value=tag;
+    if(sc) sc.style.display='block';
+    si.dispatchEvent(new Event('input'));
+    si.scrollIntoView({behavior:'smooth',block:'center'});
+    si.focus();
+  },100);
+}
 
 function escapeHtml(value){
   return String(value)
