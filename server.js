@@ -1003,6 +1003,92 @@ app.post("/api/generate", async (req, res) => {
   }
 });
 
+/* ======================
+   STRIPE SUBSCRIPTIONS
+====================== */
+
+const stripeKey = process.env.STRIPE_SECRET_KEY;
+const stripePriceId = process.env.STRIPE_PRICE_ID; // $5/week recurring price ID
+const stripeWebhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+const stripeClient = stripeKey ? require("stripe")(stripeKey) : null;
+
+const BASE_URL = process.env.BASE_URL || "https://aliss-3a3o.onrender.com";
+
+app.post("/api/create-checkout", async (req, res) => {
+  if (!stripeClient || !stripePriceId) {
+    return res.status(503).json({ msg: "Subscription payments not yet configured." });
+  }
+  const userId = String(req.body?.userId || "").trim();
+  const email  = String(req.body?.email  || "").trim();
+  try {
+    const session = await stripeClient.checkout.sessions.create({
+      mode: "subscription",
+      payment_method_types: ["card"],
+      customer_email: email || undefined,
+      line_items: [{ price: stripePriceId, quantity: 1 }],
+      success_url: `${BASE_URL}/?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url:  `${BASE_URL}/?checkout=cancel`,
+      metadata: { userId },
+    });
+    res.json({ url: session.url });
+  } catch (e) {
+    console.error("Stripe checkout error:", e.message);
+    res.status(500).json({ msg: "Checkout failed", error: e.message });
+  }
+});
+
+// Stripe webhook: mark user as subscribed in Supabase
+app.post("/api/stripe-webhook", express.raw({ type: "application/json" }), async (req, res) => {
+  if (!stripeClient || !stripeWebhookSecret) return res.sendStatus(200);
+  let event;
+  try {
+    event = stripeClient.webhooks.constructEvent(req.body, req.headers["stripe-signature"], stripeWebhookSecret);
+  } catch (e) {
+    return res.status(400).send(`Webhook error: ${e.message}`);
+  }
+  if (event.type === "checkout.session.completed") {
+    const session = event.data.object;
+    const userId = session.metadata?.userId;
+    if (userId && isDbReady()) {
+      await supabase.auth.admin.updateUserById(userId, {
+        user_metadata: { subscribed: true, stripe_customer: session.customer }
+      });
+      console.log(`Subscribed: user ${userId}`);
+    }
+  }
+  if (event.type === "customer.subscription.deleted") {
+    const sub = event.data.object;
+    if (isDbReady()) {
+      const { data: users } = await supabase.auth.admin.listUsers();
+      const user = (users?.users || []).find(u => u.user_metadata?.stripe_customer === sub.customer);
+      if (user) {
+        await supabase.auth.admin.updateUserById(user.id, { user_metadata: { subscribed: false } });
+        console.log(`Unsubscribed: user ${user.id}`);
+      }
+    }
+  }
+  res.sendStatus(200);
+});
+
+// Verify checkout session and mark subscribed
+app.get("/api/checkout-verify", async (req, res) => {
+  if (!stripeClient) return res.json({ subscribed: false });
+  const sessionId = String(req.query.session_id || "").trim();
+  const userId    = String(req.query.user_id    || "").trim();
+  if (!sessionId) return res.status(400).json({ msg: "session_id required" });
+  try {
+    const session = await stripeClient.checkout.sessions.retrieve(sessionId);
+    if (session.payment_status === "paid" && userId && isDbReady()) {
+      await supabase.auth.admin.updateUserById(userId, {
+        user_metadata: { subscribed: true, stripe_customer: session.customer }
+      });
+    }
+    res.json({ subscribed: session.payment_status === "paid" });
+  } catch (e) {
+    res.status(500).json({ msg: e.message });
+  }
+});
+
 app.post("/api/generate-industry", async (req, res) => {
   if (!ANTHROPIC_KEY) return res.status(503).json({ msg: "No Claude API key" });
   const topic = String(req.body?.topic || "").trim() || INDUSTRY_TOPICS[Math.floor(Math.random() * INDUSTRY_TOPICS.length)];

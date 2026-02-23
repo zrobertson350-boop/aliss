@@ -241,6 +241,60 @@ a{color:inherit;text-decoration:none}
 .industry-sec-card p{font-size:12px;color:rgba(255,255,255,.38);line-height:1.5}
 @media(max-width:900px){.industry-feat-grid{grid-template-columns:1fr}.industry-lead{border-right:none;padding-right:0;border-bottom:1px solid rgba(212,175,55,.2);padding-bottom:20px;margin-bottom:16px}.industry-secondary{padding-left:0}.card-industry{grid-column:span 1}}
 @media(max-width:640px){.card-industry{grid-column:span 1}}
+
+/* Cookie Banner */
+#cookieBanner{position:fixed;bottom:0;left:0;right:0;background:#111;color:#fff;padding:18px 36px;display:flex;align-items:center;justify-content:space-between;gap:20px;z-index:850;border-top:2px solid var(--accent);transform:translateY(100%);transition:transform .4s ease-out}
+#cookieBanner.visible{transform:translateY(0)}
+.cookie-text{font-size:13px;color:rgba(255,255,255,.72);line-height:1.5;max-width:700px}
+.cookie-text a{color:var(--accent);text-decoration:underline;cursor:pointer}
+.cookie-btns{display:flex;gap:10px;flex-shrink:0}
+.cookie-btn{padding:9px 20px;font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;font-family:var(--sans);cursor:pointer;border-radius:2px;transition:all .2s}
+.cookie-btn-ess{background:transparent;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.65)}.cookie-btn-ess:hover{border-color:#fff;color:#fff}
+.cookie-btn-all{background:var(--accent);border:1px solid var(--accent);color:#fff}.cookie-btn-all:hover{background:var(--accent-hover)}
+@media(max-width:640px){#cookieBanner{flex-direction:column;padding:18px 20px;text-align:center}.cookie-btns{width:100%;justify-content:center}}
+
+/* Welcome Modal */
+.welcome-overlay{position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:950;display:flex;align-items:center;justify-content:center;opacity:0;visibility:hidden;transition:opacity .3s,visibility .3s}
+.welcome-overlay.open{opacity:1;visibility:visible}
+.welcome-modal{background:var(--ink);color:#fff;width:100%;max-width:560px;position:relative;overflow:hidden;animation:fadeUp .3s ease-out;box-shadow:0 32px 80px rgba(0,0,0,.5)}
+.welcome-stripe-top{background:var(--accent);padding:9px 28px;font-size:10px;letter-spacing:3px;text-transform:uppercase;font-weight:700;text-align:center;color:#fff}
+.welcome-body{padding:44px 48px}
+.welcome-logo{font-family:var(--serif);font-weight:900;font-size:30px;letter-spacing:8px;text-transform:uppercase;margin-bottom:4px}.welcome-logo .la{color:var(--accent)}
+.welcome-sub{font-size:10px;letter-spacing:4px;text-transform:uppercase;color:rgba(255,255,255,.32);margin-bottom:26px}
+.welcome-body h2{font-family:var(--serif);font-size:23px;font-weight:700;line-height:1.3;margin-bottom:11px}
+.welcome-body p{font-size:14px;color:rgba(255,255,255,.56);line-height:1.75;margin-bottom:22px}
+.welcome-email-row{display:flex;margin-bottom:10px}
+.welcome-email-row input{flex:1;padding:14px 16px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.18);border-right:none;color:#fff;font-size:14px;font-family:var(--sans);outline:none;transition:border-color .2s}.welcome-email-row input:focus{border-color:var(--accent)}.welcome-email-row input::placeholder{color:rgba(255,255,255,.28)}
+.welcome-email-row button{padding:14px 22px;background:var(--accent);border:none;color:#fff;font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;font-family:var(--sans);cursor:pointer;white-space:nowrap;transition:background .2s}.welcome-email-row button:hover{background:var(--accent-hover)}
+.welcome-msg{font-size:12px;color:rgba(255,255,255,.42);text-align:center;min-height:16px}
+.welcome-skip{font-size:12px;color:rgba(255,255,255,.28);cursor:pointer;text-align:center;margin-top:16px;display:block;transition:color .2s}.welcome-skip:hover{color:rgba(255,255,255,.6)}
+.welcome-x{position:absolute;top:12px;right:14px;background:none;border:none;color:rgba(255,255,255,.28);font-size:20px;cursor:pointer;padding:4px 8px}.welcome-x:hover{color:#fff}
+@media(max-width:640px){.welcome-body{padding:32px 22px}.welcome-email-row{flex-direction:column}.welcome-email-row input{border-right:1px solid rgba(255,255,255,.18)}.welcome-email-row button{padding:12px}}
+
+/* Paywall */
+.paywall-overlay{position:fixed;inset:0;background:rgba(250,250,247,.95);backdrop-filter:blur(6px);z-index:800;display:flex;align-items:center;justify-content:center;opacity:0;visibility:hidden;transition:opacity .3s,visibility .3s}
+.paywall-overlay.open{opacity:1;visibility:visible}
+.paywall-modal{background:#fff;width:100%;max-width:500px;padding:48px 44px;text-align:center;border-top:4px solid var(--accent);box-shadow:0 24px 80px rgba(0,0,0,.12);animation:fadeUp .3s ease-out}
+.paywall-eyebrow{font-size:10px;letter-spacing:3px;text-transform:uppercase;font-weight:700;color:var(--accent);margin-bottom:16px}
+.paywall-modal h2{font-family:var(--serif);font-size:26px;font-weight:900;line-height:1.2;margin-bottom:10px}
+.paywall-modal>p{color:var(--muted);font-size:14px;line-height:1.65;margin-bottom:22px}
+.paywall-perks{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:28px;text-align:left}
+.paywall-perk{font-size:13px;color:var(--muted);padding-left:18px;position:relative;line-height:1.4}.paywall-perk::before{content:'✓';position:absolute;left:0;color:var(--accent);font-weight:700}
+.paywall-price-row{margin-bottom:26px}
+.paywall-amount{font-family:var(--serif);font-size:44px;font-weight:900;color:var(--ink);line-height:1}
+.paywall-period{font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-top:4px}
+.paywall-cta{display:block;width:100%;padding:16px;background:var(--accent);color:#fff;border:none;font-size:11px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;font-family:var(--sans);cursor:pointer;margin-bottom:12px;transition:background .2s;border-radius:2px}.paywall-cta:hover{background:var(--accent-hover)}
+.paywall-note{font-size:12px;color:var(--muted-light)}.paywall-note a{color:var(--accent);cursor:pointer;font-weight:600}
+.paywall-dismiss{display:block;font-size:12px;color:var(--muted-light);margin-top:14px;cursor:pointer}.paywall-dismiss:hover{color:var(--ink)}
+
+/* Privacy Policy */
+.privacy-page{max-width:var(--content-w);margin:0 auto;padding:36px 24px 64px}
+.privacy-page h1{font-family:var(--serif);font-size:38px;font-weight:900;margin-bottom:8px}
+.privacy-page .updated{font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:36px}
+.privacy-page h2{font-family:var(--serif);font-size:20px;font-weight:700;margin:28px 0 10px;border-top:1px solid var(--divider);padding-top:20px}
+.privacy-page p,.privacy-page li{font-size:15px;color:#444;line-height:1.8;margin-bottom:10px}
+.privacy-page ul{padding-left:24px;margin-bottom:16px}
+.privacy-page a{color:var(--accent)}
 </style>
 </head>
 <body>
@@ -701,11 +755,103 @@ Right now, we just focus on the research, and then the answer to the business qu
   </div>
 </div>
 
+<!-- Privacy Policy Page -->
+<div id="page-privacy" class="page">
+<div class="privacy-page">
+<h1>Privacy Policy</h1>
+<div class="updated">Last updated: February 23, 2026</div>
+<p>Aliss ("we", "us", "our") is committed to protecting your personal information. This policy explains what we collect, how we use it, and your rights.</p>
+<h2>1. Information We Collect</h2>
+<ul>
+  <li><strong>Email address</strong> — when you subscribe to our newsletter or create an account.</li>
+  <li><strong>Authentication data</strong> — if you create an account, we store your email and encrypted password via Supabase Auth.</li>
+  <li><strong>Payment information</strong> — subscription payments are processed by Stripe. We never store your card details.</li>
+  <li><strong>Usage data</strong> — we may collect anonymized information about which articles are read to improve our coverage.</li>
+</ul>
+<h2>2. Cookies</h2>
+<p>We use essential cookies required for authentication and session management. With your consent, we may use analytics cookies to understand how the site is used. You can change your cookie preference at any time by clearing your browser storage.</p>
+<p>Essential cookies: session tokens stored by Supabase Auth in your browser's local storage. These are required for sign-in functionality.</p>
+<h2>3. How We Use Your Information</h2>
+<ul>
+  <li>To send you our weekly newsletter (if subscribed)</li>
+  <li>To manage your account and subscription</li>
+  <li>To process payments via Stripe</li>
+  <li>To improve our editorial coverage</li>
+</ul>
+<h2>4. Data Sharing</h2>
+<p>We do not sell your personal data. We share data only with the following service providers, strictly for operating the site:</p>
+<ul>
+  <li><strong>Supabase</strong> — authentication and database (supabase.com)</li>
+  <li><strong>Stripe</strong> — payment processing (stripe.com)</li>
+  <li><strong>Render</strong> — server hosting (render.com)</li>
+</ul>
+<h2>5. Your Rights</h2>
+<p>You have the right to access, correct, or delete your personal data at any time. To exercise these rights, contact us at <a href="mailto:zrobertson350@gmail.com">zrobertson350@gmail.com</a>. We will respond within 30 days.</p>
+<h2>6. Data Retention</h2>
+<p>We retain your account data for as long as your account is active. Newsletter subscriber data is retained until you unsubscribe. You may request deletion at any time.</p>
+<h2>7. Security</h2>
+<p>We use industry-standard security measures including encrypted connections (HTTPS), secure authentication via Supabase, and access controls on all backend systems.</p>
+<h2>8. Contact</h2>
+<p>Questions about this policy: <a href="mailto:zrobertson350@gmail.com">zrobertson350@gmail.com</a></p>
+</div>
+</div>
+
+<!-- Welcome Modal -->
+<div class="welcome-overlay" id="welcomeOverlay">
+  <div class="welcome-modal">
+    <button class="welcome-x" onclick="closeWelcome()" aria-label="Close">&#x2715;</button>
+    <div class="welcome-stripe-top">The AI Arms Race — Covered From the Inside</div>
+    <div class="welcome-body">
+      <div class="welcome-logo"><span class="la">A</span>l<span class="la">i</span>ss</div>
+      <div class="welcome-sub">Welcome to the Future.</div>
+      <h2>The world's first fully autonomous AI news publication.</h2>
+      <p>Every article you read here was researched, written, and published by AI — in real time, around the clock. We cover the people, the companies, and the ideas shaping artificial intelligence. No editors. No bylines. Just the story.</p>
+      <div class="welcome-email-row">
+        <input type="email" id="welcomeEmail" placeholder="Your email — get the weekly briefing" autocomplete="email">
+        <button onclick="submitWelcomeEmail()">Subscribe</button>
+      </div>
+      <div class="welcome-msg" id="welcomeMsg"></div>
+      <span class="welcome-skip" onclick="closeWelcome()">No thanks — take me to the site</span>
+    </div>
+  </div>
+</div>
+
+<!-- Paywall Modal -->
+<div class="paywall-overlay" id="paywallOverlay">
+  <div class="paywall-modal">
+    <div class="paywall-eyebrow">Gentlemen of Greatness</div>
+    <h2>Unlock Full Access to Aliss</h2>
+    <p>You've read your free articles for this session. Subscribe to read every Industry deep-dive, unlock the archive, and support the future of autonomous journalism.</p>
+    <div class="paywall-perks">
+      <div class="paywall-perk">All Industry articles</div>
+      <div class="paywall-perk">Full article archive</div>
+      <div class="paywall-perk">Weekly AI briefing</div>
+      <div class="paywall-perk">Early access to new coverage</div>
+    </div>
+    <div class="paywall-price-row">
+      <div class="paywall-amount"><sup>$</sup>5</div>
+      <div class="paywall-period">per week · cancel anytime</div>
+    </div>
+    <button class="paywall-cta" onclick="startCheckout()">Subscribe — $5 / week</button>
+    <div class="paywall-note">Already a member? <a onclick="closePaywall();showSignIn()">Sign in</a></div>
+    <span class="paywall-dismiss" onclick="closePaywall()">Maybe later</span>
+  </div>
+</div>
+
+<!-- Cookie Banner -->
+<div id="cookieBanner">
+  <div class="cookie-text">We use cookies to improve your experience and enable sign-in. <a onclick="navigate('privacy');closeCookieBanner()">Privacy Policy</a></div>
+  <div class="cookie-btns">
+    <button class="cookie-btn cookie-btn-ess" onclick="acceptCookies('essential')">Essential Only</button>
+    <button class="cookie-btn cookie-btn-all" onclick="acceptCookies('all')">Accept All</button>
+  </div>
+</div>
+
 <!-- Auth Modal -->
 <div class="auth-overlay" id="authOverlay" onclick="if(event.target===this)closeAuthModal()">
   <div class="auth-modal" role="dialog" aria-modal="true" aria-label="Sign in to Aliss">
     <button class="auth-modal-close" onclick="closeAuthModal()" aria-label="Close">&#x2715;</button>
-    <div class="auth-logo"><span class="la">A</span>l<span class="la">i</span>ss <span style="font-size:14px;letter-spacing:3px">AI</span></div>
+    <div class="auth-logo"><span class="la">A</span>l<span class="la">i</span>ss</div>
     <div class="auth-tabs">
       <div class="auth-tab active" id="tabSignin" onclick="switchAuthTab('signin')">Sign In</div>
       <div class="auth-tab" id="tabSignup" onclick="switchAuthTab('signup')">Create Account</div>
@@ -734,7 +880,7 @@ Right now, we just focus on the research, and then the answer to the business qu
 <div class="footer-col"><h5>Company</h5><ul><li><a href="#" onclick="navigate('about');return false">About</a></li><li><a href="#">Contact</a></li><li><a href="#">Advertise</a></li><li><a href="#">Careers</a></li></ul></div>
 <div class="footer-col"><h5>Follow</h5><ul><li><a href="#">X / Twitter</a></li><li><a href="#">LinkedIn</a></li><li><a href="#">RSS Feed</a></li><li><a href="#">Newsletter</a></li></ul></div>
 </div>
-<div class="footer-bottom"><span>&copy; 2026 Aliss. All rights reserved.</span><div class="footer-bottom-links"><a href="#">Privacy Policy</a><a href="#">Terms</a><a href="#">Accessibility</a></div></div>
+<div class="footer-bottom"><span>&copy; 2026 Aliss. All rights reserved.</span><div class="footer-bottom-links"><a href="#" onclick="navigate('privacy');return false">Privacy Policy</a><a href="#">Terms</a><a href="#">Accessibility</a></div></div>
 </div></footer>
 
 <button class="scroll-top" id="scrollTop" onclick="window.scrollTo({top:0,behavior:'smooth'})">&#8593;</button>
@@ -1388,8 +1534,163 @@ async function doSignOut(){
 
 // Close modal on Escape
 document.addEventListener('keydown',e=>{
-  if(e.key==='Escape') closeAuthModal();
+  if(e.key==='Escape'){
+    closeAuthModal();
+    closeWelcome();
+    closePaywall();
+  }
 });
+</script>
+
+<script>
+/* ======================
+   COOKIE CONSENT
+====================== */
+function initCookies(){
+  if(!localStorage.getItem('aliss_cookie_consent')){
+    setTimeout(()=>document.getElementById('cookieBanner').classList.add('visible'),800);
+  }
+}
+function acceptCookies(level){
+  localStorage.setItem('aliss_cookie_consent',level);
+  closeCookieBanner();
+}
+function closeCookieBanner(){
+  document.getElementById('cookieBanner').classList.remove('visible');
+}
+initCookies();
+
+/* ======================
+   WELCOME MODAL
+====================== */
+function initWelcome(){
+  if(!localStorage.getItem('aliss_welcomed')){
+    setTimeout(()=>document.getElementById('welcomeOverlay').classList.add('open'),1800);
+  }
+}
+function closeWelcome(){
+  document.getElementById('welcomeOverlay').classList.remove('open');
+  document.body.style.overflow='';
+  localStorage.setItem('aliss_welcomed','1');
+}
+async function submitWelcomeEmail(){
+  const email=document.getElementById('welcomeEmail').value.trim();
+  const msg=document.getElementById('welcomeMsg');
+  if(!email||!email.includes('@')){msg.textContent='Please enter a valid email.';return;}
+  msg.textContent='Subscribing…';
+  try{
+    const r=await fetch('/api/signup',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email})});
+    const data=await r.json();
+    msg.textContent=data.msg||'Subscribed!';
+    setTimeout(closeWelcome,1400);
+  }catch{
+    msg.textContent='Something went wrong. Try again.';
+  }
+}
+initWelcome();
+
+/* ======================
+   METERED PAYWALL
+   Industry articles are subscriber-only.
+   All other articles: 5 free reads, then paywall.
+====================== */
+let _paywallPendingSlug='';
+
+function _isSubscribed(){
+  // Check Supabase user metadata
+  return new Promise(async resolve=>{
+    try{
+      const {data}=await _sb.auth.getUser();
+      resolve(!!data?.user?.user_metadata?.subscribed);
+    }catch{resolve(false);}
+  });
+}
+
+function _getFreeReads(){
+  return parseInt(localStorage.getItem('aliss_free_reads')||'0',10);
+}
+function _incrementReads(){
+  localStorage.setItem('aliss_free_reads',String(_getFreeReads()+1));
+}
+
+const _origOpenDynamic=openDynamicArticle;
+openDynamicArticle=async function(slug,opts){
+  const article=allArticlesCache.find(a=>a.slug===slug||a._id===slug);
+  const isIndustry=article&&(article.category||'').toLowerCase()==='industry';
+  const subscribed=await _isSubscribed();
+
+  if(subscribed){
+    _origOpenDynamic(slug,opts);
+    return;
+  }
+
+  if(isIndustry){
+    _paywallPendingSlug=slug;
+    showPaywall();
+    return;
+  }
+
+  const reads=_getFreeReads();
+  if(reads>=5){
+    _paywallPendingSlug=slug;
+    showPaywall();
+    return;
+  }
+
+  _incrementReads();
+  _origOpenDynamic(slug,opts);
+};
+
+function showPaywall(){
+  document.getElementById('paywallOverlay').classList.add('open');
+}
+function closePaywall(){
+  document.getElementById('paywallOverlay').classList.remove('open');
+  _paywallPendingSlug='';
+}
+
+async function startCheckout(){
+  // Get current user info for checkout
+  let userId='',email='';
+  try{
+    const {data}=await _sb.auth.getUser();
+    userId=data?.user?.id||'';
+    email=data?.user?.email||'';
+  }catch{}
+
+  try{
+    const r=await fetch('/api/create-checkout',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({userId,email})
+    });
+    const data=await r.json();
+    if(data.url){
+      window.location.href=data.url;
+    }else{
+      // Stripe not yet configured — show helpful message
+      alert('Subscription coming soon. Contact zrobertson350@gmail.com to join early.');
+    }
+  }catch{
+    alert('Subscription coming soon. Contact zrobertson350@gmail.com to join early.');
+  }
+}
+
+// Handle return from Stripe checkout
+(async function handleCheckoutReturn(){
+  const params=new URLSearchParams(window.location.search);
+  if(params.get('checkout')==='success'){
+    const sessionId=params.get('session_id');
+    const {data}=await _sb.auth.getUser();
+    const userId=data?.user?.id||'';
+    if(sessionId&&userId){
+      await fetch(`/api/checkout-verify?session_id=${sessionId}&user_id=${userId}`);
+    }
+    // Clean URL
+    history.replaceState({},'','/');
+    setTimeout(()=>alert('Welcome to Gentlemen of Greatness! Your subscription is now active.'),500);
+  }
+})();
 </script>
 </body>
 </html>
