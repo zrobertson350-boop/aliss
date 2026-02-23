@@ -649,7 +649,7 @@ const ORIGINAL_ARTICLES = [
     subtitle:    "From Stanford dropout to Y Combinator president to CEO of the most valuable AI company on Earth.",
     summary:     "How one man bet everything on AGI — and, so far, won. Sam Altman's journey from Loopt to OpenAI, ChatGPT, and a $300B empire.",
     tags:        ["Profile", "OpenAI"],
-    source:      "Aliss AI",
+    source:      "Aliss",
     category:    "Profile",
     slug:        "article-altman",
     is_external: false,
@@ -660,7 +660,7 @@ const ORIGINAL_ARTICLES = [
     subtitle:    "He helped build ChatGPT, tried to fire Sam Altman, then vanished. Now he's back with $3 billion.",
     summary:     "Co-creator of AlexNet. OpenAI's chief scientist. The man who voted to fire Sam Altman. Now running Safe Superintelligence Inc. with $3B and no product.",
     tags:        ["Profile", "Safety"],
-    source:      "Aliss AI",
+    source:      "Aliss",
     category:    "Profile",
     slug:        "article-sutskever",
     is_external: false,
@@ -671,7 +671,7 @@ const ORIGINAL_ARTICLES = [
     subtitle:    "From Rubik's cube tutorials to Tesla Autopilot to reimagining education with AI.",
     summary:     "From OpenAI founding member to Tesla AI director to educator — a look at one of AI's most trusted and insightful voices in the field.",
     tags:        ["Profile", "Education"],
-    source:      "Aliss AI",
+    source:      "Aliss",
     category:    "Profile",
     slug:        "article-karpathy",
     is_external: false,
@@ -769,7 +769,7 @@ app.post("/api/signup", async (req, res) => {
         await axios.post(
           "https://api.resend.com/emails",
           {
-            from: "Aliss AI <newsletter@aliss.com>",
+            from: "Aliss <newsletter@aliss.com>",
             to: [email],
             subject: "Welcome to Aliss — the AI arms race, explained",
             html: `
@@ -794,7 +794,7 @@ app.post("/api/signup", async (req, res) => {
                   </a>
                 </div>
                 <div style="border-top:1px solid #eee;padding:20px 32px;font-size:12px;color:#999">
-                  © 2026 Aliss AI · <a href="https://aliss-3a3o.onrender.com" style="color:#999">aliss-3a3o.onrender.com</a>
+                  © 2026 Aliss · <a href="https://aliss-3a3o.onrender.com" style="color:#999">aliss-3a3o.onrender.com</a>
                 </div>
               </div>
             `
