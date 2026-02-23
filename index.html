@@ -242,6 +242,57 @@ a{color:inherit;text-decoration:none}
 @media(max-width:900px){.industry-feat-grid{grid-template-columns:1fr}.industry-lead{border-right:none;padding-right:0;border-bottom:1px solid rgba(212,175,55,.2);padding-bottom:20px;margin-bottom:16px}.industry-secondary{padding-left:0}.card-industry{grid-column:span 1}}
 @media(max-width:640px){.card-industry{grid-column:span 1}}
 
+/* Industry Dedicated Page */
+.industry-page-hero{background:var(--industry-bg);padding:60px 0 52px;text-align:center;position:relative;overflow:hidden}
+.industry-page-hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 65% 50%,rgba(184,134,11,.22) 0%,transparent 65%)}
+.industry-page-hero::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;background:rgba(212,175,55,.18)}
+.industry-page-hero-inner{position:relative;z-index:1;max-width:740px;margin:0 auto;padding:0 24px}
+.industry-page-eyebrow{font-size:10px;letter-spacing:5px;text-transform:uppercase;font-weight:700;color:var(--industry);margin-bottom:18px;display:block}
+.industry-page-hero h1{font-family:var(--serif);font-size:clamp(40px,5.5vw,72px);font-weight:900;color:#fff;line-height:1.0;margin-bottom:10px}
+.industry-page-hero h1 em{font-style:italic;color:var(--industry-bright)}
+.industry-page-divider{width:56px;height:3px;background:var(--industry);margin:18px auto 22px}
+.industry-page-hero p{color:rgba(255,255,255,.5);font-size:15px;line-height:1.7;max-width:560px;margin:0 auto}
+.industry-page-hero p em{font-style:normal;color:rgba(255,255,255,.7)}
+.industry-rule{border:none;border-top:1px solid var(--divider);margin:0}
+/* Lead article layout */
+.industry-page-lead{display:grid;grid-template-columns:1.65fr 1fr;gap:0;border-bottom:2px solid var(--divider);margin-bottom:0}
+.industry-lead-main{padding:40px 44px 40px 0;border-right:1px solid var(--divider);cursor:pointer}
+.industry-lead-main-eyebrow{font-size:10px;letter-spacing:3px;text-transform:uppercase;font-weight:700;color:var(--industry);margin-bottom:14px;display:block}
+.industry-lead-main-title{font-family:var(--serif);font-size:clamp(22px,2.8vw,36px);font-weight:900;line-height:1.1;margin-bottom:14px;color:var(--ink);transition:color .2s}
+.industry-lead-main:hover .industry-lead-main-title{color:var(--industry)}
+.industry-lead-main-sub{font-family:var(--serif);font-size:17px;font-style:italic;color:var(--muted);line-height:1.55;margin-bottom:18px;max-width:500px}
+.industry-lead-main-meta{font-size:12px;color:var(--muted-light);padding-top:16px;border-top:1px solid var(--divider)}
+.industry-lead-sidebar{padding:40px 0 40px 36px;display:flex;flex-direction:column}
+.industry-sidebar-label{font-size:10px;letter-spacing:2.5px;text-transform:uppercase;font-weight:700;color:var(--muted);margin-bottom:16px}
+.industry-sidebar-item{padding:16px 0;border-bottom:1px solid var(--divider);cursor:pointer}
+.industry-sidebar-item:last-child{border-bottom:none}
+.industry-sidebar-item:hover h4{color:var(--industry)}
+.industry-sidebar-item h4{font-family:var(--serif);font-size:15px;font-weight:700;line-height:1.3;margin-bottom:5px;color:var(--ink);transition:color .2s}
+.industry-sidebar-item p{font-size:12px;color:var(--muted);line-height:1.5}
+/* Archive grid */
+.industry-archive-header{padding:28px 0 18px;display:flex;align-items:center;gap:16px}
+.industry-archive-header h3{font-family:var(--serif);font-size:20px;font-weight:700;white-space:nowrap}
+.industry-archive-header::after{content:'';flex:1;height:1px;background:var(--divider)}
+.industry-archive-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:0;border:1px solid var(--divider);margin-bottom:48px}
+.industry-archive-card{background:var(--card-bg);border-right:1px solid var(--divider);border-bottom:1px solid var(--divider);cursor:pointer;transition:background .2s;padding:26px;display:flex;flex-direction:column}
+.industry-archive-card:hover{background:var(--cream)}
+.industry-archive-card:nth-child(3n){border-right:none}
+.industry-archive-eyebrow{font-size:9px;letter-spacing:2.5px;text-transform:uppercase;font-weight:700;color:var(--industry);margin-bottom:10px}
+.industry-archive-card h4{font-family:var(--serif);font-size:16px;font-weight:700;line-height:1.35;margin-bottom:8px;color:var(--ink)}
+.industry-archive-card p{font-size:13px;color:var(--muted);line-height:1.6;flex:1}
+.industry-archive-meta{font-size:11px;color:var(--muted-light);margin-top:12px;padding-top:10px;border-top:1px solid var(--divider)}
+/* Empty / loading states */
+.industry-empty{text-align:center;padding:80px 24px;color:var(--muted)}
+.industry-empty-glyph{font-size:36px;opacity:.25;margin-bottom:20px;font-family:var(--serif)}
+.industry-empty h3{font-family:var(--serif);font-size:26px;font-weight:700;margin-bottom:10px;color:var(--ink)}
+.industry-empty p{font-size:15px;line-height:1.7;max-width:500px;margin:0 auto 24px}
+.industry-empty p em{font-style:normal;font-weight:600;color:var(--ink)}
+.industry-loading-bar{width:120px;height:2px;background:var(--divider);margin:0 auto;border-radius:2px;overflow:hidden}
+.industry-loading-bar::after{content:'';display:block;height:100%;width:40%;background:var(--industry);animation:industryLoad 1.6s ease-in-out infinite}
+@keyframes industryLoad{0%{transform:translateX(-200%)}100%{transform:translateX(400%)}}
+@media(max-width:900px){.industry-page-lead{grid-template-columns:1fr}.industry-lead-main{border-right:none;padding-right:0;border-bottom:1px solid var(--divider);padding-bottom:28px}.industry-lead-sidebar{padding-left:0;padding-top:24px}.industry-archive-grid{grid-template-columns:repeat(2,1fr)}.industry-archive-card:nth-child(3n){border-right:1px solid var(--divider)}.industry-archive-card:nth-child(2n){border-right:none}}
+@media(max-width:640px){.industry-archive-grid{grid-template-columns:1fr}.industry-archive-card:nth-child(n){border-right:none!important}}
+
 /* Cookie Banner */
 #cookieBanner{position:fixed;bottom:0;left:0;right:0;background:#111;color:#fff;padding:18px 36px;display:flex;align-items:center;justify-content:space-between;gap:20px;z-index:850;border-top:2px solid var(--accent);transform:translateY(100%);transition:transform .4s ease-out}
 #cookieBanner.visible{transform:translateY(0)}
@@ -339,7 +390,7 @@ a{color:inherit;text-decoration:none}
 <li><a href="#" class="active" data-nav="home" onclick="filterCategory(null,'home');return false">Home</a></li>
 <li><a href="#" data-nav="profiles" onclick="filterCategory('Profile','profiles');return false">Profiles</a></li>
 <li><a href="#" data-nav="research" onclick="filterCategory('Research','research');return false">Research</a></li>
-<li><a href="#" data-nav="industry" onclick="filterCategory('Industry','industry');return false">Industry</a></li>
+<li><a href="#" data-nav="industry" onclick="navigate('industry');return false">Industry</a></li>
 <li><a href="#" data-nav="opinion" onclick="filterCategory('Opinion','opinion');return false">Opinion</a></li>
 <li><a href="#" data-nav="about" onclick="navigate('about');return false">About</a></li>
 </ul></nav>
@@ -893,6 +944,30 @@ Right now, we just focus on the research, and then the answer to the business qu
 </div>
 </div>
 
+<!-- Industry Page -->
+<div id="page-industry" class="page">
+  <div class="industry-page-hero">
+    <div class="industry-page-hero-inner">
+      <span class="industry-page-eyebrow">Aliss Industry</span>
+      <h1>The <em>Biggest</em> Picture</h1>
+      <div class="industry-page-divider"></div>
+      <p>The AI industrial revolution — capital flows, infrastructure battles, labor shifts, and the civilizational forces reshaping every sector on Earth. Written by Aliss with <em>claude-opus-4-6</em>.</p>
+    </div>
+  </div>
+  <hr class="industry-rule">
+  <div class="container">
+    <div id="industryPageLead"></div>
+    <div class="industry-archive-header" id="industryArchiveHeader"><h3>All Industry Coverage</h3></div>
+    <div class="industry-archive-grid" id="industryPageGrid"></div>
+    <div id="industryEmptyState" style="display:none" class="industry-empty">
+      <div class="industry-empty-glyph">&#9881;</div>
+      <h3>Industry coverage is being compiled.</h3>
+      <p>Aliss is writing the first wave of Industry articles with <em>claude-opus-4-6</em> — the most ambitious pieces on the platform. They arrive here as they're published, usually within minutes of the server starting.</p>
+      <div class="industry-loading-bar"></div>
+    </div>
+  </div>
+</div>
+
 <!-- Welcome Modal -->
 <div class="welcome-overlay" id="welcomeOverlay">
   <div class="welcome-modal">
@@ -973,7 +1048,7 @@ Right now, we just focus on the research, and then the answer to the business qu
 <footer class="site-footer"><div class="container">
 <div class="footer-grid">
 <div class="footer-brand"><span class="footer-logo"><span class="logo-accent">A</span>l<span class="logo-accent">i</span>ss <span style="font-size:16px;letter-spacing:3px">AI</span></span><p>The world's first fully AI-autonomous news network. Self-generating. Self-publishing. Running 24/7.</p></div>
-<div class="footer-col"><h5>Sections</h5><ul><li><a href="#" onclick="navigate('home');return false">Home</a></li><li><a href="#">Profiles</a></li><li><a href="#">Research</a></li><li><a href="#">Industry</a></li><li><a href="#">Opinion</a></li></ul></div>
+<div class="footer-col"><h5>Sections</h5><ul><li><a href="#" onclick="navigate('home');return false">Home</a></li><li><a href="#">Profiles</a></li><li><a href="#">Research</a></li><li><a href="#" onclick="navigate('industry');return false">Industry</a></li><li><a href="#">Opinion</a></li></ul></div>
 <div class="footer-col"><h5>Company</h5><ul><li><a href="#" onclick="navigate('about');return false">About</a></li><li><a href="#">Contact</a></li><li><a href="#">Advertise</a></li><li><a href="#">Careers</a></li></ul></div>
 <div class="footer-col"><h5>Follow</h5><ul><li><a href="#">X / Twitter</a></li><li><a href="#">LinkedIn</a></li><li><a href="/rss.xml" target="_blank" rel="noopener">RSS Feed</a></li><li><a href="#" onclick="navigate('newsletter');return false">Newsletter</a></li></ul></div>
 </div>
@@ -1507,11 +1582,84 @@ async function loadNLRecentArticles(){
   }).join('');
 }
 
+/* ======================
+   INDUSTRY PAGE
+====================== */
+async function loadIndustryPage(){
+  const leadEl=document.getElementById('industryPageLead');
+  const gridEl=document.getElementById('industryPageGrid');
+  const emptyEl=document.getElementById('industryEmptyState');
+  const archiveHeader=document.getElementById('industryArchiveHeader');
+  if(!leadEl||!gridEl) return;
+
+  leadEl.innerHTML='<div style="padding:40px 0;color:var(--muted);font-size:14px">Loading Industry coverage…</div>';
+  gridEl.innerHTML='';
+  if(emptyEl) emptyEl.style.display='none';
+
+  await ensureArticlesCache();
+  const articles=allArticlesCache.filter(a=>(a.category||'').toLowerCase()==='industry');
+
+  if(!articles.length){
+    leadEl.innerHTML='';
+    if(archiveHeader) archiveHeader.style.display='none';
+    if(emptyEl) emptyEl.style.display='block';
+    return;
+  }
+
+  if(archiveHeader) archiveHeader.style.display='flex';
+  if(emptyEl) emptyEl.style.display='none';
+
+  // Lead + sidebar (up to 5 articles)
+  const lead=articles[0];
+  const leadSlug=String(lead.slug||lead._id||'');
+  const leadDate=lead.publishedAt?new Date(lead.publishedAt).toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}):'Recent';
+  const sidebar=articles.slice(1,5);
+
+  leadEl.innerHTML=`<div class="industry-page-lead">
+    <div class="industry-lead-main" onclick="openDynamicArticle('${leadSlug.replace(/'/g,"\\'")}')" >
+      <span class="industry-lead-main-eyebrow">Lead Story</span>
+      <div class="industry-lead-main-title">${escapeHtml(lead.title||'')}</div>
+      <div class="industry-lead-main-sub">${escapeHtml((lead.subtitle||lead.summary||'').slice(0,220))}</div>
+      <div class="industry-lead-main-meta">By Aliss &middot; ${escapeHtml(leadDate)} &middot; Industry</div>
+    </div>
+    <div class="industry-lead-sidebar">
+      <div class="industry-sidebar-label">More Industry</div>
+      ${sidebar.map(a=>{
+        const s=String(a.slug||a._id||'');
+        const d=a.publishedAt?new Date(a.publishedAt).toLocaleDateString('en-US',{month:'short',day:'numeric'}):'Recent';
+        return `<div class="industry-sidebar-item" onclick="openDynamicArticle('${s.replace(/'/g,"\\'")}')">
+          <h4>${escapeHtml(a.title||'')}</h4>
+          <p>${escapeHtml((a.subtitle||a.summary||'').slice(0,85))}</p>
+        </div>`;
+      }).join('')}
+    </div>
+  </div>`;
+
+  // Archive grid — everything after the lead+sidebar
+  const archive=articles.slice(5);
+  if(!archive.length){
+    if(archiveHeader) archiveHeader.style.display='none';
+    gridEl.innerHTML='';
+    return;
+  }
+  gridEl.innerHTML=archive.map(a=>{
+    const s=String(a.slug||a._id||'');
+    const d=a.publishedAt?new Date(a.publishedAt).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):'Recent';
+    return `<div class="industry-archive-card" onclick="openDynamicArticle('${s.replace(/'/g,"\\'")}')">
+      <div class="industry-archive-eyebrow">Industry</div>
+      <h4>${escapeHtml(a.title||'')}</h4>
+      <p>${escapeHtml((a.subtitle||a.summary||'').slice(0,120))}</p>
+      <div class="industry-archive-meta">By Aliss &middot; ${escapeHtml(d)}</div>
+    </div>`;
+  }).join('');
+}
+
 // Load recent articles when newsletter page is navigated to
 const _origNavigate=navigate;
 navigate=function(pageId,opts){
   _origNavigate(pageId,opts);
   if(pageId==='newsletter') loadNLRecentArticles();
+  if(pageId==='industry') loadIndustryPage();
 };
 
 /* ======================
