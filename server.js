@@ -1894,7 +1894,6 @@ cron.schedule("0 8 * * 5",    sendWeeklyNewsletter); // Friday 8am
    SELF-SPREADING SYSTEM
 ====================== */
 
-const BASE_URL = process.env.BASE_URL || "https://aliss-3a3o.onrender.com";
 const INDEXNOW_KEY = "aliss2026a8f3d9c1";
 
 // IndexNow — notifies Bing, Yandex, Seznam instantly on new articles
@@ -2355,7 +2354,7 @@ async function tgTyping(chatId) {
 // One-time webhook registration — POST /api/telegram/setup
 app.post("/api/telegram/setup", async (req, res) => {
   if (!TELEGRAM_API) return res.status(503).json({ msg: "TELEGRAM_BOT_TOKEN not set" });
-  const webhookUrl = `${process.env.BASE_URL || "https://aliss-3a3o.onrender.com"}/api/telegram`;
+  const webhookUrl = `${BASE_URL}/api/telegram`;
   const r = await axios.post(`${TELEGRAM_API}/setWebhook`, { url: webhookUrl }).catch(e => ({ data: { ok: false, description: e.message } }));
   res.json(r.data);
 });
