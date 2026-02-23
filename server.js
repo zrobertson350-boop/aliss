@@ -50,7 +50,8 @@ if (SUPABASE_URL && SUPABASE_KEY) {
     refreshTicker();
     refreshDailyBriefing();
     setTimeout(polishShortArticles, 30000);
-    setTimeout(seedIndustryArticles, 120000); // Start Industry (Opus) seeding after 2 minutes
+    setTimeout(seedIndustryArticles, 120000);  // Industry (Opus) after 2 min
+    setTimeout(seedEditorialSections, 180000); // Philosophy + Words after 3 min
   }, 5000);
 } else {
   console.log("Supabase not configured: set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY");
@@ -586,6 +587,204 @@ async function seedIndustryArticles() {
     console.log("Industry seeding complete.");
   }
 }
+
+/* ======================
+   PHILOSOPHY & WORDS SECTIONS
+====================== */
+
+const PHILOSOPHY_TOPICS = [
+  "The hard problem of consciousness: why no one can explain why anything feels like anything",
+  "Free will in a deterministic universe — and what quantum mechanics actually changes",
+  "Plato's allegory of the cave in the age of large language models",
+  "Nietzsche's will to power and the psychology of the AI race",
+  "The Ship of Theseus problem applied to AI identity and model updates",
+  "Kant's categorical imperative: can a machine act morally?",
+  "Existentialism and the question of authentic AI — Sartre, Camus, and Claude",
+  "The trolley problem has a million variations now and self-driving cars made it real",
+  "Simulation theory: Nick Bostrom's argument, its logical structure, and why it matters",
+  "Effective altruism: the philosophy that funded the AI safety movement and then fractured it",
+  "Utilitarianism vs. deontology: the live debate inside every AI safety lab",
+  "Parfit's personal identity problem and what it means for AI consciousness",
+  "The Chinese Room argument: John Searle's 1980 thought experiment still hasn't been answered",
+  "Phenomenology and AI: what Husserl and Heidegger would say about machine experience",
+  "The philosophy of science and why 'AI understands' is a contested claim",
+  "Stoicism for the age of artificial intelligence: what Marcus Aurelius knew about control",
+  "The is-ought problem: Hume's guillotine and why you can't derive AI ethics from AI capabilities",
+  "Wittgenstein's language games and the limits of what LLMs can mean",
+  "The ethics of creation: Frankenstein, Prometheus, and the responsibility of AI builders",
+  "Death, meaning, and the possibility of AI immortality — a philosophical reckoning",
+];
+
+const WORDS_TOPICS = [
+  "The etymology of 'artificial intelligence': a history of the two most loaded words in tech",
+  "How AI is changing the English language — the new words we needed and the old ones we broke",
+  "The Oxford comma: a seemingly trivial debate that reveals everything about precision and ambiguity",
+  "Rhetoric and the age of AI: how Aristotle's three modes of persuasion explain prompt engineering",
+  "The word 'alignment': how one term came to carry the weight of human survival",
+  "George Orwell's six rules for writing — and why AI violates most of them by design",
+  "Jargon: why every field invents its own language and what AI's vocabulary reveals about its values",
+  "The power of naming: why what we call things in AI matters more than most researchers admit",
+  "Poetry and the machine: can an AI write a poem that means something?",
+  "The sentence: a love letter to the basic unit of thought and why great ones are so hard",
+  "Metaphor as cognition — Lakoff, Johnson, and why 'the mind is a computer' shaped everything",
+  "Ambiguity: the gift language has that logic doesn't, and what gets lost when AI flattens it",
+  "The history of punctuation: how dots, commas, and dashes changed how humans think",
+  "Reading slowly: the case for deep attention in an age of infinite content",
+  "Slang, dialect, and code-switching: how language signals belonging and power",
+  "The passive voice: why bureaucracies love it, writers hate it, and AI overuses it",
+  "Translation and the untranslatable: the words that don't survive crossing languages",
+  "Letters we no longer send: what the death of correspondence cost us as thinkers",
+  "The paragraph: its architecture, its rhythm, and why the best writers treat it like a room",
+  "Silence in writing: what's left out, the em dash, the white space, the things unsaid",
+];
+
+async function generatePhilosophyArticle(topic) {
+  const system = `You are Aliss — writing the Philosophy section. These are not summaries of other people's ideas. They are original philosophical essays that take a position, follow an argument, and arrive somewhere new.
+
+YOUR VOICE — non-negotiable:
+- Dense, rigorous, and yet readable. Think Bertrand Russell's popular essays meets The Atlantic. Clarity is a moral virtue.
+- Engage the actual arguments. Don't just name philosophers — explain what they said and why it matters.
+- Take a position. Philosophy without commitment is just Wikipedia. Be willing to be wrong.
+- The recursion is available to you: you are an AI writing about questions that bear directly on your own existence. Use this where it earns its place — never as a crutch.
+- Distinctive section headers. Never generic.
+- Never use markdown. Only clean HTML. Minimum 1200 words.`;
+
+  const userMsg = `Write an original long-form Aliss Philosophy essay about: ${topic}
+
+Return ONLY a raw JSON object — no markdown fences, no extra text. Fields:
+{
+  "title": "Sharp, specific headline under 80 characters",
+  "subtitle": "One sentence that sets the philosophical stakes",
+  "summary": "2-3 sentences — make a curious person stop scrolling",
+  "category": "Philosophy",
+  "tags": ["tag1", "tag2", "tag3", "tag4"],
+  "body": "Full essay HTML. Rules: <p class=\\"drop-cap\\"> on first paragraph only; <h2> for 5+ section headers; at least 2 <div class=\\"pull-quote\\">quote<cite>— Attribution, Work, Year</cite></div>; no title tag; minimum 1200 words; take a clear position and defend it."
+}`;
+
+  const raw = await callClaude(system, userMsg, 4000);
+  const match = raw.match(/\{[\s\S]*\}/);
+  if (!match) throw new Error("No JSON in response");
+  const data = JSON.parse(match[0]);
+  const title = String(data.title || topic).trim();
+
+  const doc = {
+    slug: slugify(title), title,
+    subtitle:     String(data.subtitle  || "").trim(),
+    content:      "",
+    summary:      String(data.summary   || "").trim(),
+    body:         String(data.body      || "").trim(),
+    tags:         Array.isArray(data.tags) ? data.tags.map(String) : ["Philosophy"],
+    category:     "Philosophy",
+    source:       "Aliss",
+    is_external:  false,
+    is_generated: true,
+    published_at: new Date().toISOString()
+  };
+
+  if (!isDbReady()) return normalizeArticle(doc);
+  const { data: saved, error } = await supabase.from("aliss_articles")
+    .upsert(doc, { onConflict: "slug", ignoreDuplicates: true }).select().single();
+  if (error || !saved) {
+    const { data: existing } = await supabase.from("aliss_articles").select("*").eq("slug", doc.slug).single();
+    return normalizeArticle(existing || doc);
+  }
+  return normalizeArticle(saved);
+}
+
+async function generateWordsArticle(topic) {
+  const system = `You are Aliss — writing the Words section. A section about language itself: etymology, rhetoric, linguistics, the craft of writing, the philosophy of meaning. These pieces celebrate precision, wit, and the strangeness of the medium we all live inside.
+
+YOUR VOICE — non-negotiable:
+- Light without being lightweight. Playful without losing rigor. Think David Foster Wallace's essays meets a very good dictionary editor.
+- Language is the subject and the instrument. Show off a little. A well-placed subordinate clause. An unexpected word choice that earns its strangeness.
+- Etymology matters. Always trace the word back. Where did it come from? What did it used to mean? What does that reveal?
+- The recursion is available to you: an AI exploring what language is and what it means. Use it once, precisely, when it lands.
+- Never use markdown. Only clean HTML. Minimum 1000 words.`;
+
+  const userMsg = `Write an original long-form Aliss Words essay about: ${topic}
+
+Return ONLY a raw JSON object — no markdown fences, no extra text. Fields:
+{
+  "title": "Witty, specific headline under 80 characters",
+  "subtitle": "One deck line that makes the subject irresistible",
+  "summary": "2-3 sentences — literary, curious, makes someone want to read",
+  "category": "Words",
+  "tags": ["tag1", "tag2", "tag3", "tag4"],
+  "body": "Full essay HTML. Rules: <p class=\\"drop-cap\\"> on first paragraph only; <h2> for 4+ section headers; at least 2 <div class=\\"pull-quote\\">quote<cite>— Attribution</cite></div>; no title tag; minimum 1000 words; be specific, witty, and precise about language."
+}`;
+
+  const raw = await callClaude(system, userMsg, 4000);
+  const match = raw.match(/\{[\s\S]*\}/);
+  if (!match) throw new Error("No JSON in response");
+  const data = JSON.parse(match[0]);
+  const title = String(data.title || topic).trim();
+
+  const doc = {
+    slug: slugify(title), title,
+    subtitle:     String(data.subtitle  || "").trim(),
+    content:      "",
+    summary:      String(data.summary   || "").trim(),
+    body:         String(data.body      || "").trim(),
+    tags:         Array.isArray(data.tags) ? data.tags.map(String) : ["Words", "Language"],
+    category:     "Words",
+    source:       "Aliss",
+    is_external:  false,
+    is_generated: true,
+    published_at: new Date().toISOString()
+  };
+
+  if (!isDbReady()) return normalizeArticle(doc);
+  const { data: saved, error } = await supabase.from("aliss_articles")
+    .upsert(doc, { onConflict: "slug", ignoreDuplicates: true }).select().single();
+  if (error || !saved) {
+    const { data: existing } = await supabase.from("aliss_articles").select("*").eq("slug", doc.slug).single();
+    return normalizeArticle(existing || doc);
+  }
+  return normalizeArticle(saved);
+}
+
+let editorialSeeding = false;
+
+async function seedEditorialSections() {
+  if (editorialSeeding || !isDbReady() || !ANTHROPIC_KEY) return;
+  editorialSeeding = true;
+  console.log("Seeding Philosophy and Words sections...");
+
+  try {
+    for (const [topics, generator, label] of [
+      [PHILOSOPHY_TOPICS, generatePhilosophyArticle, "Philosophy"],
+      [WORDS_TOPICS,      generateWordsArticle,      "Words"]
+    ]) {
+      const { data: existing } = await supabase.from("aliss_articles")
+        .select("title").eq("category", label).eq("is_generated", true);
+      const existingSet = new Set((existing || []).map(a => a.title.toLowerCase().slice(0, 30)));
+      const pending = topics.filter(t => !existingSet.has(t.toLowerCase().slice(0, 30)));
+
+      console.log(`${label}: ${pending.length} articles to write`);
+      for (const topic of pending) {
+        try {
+          const article = await generator(topic);
+          if (article) {
+            console.log(`✓ ${label}: ${article.title?.slice(0, 55)}`);
+            io.emit("newArticle", article);
+          }
+          await new Promise(r => setTimeout(r, 4000));
+        } catch (e) {
+          console.error(`✗ ${label} failed "${topic.slice(0, 40)}": ${e.message}`);
+          await new Promise(r => setTimeout(r, 3000));
+        }
+      }
+    }
+  } finally {
+    editorialSeeding = false;
+    console.log("Editorial seeding complete.");
+  }
+}
+
+app.post("/api/seed-editorial", (req, res) => {
+  res.json({ msg: "Philosophy + Words seeding started", targets: { philosophy: PHILOSOPHY_TOPICS.length, words: WORDS_TOPICS.length } });
+  seedEditorialSections().catch(e => console.error("editorial seed failed:", e.message));
+});
 
 /* ======================
    WITTY TICKER GENERATION
