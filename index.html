@@ -1198,7 +1198,9 @@ async function loadDynamicArticles(){
     if(!response.ok) return;
     const articles=await response.json();
     if(!Array.isArray(articles)) return;
-    allArticlesCache=sortByRelevance([...STATIC_CARDS,...articles]);
+    const staticSlugs=new Set(STATIC_CARDS.map(c=>c.slug));
+    const deduped=articles.filter(a=>!staticSlugs.has(a.slug));
+    allArticlesCache=sortByRelevance([...STATIC_CARDS,...deduped]);
 
     // Update featured hero with the top profile article
     const featured=allArticlesCache.find(a=>a.isGenerated&&!STATIC_ARTICLE_PAGES.includes(a.slug));
