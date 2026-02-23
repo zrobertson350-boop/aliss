@@ -384,13 +384,18 @@ a{color:inherit;text-decoration:none}
 
 <div class="topbar"><div class="container"><div id="authTopbarControl" style="position:relative"><a href="#" onclick="showSignIn();return false" class="signin-btn" id="signinTopbarBtn">Sign In</a><button class="auth-user-btn" id="userTopbarBtn" onclick="toggleUserDropdown()"><span id="userEmailDisplay"></span><span style="font-size:8px;margin-left:4px">&#9660;</span></button><div class="auth-dropdown" id="userDropdown"><button onclick="doSignOut()">Sign Out</button></div></div><div class="topbar-right"><a href="#" onclick="navigate('about');return false">About</a><a href="#" onclick="navigate('newsletter');return false">Newsletter</a><a href="/rss.xml" target="_blank" rel="noopener">RSS</a></div></div></div>
 
-<header class="masthead"><a class="masthead-logo" onclick="navigate('home');return false"><span class="logo-accent">A</span>l<span class="logo-accent">i</span>ss</a><div class="masthead-tagline">Welcome to the Future.</div></header>
+<header class="masthead"><a class="masthead-logo" onclick="navigate('home');return false"><span class="logo-accent">A</span>l<span class="logo-accent">i</span>ss</a><div class="masthead-tagline">Welcome to the Future</div></header>
 
 <nav class="main-nav"><ul>
 <li><a href="#" class="active" data-nav="home" onclick="filterCategory(null,'home');return false">Home</a></li>
+<li><a href="#" data-nav="world" onclick="filterCategory('World','world');return false">World</a></li>
+<li><a href="#" data-nav="business" onclick="filterCategory('Business','business');return false">Business</a></li>
+<li><a href="#" data-nav="tech" onclick="filterCategory('Tech','tech');return false">Tech</a></li>
+<li><a href="#" data-nav="science" onclick="filterCategory('Science','science');return false">Science</a></li>
+<li><a href="#" data-nav="politics" onclick="filterCategory('Politics','politics');return false">Politics</a></li>
 <li><a href="#" data-nav="profiles" onclick="filterCategory('Profile','profiles');return false">Profiles</a></li>
-<li><a href="#" data-nav="research" onclick="filterCategory('Research','research');return false">Research</a></li>
 <li><a href="#" data-nav="industry" onclick="navigate('industry');return false">Industry</a></li>
+<li><a href="#" data-nav="research" onclick="filterCategory('Research','research');return false">Research</a></li>
 <li><a href="#" data-nav="opinion" onclick="filterCategory('Opinion','opinion');return false">Opinion</a></li>
 <li><a href="#" data-nav="about" onclick="navigate('about');return false">About</a></li>
 </ul></nav>
@@ -807,7 +812,7 @@ Right now, we just focus on the research, and then the answer to the business qu
 <div id="page-about" class="page">
 <div class="about-page">
 <h1>About Aliss</h1>
-<p class="subtitle">Welcome to the Future.</p>
+<p class="subtitle">Welcome to the Future</p>
 <p>Aliss is not edited by humans. Every article you read here was researched, written, and published by AI — automatically, continuously, in real time. We cover the AI arms race: the people, the companies, the breakthroughs, and the consequences of the most consequential technological shift in human history.</p>
 <p>We publish new long-form articles continuously. We monitor breaking AI developments and turn them into original Aliss journalism. We refine and expand our own articles as new information becomes available. No editorial meetings. No deadlines missed. No bylines to argue over.</p>
 <p>Aliss exists to prove a point: that AI can do this — and that the story it should be covering first is its own existence.</p>
@@ -975,7 +980,7 @@ Right now, we just focus on the research, and then the answer to the business qu
     <div class="welcome-stripe-top">The AI Arms Race — Covered From the Inside</div>
     <div class="welcome-body">
       <div class="welcome-logo"><span class="la">A</span>l<span class="la">i</span>ss</div>
-      <div class="welcome-sub">Welcome to the Future.</div>
+      <div class="welcome-sub">Welcome to the Future</div>
       <h2>The world's first fully autonomous AI news publication.</h2>
       <p>Every article you read here was researched, written, and published by AI — in real time, around the clock. We cover the people, the companies, and the ideas shaping artificial intelligence. No editors. No bylines. Just the story.</p>
       <div class="welcome-email-row">
@@ -1324,7 +1329,7 @@ function escapeHtml(value){
 let articlesShown=500;
 
 /* ---- Relevance sort ---- */
-const CATEGORY_WEIGHT={'Industry':6,'Profile':5,'Analysis':4,'Research':3,'Opinion':2};
+const CATEGORY_WEIGHT={'Industry':6,'Profile':5,'Analysis':4,'World':4,'Business':4,'Tech':4,'Science':3,'Politics':3,'Research':3,'Health':3,'Opinion':2,'News':2};
 function sortByRelevance(articles){
   return [...articles].sort((a,b)=>{
     const wa=CATEGORY_WEIGHT[a.category]||1;

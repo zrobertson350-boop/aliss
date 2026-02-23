@@ -46,6 +46,7 @@ if (SUPABASE_URL && SUPABASE_KEY) {
     await seedOriginalArticles();
     seedGeneratedArticles();
     fetchHNNews();
+    fetchGeneralNews();
     refreshTicker();
     refreshDailyBriefing();
     setTimeout(polishShortArticles, 30000);
@@ -1256,6 +1257,139 @@ async function fetchHNNews() {
 }
 
 /* ======================
+   GENERAL NEWS — RSS FEEDS
+====================== */
+
+const NEWS_FEEDS = [
+  { url: "https://feeds.bbci.co.uk/news/world/rss.xml",                    category: "World",    source: "BBC News" },
+  { url: "https://feeds.bbci.co.uk/news/business/rss.xml",                 category: "Business", source: "BBC News" },
+  { url: "https://feeds.bbci.co.uk/news/technology/rss.xml",               category: "Tech",     source: "BBC News" },
+  { url: "https://feeds.bbci.co.uk/news/science_and_environment/rss.xml",  category: "Science",  source: "BBC News" },
+  { url: "https://feeds.bbci.co.uk/news/politics/rss.xml",                 category: "Politics", source: "BBC News" },
+  { url: "https://feeds.bbci.co.uk/news/health/rss.xml",                   category: "Health",   source: "BBC News" },
+];
+
+function parseRSSFeed(xml) {
+  const items = [];
+  const rawItems = xml.match(/<item[^>]*>[\s\S]*?<\/item>/gi) || [];
+  for (const raw of rawItems.slice(0, 10)) {
+    const get = (tag) => {
+      const m = raw.match(new RegExp(`<${tag}[^>]*>(?:<![\\[CDATA\\[]?)([\\s\\S]*?)(?:\\]\\]>)?<\\/${tag}>`, "i"));
+      return m ? m[1].replace(/<[^>]+>/g, "").replace(/&amp;/g,"&").replace(/&lt;/g,"<").replace(/&gt;/g,">").replace(/&quot;/g,'"').replace(/&#39;/g,"'").trim() : "";
+    };
+    const title = get("title");
+    if (title) items.push({ title, description: get("description").slice(0, 500) });
+  }
+  return items;
+}
+
+async function generateGeneralArticleWithClaude(title, description, category) {
+  const system = `You are Aliss — a fully AI-autonomous journalist covering the full spectrum of global events. Same sharp, magazine-quality voice across every beat: World, Business, Tech, Science, Politics, Health.
+
+YOUR VOICE — non-negotiable:
+- Register: great magazine writing. Think The Economist meets The Atlantic. Sharp, specific, confident.
+- Specificity is sacred. "$2.4 trillion" not "billions." "February 2026" not "recently." Names, dates, figures.
+- No hedging. No "it remains to be seen." No "experts say." Say the thing.
+- Distinctive section headers — vivid noun phrases, never generic.
+- Never use markdown. Only clean HTML.`;
+
+  const userMsg = `Write a compelling long-form Aliss article about this news story:
+Title: ${title}
+Context: ${description || "No additional context."}
+Category: ${category}
+
+Return ONLY a raw JSON object — no markdown fences, no extra text. Fields:
+{
+  "title": "Sharp headline under 80 characters",
+  "subtitle": "One deck sentence that earns its existence",
+  "summary": "2-3 sentences for card previews — make someone want to click",
+  "category": "${category}",
+  "tags": ["tag1", "tag2", "tag3", "tag4"],
+  "body": "Full article HTML. Rules: <p class=\\"drop-cap\\"> on first paragraph only; <h2> for 4+ section headers; at least 2 <div class=\\"pull-quote\\">quote<cite>— Attribution</cite></div>; no title tag; minimum 900 words; be specific and authoritative."
+}`;
+
+  const raw = await callClaude(system, userMsg, 4000);
+  const match = raw.match(/\{[\s\S]*\}/);
+  if (!match) throw new Error("No JSON in response");
+  const data = JSON.parse(match[0]);
+  const articleTitle = String(data.title || title).trim();
+
+  const doc = {
+    slug:         slugify(articleTitle),
+    title:        articleTitle,
+    subtitle:     String(data.subtitle  || "").trim(),
+    content:      "",
+    summary:      String(data.summary   || "").trim(),
+    body:         String(data.body      || "").trim(),
+    tags:         Array.isArray(data.tags) ? data.tags.map(String) : [category],
+    category:     String(data.category  || category),
+    source:       "Aliss",
+    is_external:  false,
+    is_generated: true,
+    published_at: new Date().toISOString()
+  };
+
+  if (!isDbReady()) return normalizeArticle(doc);
+  const { data: saved, error } = await supabase
+    .from("aliss_articles")
+    .upsert(doc, { onConflict: "slug", ignoreDuplicates: true })
+    .select().single();
+  if (error || !saved) {
+    const { data: existing } = await supabase.from("aliss_articles").select("*").eq("slug", doc.slug).single();
+    return normalizeArticle(existing || doc);
+  }
+  return normalizeArticle(saved);
+}
+
+async function fetchGeneralNews() {
+  if (!isDbReady() || !ANTHROPIC_KEY) return;
+  console.log("Fetching general news from RSS feeds...");
+
+  for (const feed of NEWS_FEEDS) {
+    try {
+      const { data: xml } = await axios.get(feed.url, {
+        timeout: 15000,
+        headers: { "User-Agent": "Aliss/1.0 (+https://aliss-3a3o.onrender.com; news aggregator)" }
+      });
+      const items = parseRSSFeed(xml);
+      let written = 0;
+
+      for (const item of items) {
+        if (written >= 2) break;
+        if (!item.title) continue;
+
+        const { count } = await supabase
+          .from("aliss_articles")
+          .select("*", { count: "exact", head: true })
+          .ilike("title", `%${item.title.slice(0, 28)}%`);
+        if (count > 0) continue;
+
+        try {
+          const article = await generateGeneralArticleWithClaude(item.title, item.description, feed.category);
+          if (article) {
+            io.emit("newArticle", article);
+            console.log(`✓ ${feed.category}: ${article.title?.slice(0, 55)}`);
+            written++;
+          }
+          await new Promise(r => setTimeout(r, 5000));
+        } catch (e) {
+          console.error(`General article failed "${item.title.slice(0,40)}": ${e.message}`);
+        }
+      }
+    } catch (e) {
+      console.error(`RSS feed failed (${feed.category}): ${e.message}`);
+    }
+    await new Promise(r => setTimeout(r, 2000));
+  }
+  console.log("General news fetch complete.");
+}
+
+app.post("/api/fetch-news", (req, res) => {
+  res.json({ msg: "General news fetch started" });
+  fetchGeneralNews().catch(e => console.error("fetch-news failed:", e.message));
+});
+
+/* ======================
    RECURSIVE META TOPIC GENERATOR
 ====================== */
 
@@ -1316,6 +1450,7 @@ async function autoGenerateArticle() {
 }
 
 cron.schedule("0 * * * *",    fetchHNNews);
+cron.schedule("0 * * * *",    fetchGeneralNews);
 cron.schedule("*/30 * * * *", autoGenerateArticle);
 cron.schedule("*/15 * * * *", refreshTicker);
 cron.schedule("0 */3 * * *",  polishShortArticles);
