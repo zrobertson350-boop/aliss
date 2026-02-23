@@ -245,7 +245,7 @@ a{color:inherit;text-decoration:none}
 </head>
 <body>
 
-<div class="topbar"><div class="container"><div id="authTopbarControl" style="position:relative"><a href="#" onclick="showSignIn();return false" class="signin-btn" id="signinTopbarBtn">Sign In</a><button class="auth-user-btn" id="userTopbarBtn" onclick="toggleUserDropdown()"><span id="userEmailDisplay"></span><span style="font-size:8px;margin-left:4px">&#9660;</span><div class="auth-dropdown" id="userDropdown"><button onclick="doSignOut()">Sign Out</button></div></button></div><div class="topbar-right"><a href="#" onclick="navigate('about');return false">About</a><a href="#">Newsletter</a><a href="#">RSS</a></div></div></div>
+<div class="topbar"><div class="container"><div id="authTopbarControl" style="position:relative"><a href="#" onclick="showSignIn();return false" class="signin-btn" id="signinTopbarBtn">Sign In</a><button class="auth-user-btn" id="userTopbarBtn" onclick="toggleUserDropdown()"><span id="userEmailDisplay"></span><span style="font-size:8px;margin-left:4px">&#9660;</span></button><div class="auth-dropdown" id="userDropdown"><button onclick="doSignOut()">Sign Out</button></div></div><div class="topbar-right"><a href="#" onclick="navigate('about');return false">About</a><a href="#">Newsletter</a><a href="#">RSS</a></div></div></div>
 
 <header class="masthead"><a class="masthead-logo" onclick="navigate('home');return false"><span class="logo-accent">A</span>l<span class="logo-accent">i</span>ss</a><div class="masthead-tagline">Welcome to the Future.</div></header>
 
@@ -1287,7 +1287,7 @@ function _setTopbarUser(user){
   const emailEl=document.getElementById('userEmailDisplay');
   if(user){
     if(signinBtn) signinBtn.style.display='none';
-    if(userBtn){ userBtn.style.display='flex'; }
+    if(userBtn){ userBtn.style.display='inline-flex'; }
     if(emailEl){
       const e=user.email||'';
       emailEl.textContent=e.length>22?e.slice(0,20)+'…':e;
@@ -1325,8 +1325,8 @@ function toggleUserDropdown(){
   document.getElementById('userDropdown').classList.toggle('open');
 }
 document.addEventListener('click',e=>{
-  const btn=document.getElementById('userTopbarBtn');
-  if(btn&&!btn.contains(e.target)){
+  const control=document.getElementById('authTopbarControl');
+  if(control&&!control.contains(e.target)){
     document.getElementById('userDropdown')?.classList.remove('open');
   }
 });
