@@ -1628,10 +1628,21 @@ ${allUrls.map(u => `  <url>
    STATIC FRONTEND
 ====================== */
 
-app.use(express.static(path.join(__dirname)));
+// Block direct access to any server-side files as a safety net
+app.use((req, res, next) => {
+  const blocked = /\.(js|json|env|lock|md|example|gitignore|sh|log)$/i;
+  const blockedPaths = ["/server", "/package", "/node_modules", "/.git", "/.env"];
+  const p = req.path.toLowerCase();
+  if (blocked.test(p) || blockedPaths.some(b => p.startsWith(b))) {
+    return res.status(403).json({ error: "Forbidden" });
+  }
+  next();
+});
+
+app.use(express.static(path.join(__dirname, "public")));
 
 app.get(["/", "/aliss"], (_req, res) => {
-  res.sendFile(path.join(__dirname, "index.html"));
+  res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
 /* ======================
