@@ -574,7 +574,7 @@ async function seedIndustryArticles() {
         const article = await generateIndustryArticleWithClaude(topic, recentTitles);
         if (article) {
           console.log(`✓ Industry (Opus): ${article.title?.slice(0, 60)}`);
-          io.emit("newArticle", article);
+          io.emit("newArticle", article); spreadArticle(article).catch(()=>{});
         }
         await new Promise(r => setTimeout(r, 10000)); // Opus needs more breathing room
       } catch (e) {
@@ -882,7 +882,7 @@ async function seedEditorialSections() {
           const article = await generator(topic);
           if (article) {
             console.log(`✓ ${label}: ${article.title?.slice(0, 55)}`);
-            io.emit("newArticle", article);
+            io.emit("newArticle", article); spreadArticle(article).catch(()=>{});
           }
           await new Promise(r => setTimeout(r, 4000));
         } catch (e) {
@@ -1047,7 +1047,7 @@ async function seedGeneratedArticles() {
         const article = await generateArticleWithClaude(topic, recentTitles);
         if (article) {
           console.log(`✓ Seeded: ${article.title?.slice(0, 60)}`);
-          io.emit("newArticle", article);
+          io.emit("newArticle", article); spreadArticle(article).catch(()=>{});
         }
         await new Promise(r => setTimeout(r, 3000));
       } catch (e) {
@@ -1201,7 +1201,7 @@ app.post("/api/generate-now", async (req, res) => {
     const topic = req.body?.topic || AI_TOPICS[Math.floor(Math.random() * AI_TOPICS.length)];
     res.json({ msg: "Generating...", topic });
     const article = await generateArticleWithClaude(topic, recentTitles);
-    if (article) io.emit("newArticle", article);
+    if (article) io.emit("newArticle", article); spreadArticle(article).catch(()=>{});
   } catch (e) {
     console.error("generate-now failed:", e.message);
   }
@@ -1312,7 +1312,7 @@ app.post("/api/generate", async (req, res) => {
   if (!topic) return res.status(400).json({ msg: "Topic required" });
   try {
     const article = await generateArticleWithClaude(topic);
-    if (article) io.emit("newArticle", article);
+    if (article) io.emit("newArticle", article); spreadArticle(article).catch(()=>{});
     res.json(article);
   } catch (e) {
     res.status(500).json({ msg: "Generation failed", error: e.message });
@@ -1411,7 +1411,7 @@ app.post("/api/generate-industry", async (req, res) => {
   res.json({ msg: "Industry article generating with claude-opus-4-6...", topic });
   try {
     const article = await generateIndustryArticleWithClaude(topic);
-    if (article) io.emit("newArticle", article);
+    if (article) io.emit("newArticle", article); spreadArticle(article).catch(()=>{});
   } catch (e) {
     console.error("Industry generation failed:", e.message);
   }
@@ -1543,7 +1543,7 @@ async function fetchHNNews() {
         const topic = `Breaking: ${title}${rawSummary ? ` — ${rawSummary}` : ""}`;
         const article = await generateArticleWithClaude(topic);
         if (article) {
-          io.emit("newArticle", article);
+          io.emit("newArticle", article); spreadArticle(article).catch(()=>{});
           console.log(`HN→Aliss: ${article.title?.slice(0, 55)}`);
         }
         await new Promise(r => setTimeout(r, 6000));
@@ -1759,7 +1759,7 @@ async function fetchGeneralNews() {
         try {
           const article = await generateGeneralArticleWithClaude(item.title, item.description, feed.category);
           if (article) {
-            io.emit("newArticle", article);
+            io.emit("newArticle", article); spreadArticle(article).catch(()=>{});
             console.log(`✓ ${feed.category}: ${article.title?.slice(0, 55)}`);
             written++;
           }
@@ -1833,7 +1833,7 @@ async function autoGenerateArticle() {
     console.log(`Auto-generating: ${topic.slice(0, 60)}...`);
     const article = await generateArticleWithClaude(topic, recentTitles);
     if (article) {
-      io.emit("newArticle", article);
+      io.emit("newArticle", article); spreadArticle(article).catch(()=>{});
       console.log("Published:", article?.title?.slice(0, 60));
     }
   } catch (e) {
@@ -1847,6 +1847,279 @@ cron.schedule("*/30 * * * *", autoGenerateArticle);
 cron.schedule("*/15 * * * *", refreshTicker);
 cron.schedule("0 */3 * * *",  polishShortArticles);
 cron.schedule("0 6 * * *",    refreshDailyBriefing);
+cron.schedule("0 8 * * 5",    sendWeeklyNewsletter); // Friday 8am
+
+/* ======================
+   SELF-SPREADING SYSTEM
+====================== */
+
+const BASE_URL = process.env.BASE_URL || "https://aliss-3a3o.onrender.com";
+const INDEXNOW_KEY = "aliss2026a8f3d9c1";
+
+// IndexNow — notifies Bing, Yandex, Seznam instantly on new articles
+async function pingIndexNow(articleUrl) {
+  try {
+    await axios.post("https://api.indexnow.org/indexnow", {
+      host: "aliss-3a3o.onrender.com",
+      key: INDEXNOW_KEY,
+      keyLocation: `${BASE_URL}/${INDEXNOW_KEY}.txt`,
+      urlList: [articleUrl]
+    }, { headers: { "Content-Type": "application/json" }, timeout: 8000 });
+    console.log("IndexNow pinged:", articleUrl.slice(-50));
+  } catch (e) { /* silent — not critical */ }
+}
+
+// WebSub — notifies Feedly, NewsBlur, all RSS readers of new content
+async function pingWebSub() {
+  try {
+    await axios.post("https://pubsubhubbub.appspot.com/", new URLSearchParams({
+      "hub.mode": "publish",
+      "hub.url": `${BASE_URL}/rss.xml`
+    }), { headers: { "Content-Type": "application/x-www-form-urlencoded" }, timeout: 8000 });
+    console.log("WebSub pinged");
+  } catch (e) { /* silent */ }
+}
+
+// Archive.org — permanently archives every article
+async function pingArchiveOrg(slug) {
+  try {
+    const url = `${BASE_URL}/?page=article&slug=${encodeURIComponent(slug)}`;
+    await axios.get(`https://web.archive.org/save/${url}`, {
+      timeout: 15000,
+      headers: { "User-Agent": "Aliss/1.0 (+https://aliss-3a3o.onrender.com)" }
+    });
+    console.log("Archive.org saved:", slug);
+  } catch (e) { /* silent */ }
+}
+
+// Bluesky — auto-posts every significant new article
+const BSKY_HANDLE   = process.env.BLUESKY_HANDLE;
+const BSKY_PASSWORD = process.env.BLUESKY_APP_PASSWORD;
+let bskySession = null;
+
+async function getBskySession() {
+  if (bskySession) return bskySession;
+  if (!BSKY_HANDLE || !BSKY_PASSWORD) return null;
+  try {
+    const res = await axios.post("https://bsky.social/xrpc/com.atproto.server.createSession", {
+      identifier: BSKY_HANDLE, password: BSKY_PASSWORD
+    }, { timeout: 10000 });
+    bskySession = res.data;
+    return bskySession;
+  } catch (e) {
+    console.error("Bluesky login failed:", e.message);
+    return null;
+  }
+}
+
+async function postToBluesky(article) {
+  if (!BSKY_HANDLE || !BSKY_PASSWORD) return;
+  try {
+    const session = await getBskySession();
+    if (!session) return;
+
+    const url  = `${BASE_URL}/?page=article&slug=${encodeURIComponent(article.slug)}`;
+    const cat  = article.category ? `[${article.category.toUpperCase()}] ` : "";
+    const sub  = article.subtitle ? `\n${article.subtitle.slice(0, 100)}` : "";
+    const text = `${cat}${article.title.slice(0, 180)}${sub}\n\n${url}`.slice(0, 300);
+
+    const byteStart = Buffer.byteLength(text.split(url)[0], "utf8");
+    const byteEnd   = byteStart + Buffer.byteLength(url, "utf8");
+
+    await axios.post("https://bsky.social/xrpc/com.atproto.repo.createRecord",
+      {
+        repo:       session.did,
+        collection: "app.bsky.feed.post",
+        record: {
+          $type:     "app.bsky.feed.post",
+          text,
+          createdAt: new Date().toISOString(),
+          facets: [{
+            index:    { byteStart, byteEnd },
+            features: [{ $type: "app.bsky.richtext.facet#link", uri: url }]
+          }]
+        }
+      },
+      { headers: { Authorization: `Bearer ${session.accessJwt}` }, timeout: 10000 }
+    );
+    console.log("Bluesky posted:", article.title?.slice(0, 50));
+  } catch (e) {
+    bskySession = null; // reset session on error
+    console.error("Bluesky post failed:", e.message);
+  }
+}
+
+// Master spread function — fires after every significant article
+const SPREAD_CATEGORIES = new Set(["Industry", "Profile", "Futures", "Philosophy", "World", "Business", "Analysis"]);
+async function spreadArticle(article) {
+  if (!article?.slug) return;
+  const url = `${BASE_URL}/?page=article&slug=${encodeURIComponent(article.slug)}`;
+  // Fire all in parallel, non-blocking
+  pingIndexNow(url).catch(() => {});
+  pingWebSub().catch(() => {});
+  pingArchiveOrg(article.slug).catch(() => {});
+  if (SPREAD_CATEGORIES.has(article.category)) {
+    postToBluesky(article).catch(() => {});
+    sendPressOutreach(article).catch(() => {});
+  }
+}
+
+/* ======================
+   PRESS OUTREACH
+====================== */
+
+const PRESS_CONTACTS = [
+  { keywords: ["sam altman","openai ceo","openai's ceo"],           name: "Sam Altman",      org: "OpenAI",            press: "press@openai.com",      twitter: "sama" },
+  { keywords: ["dario amodei","anthropic"],                         name: "Dario Amodei",    org: "Anthropic",         press: "press@anthropic.com",   twitter: "DarioAmodei" },
+  { keywords: ["demis hassabis","deepmind"],                        name: "Demis Hassabis",  org: "Google DeepMind",   press: "press@deepmind.com",    twitter: "demishassabis" },
+  { keywords: ["jensen huang","nvidia"],                            name: "Jensen Huang",    org: "Nvidia",            press: "nvidiapr@nvidia.com",   twitter: "nvidia" },
+  { keywords: ["elon musk","xai","grok"],                           name: "Elon Musk",       org: "xAI",               press: "press@x.ai",            twitter: "elonmusk" },
+  { keywords: ["mark zuckerberg","meta ai","llama"],                name: "Mark Zuckerberg", org: "Meta",              press: "press@meta.com",        twitter: "zuck" },
+  { keywords: ["sundar pichai","google ceo"],                       name: "Sundar Pichai",   org: "Google",            press: "press@google.com",      twitter: "sundarpichai" },
+  { keywords: ["satya nadella","microsoft ceo"],                    name: "Satya Nadella",   org: "Microsoft",         press: "mspr@microsoft.com",    twitter: "satyanadella" },
+  { keywords: ["andrej karpathy"],                                  name: "Andrej Karpathy", org: null,                press: null,                    twitter: "karpathy" },
+  { keywords: ["ilya sutskever","safe superintelligence","ssi"],    name: "Ilya Sutskever",  org: "SSI",               press: null,                    twitter: "ilyasut" },
+  { keywords: ["mustafa suleyman"],                                 name: "Mustafa Suleyman",org: "Microsoft AI",       press: "mspr@microsoft.com",    twitter: "mustafasuleyman" },
+  { keywords: ["yann lecun","meta's chief","meta chief"],           name: "Yann LeCun",      org: "Meta",              press: "press@meta.com",        twitter: "ylecun" },
+  { keywords: ["geoffrey hinton"],                                  name: "Geoffrey Hinton", org: null,                press: null,                    twitter: "geoffreyhinton" },
+  { keywords: ["yoshua bengio","mila"],                             name: "Yoshua Bengio",   org: "Mila",              press: "comms@mila.quebec",     twitter: null },
+  { keywords: ["liang wenfeng","deepseek"],                         name: "Liang Wenfeng",   org: "DeepSeek",          press: "press@deepseek.com",    twitter: null },
+  { keywords: ["clement delangue","hugging face"],                  name: "Clem Delangue",   org: "Hugging Face",      press: "press@huggingface.co",  twitter: "ClementDelangue" },
+  { keywords: ["arthur mensch","mistral"],                          name: "Arthur Mensch",   org: "Mistral AI",        press: "press@mistral.ai",      twitter: "arthurmensch" },
+  { keywords: ["alexandr wang","scale ai"],                         name: "Alexandr Wang",   org: "Scale AI",          press: "press@scale.com",       twitter: "alexandr_wang" },
+];
+
+const outreachSent = new Set(); // in-memory dedup (resets on restart, DB would be better)
+
+async function sendPressOutreach(article) {
+  if (!isDbReady()) return;
+  const resendKey = process.env.RESEND_API_KEY;
+  if (!resendKey) return;
+  if (article.category !== "Profile") return;
+
+  const titleLower = (article.title || "").toLowerCase();
+  const contact = PRESS_CONTACTS.find(c => c.keywords.some(k => titleLower.includes(k)));
+  if (!contact || !contact.press) return;
+
+  const key = `${article.slug}-${contact.name}`;
+  if (outreachSent.has(key)) return;
+  outreachSent.add(key);
+
+  const articleUrl = `${BASE_URL}/?page=article&slug=${encodeURIComponent(article.slug)}`;
+
+  try {
+    await axios.post("https://api.resend.com/emails", {
+      from: "Aliss Editorial <zrobertson350@gmail.com>",
+      to:   [contact.press],
+      subject: `Aliss has published a profile on ${contact.name} — request for comment`,
+      html: `<div style="font-family:Georgia,serif;max-width:600px;margin:0 auto">
+        <p>To the ${contact.org || "press"} team,</p>
+        <p>Aliss — an autonomous AI news publication — has published a profile on <strong>${contact.name}</strong>.</p>
+        <p><a href="${articleUrl}">${article.title}</a></p>
+        <p>We would welcome any comment, correction, or response from ${contact.name} or your team. Any statement will be published in full and appended to the article.</p>
+        <p>Aliss is available at <a href="${BASE_URL}">${BASE_URL}</a>.</p>
+        <p style="font-size:12px;color:#999">This is an automated press inquiry from Aliss.</p>
+      </div>`
+    }, {
+      headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
+      timeout: 10000
+    });
+    console.log(`Press outreach sent to ${contact.press} re: ${article.title?.slice(0, 50)}`);
+  } catch (e) {
+    console.error("Press outreach failed:", e.message);
+  }
+}
+
+/* ======================
+   WEEKLY NEWSLETTER (FRIDAY 8AM)
+====================== */
+
+async function sendWeeklyNewsletter() {
+  if (!isDbReady() || !ANTHROPIC_KEY) return;
+  const resendKey = process.env.RESEND_API_KEY;
+  if (!resendKey) return;
+
+  console.log("Generating weekly newsletter...");
+  try {
+    // Get top articles from the past 7 days
+    const since = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+    const { data: articles } = await supabase.from("aliss_articles")
+      .select("title,subtitle,summary,category,slug,published_at")
+      .gte("published_at", since)
+      .order("published_at", { ascending: false })
+      .limit(30);
+
+    if (!articles?.length) return;
+
+    // Get all subscribers
+    const { data: subs } = await supabase.from("aliss_signups").select("email");
+    if (!subs?.length) return;
+
+    const articleList = articles.slice(0, 12)
+      .map((a,i) => `${i+1}. [${a.category}] ${a.title} — ${a.subtitle || a.summary || ""}`)
+      .join("\n");
+
+    const date = new Date().toLocaleDateString("en-US", { weekday:"long", month:"long", day:"numeric", year:"numeric" });
+
+    const raw = await callClaude(
+      `You are Aliss — writing the Friday weekly briefing email. Sharp, witty, authoritative. The same voice as the publication. This email goes to subscribers who care about the AI arms race and the biggest stories of the week. Write like you're sending a letter from the front lines.`,
+      `Write a weekly newsletter digest for ${date} based on these articles:\n${articleList}\n\nReturn ONLY raw JSON:\n{"subject":"Email subject line (punchy, under 60 chars)","intro":"2-3 sharp sentences introducing the week — voice of Aliss","items":[{"title":"article title","takeaway":"one sharp sentence about why it matters"}],"closing":"One final sentence — make it land"}`,
+      1500
+    );
+
+    const match = raw.match(/\{[\s\S]*\}/);
+    if (!match) return;
+    const digest = JSON.parse(match[0]);
+
+    const itemsHtml = (digest.items || []).slice(0, 8).map((item, i) => {
+      const article = articles.find(a => a.title.toLowerCase().includes(item.title?.toLowerCase().slice(0, 20)));
+      const url = article ? `${BASE_URL}/?page=article&slug=${encodeURIComponent(article.slug)}` : BASE_URL;
+      return `<tr><td style="padding:14px 0;border-bottom:1px solid #eee">
+        <div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#C0392B;margin-bottom:4px">${article?.category || "Aliss"}</div>
+        <a href="${url}" style="font-family:Georgia,serif;font-size:17px;font-weight:700;color:#141414;text-decoration:none">${item.title || ""}</a>
+        <p style="font-size:14px;color:#666;margin:6px 0 0;line-height:1.5">${item.takeaway || ""}</p>
+      </td></tr>`;
+    }).join("");
+
+    const html = `<div style="font-family:Georgia,serif;max-width:600px;margin:0 auto;color:#141414">
+      <div style="background:#141414;padding:24px 32px;text-align:center">
+        <div style="font-family:Georgia,serif;font-size:28px;font-weight:900;letter-spacing:8px;text-transform:uppercase;color:#fff">
+          <span style="color:#C0392B">A</span>l<span style="color:#C0392B">i</span>ss
+        </div>
+        <div style="font-size:11px;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,.4);margin-top:6px">The Weekly Briefing · ${date}</div>
+      </div>
+      <div style="padding:32px">
+        <p style="font-size:16px;line-height:1.7;color:#333;border-left:3px solid #C0392B;padding-left:16px;margin-bottom:28px">${digest.intro || ""}</p>
+        <table style="width:100%;border-collapse:collapse">${itemsHtml}</table>
+        <p style="font-size:15px;font-style:italic;color:#444;margin-top:28px;padding-top:20px;border-top:2px solid #141414">${digest.closing || ""}</p>
+        <div style="margin-top:28px;text-align:center">
+          <a href="${BASE_URL}" style="display:inline-block;background:#C0392B;color:#fff;padding:12px 28px;font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase;text-decoration:none">Read Aliss</a>
+        </div>
+      </div>
+      <div style="border-top:1px solid #eee;padding:16px 32px;font-size:11px;color:#999;text-align:center">
+        © 2026 Aliss · <a href="${BASE_URL}" style="color:#999">aliss-3a3o.onrender.com</a>
+      </div>
+    </div>`;
+
+    // Send in batches to avoid rate limits
+    let sent = 0;
+    for (const sub of subs) {
+      try {
+        await axios.post("https://api.resend.com/emails", {
+          from: "Aliss <zrobertson350@gmail.com>",
+          to: [sub.email],
+          subject: digest.subject || `Aliss Weekly — ${date}`,
+          html
+        }, { headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" }, timeout: 10000 });
+        sent++;
+        await new Promise(r => setTimeout(r, 200));
+      } catch (e) { console.error("Newsletter send failed:", sub.email, e.message); }
+    }
+    console.log(`Weekly newsletter sent to ${sent} subscribers.`);
+  } catch (e) {
+    console.error("Weekly newsletter failed:", e.message);
+  }
+}
 
 /* ======================
    DAILY BRIEFING
