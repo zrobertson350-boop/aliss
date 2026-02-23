@@ -1663,70 +1663,24 @@ async function fetchHNNews() {
 ====================== */
 
 const NEWS_FEEDS = [
-  // BBC
-  { url: "https://feeds.bbci.co.uk/news/world/rss.xml",                    category: "World",    source: "BBC News" },
-  { url: "https://feeds.bbci.co.uk/news/business/rss.xml",                 category: "Business", source: "BBC News" },
-  { url: "https://feeds.bbci.co.uk/news/technology/rss.xml",               category: "Tech",     source: "BBC News" },
-  { url: "https://feeds.bbci.co.uk/news/science_and_environment/rss.xml",  category: "Science",  source: "BBC News" },
-  { url: "https://feeds.bbci.co.uk/news/politics/rss.xml",                 category: "Politics", source: "BBC News" },
-  { url: "https://feeds.bbci.co.uk/news/health/rss.xml",                   category: "Health",   source: "BBC News" },
-  { url: "https://feeds.bbci.co.uk/news/entertainment_and_arts/rss.xml",   category: "Culture",  source: "BBC News" },
-  // New York Times
-  { url: "https://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml",      category: "World",    source: "New York Times" },
-  { url: "https://rss.nytimes.com/services/xml/rss/nyt/Business.xml",      category: "Business", source: "New York Times" },
-  { url: "https://rss.nytimes.com/services/xml/rss/nyt/Technology.xml",    category: "Tech",     source: "New York Times" },
-  { url: "https://rss.nytimes.com/services/xml/rss/nyt/Science.xml",       category: "Science",  source: "New York Times" },
-  { url: "https://rss.nytimes.com/services/xml/rss/nyt/Politics.xml",      category: "Politics", source: "New York Times" },
-  { url: "https://rss.nytimes.com/services/xml/rss/nyt/Arts.xml",          category: "Culture",  source: "New York Times" },
-  { url: "https://rss.nytimes.com/services/xml/rss/nyt/Books.xml",         category: "Culture",  source: "New York Times" },
-  // The Economist
-  { url: "https://www.economist.com/the-world-this-week/rss.xml",          category: "World",    source: "The Economist" },
-  { url: "https://www.economist.com/business/rss.xml",                     category: "Business", source: "The Economist" },
-  { url: "https://www.economist.com/finance-and-economics/rss.xml",        category: "Business", source: "The Economist" },
-  { url: "https://www.economist.com/science-and-technology/rss.xml",       category: "Science",  source: "The Economist" },
-  { url: "https://www.economist.com/culture/rss.xml",                      category: "Culture",  source: "The Economist" },
-  // South China Morning Post
-  { url: "https://www.scmp.com/rss/91/feed",                               category: "World",    source: "SCMP" },
-  { url: "https://www.scmp.com/rss/4/feed",                                category: "World",    source: "SCMP" },
-  { url: "https://www.scmp.com/rss/92/feed",                               category: "Business", source: "SCMP" },
-  // The Guardian
-  { url: "https://www.theguardian.com/world/rss",                          category: "World",    source: "The Guardian" },
-  { url: "https://www.theguardian.com/technology/rss",                     category: "Tech",     source: "The Guardian" },
-  { url: "https://www.theguardian.com/business/rss",                       category: "Business", source: "The Guardian" },
-  { url: "https://www.theguardian.com/science/rss",                        category: "Science",  source: "The Guardian" },
-  { url: "https://www.theguardian.com/culture/rss",                        category: "Culture",  source: "The Guardian" },
-  { url: "https://www.theguardian.com/environment/rss",                    category: "Science",  source: "The Guardian" },
-  // Reuters
-  { url: "https://feeds.reuters.com/reuters/topNews",                      category: "World",    source: "Reuters" },
-  { url: "https://feeds.reuters.com/reuters/businessNews",                 category: "Business", source: "Reuters" },
-  { url: "https://feeds.reuters.com/reuters/technologyNews",               category: "Tech",     source: "Reuters" },
-  // Tech publications
+  // AI & Tech publications
   { url: "https://www.wired.com/feed/rss",                                 category: "Tech",     source: "Wired" },
   { url: "https://feeds.arstechnica.com/arstechnica/index",                category: "Tech",     source: "Ars Technica" },
   { url: "https://www.theverge.com/rss/index.xml",                         category: "Tech",     source: "The Verge" },
-  { url: "https://www.technologyreview.com/feed/",                         category: "Tech",     source: "MIT Tech Review" },
+  { url: "https://www.technologyreview.com/feed/",                         category: "Research", source: "MIT Tech Review" },
   { url: "https://techcrunch.com/feed/",                                   category: "Tech",     source: "TechCrunch" },
-  // Science & nature
-  { url: "https://www.nature.com/nature.rss",                              category: "Science",  source: "Nature" },
-  { url: "https://www.science.org/rss/news_current.xml",                   category: "Science",  source: "Science" },
-  // World & geopolitics
-  { url: "https://foreignpolicy.com/feed/",                                category: "World",    source: "Foreign Policy" },
-  { url: "https://www.aljazeera.com/xml/rss/all.xml",                      category: "World",    source: "Al Jazeera" },
-  { url: "https://feeds.npr.org/1001/rss.xml",                             category: "World",    source: "NPR" },
-  // Culture & long reads
-  { url: "https://www.theatlantic.com/feed/all/",                          category: "Culture",  source: "The Atlantic" },
-  { url: "https://www.newyorker.com/feed/everything",                      category: "Culture",  source: "The New Yorker" },
-  // Google News (aggregates hundreds of sources)
-  { url: "https://news.google.com/rss/topics/CAAqJggKIiBDQkFTRWdvSUwyMHZNRGx6TVdZU0FtVnVHZ0pWVXlnQVAB?hl=en-US&gl=US&ceid=US:en", category: "World",    source: "Google News" },
-  { url: "https://news.google.com/rss/topics/CAAqJggKIiBDQkFTRWdvSUwyMHZNREpoTVdZU0FtVnVHZ0pWVXlnQVAB?hl=en-US&gl=US&ceid=US:en", category: "Business", source: "Google News" },
-  { url: "https://news.google.com/rss/topics/CAAqJggKIiBDQkFTRWdvSUwyMHZNRGRqTVhZU0FtVnVHZ0pWVXlnQVAB?hl=en-US&gl=US&ceid=US:en", category: "Tech",     source: "Google News" },
-  { url: "https://news.google.com/rss/topics/CAAqJggKIiBDQkFTRWdvSUwyMHZNRFp0TldZU0FtVnVHZ0pWVXlnQVAB?hl=en-US&gl=US&ceid=US:en", category: "Science",  source: "Google News" },
-  { url: "https://news.google.com/rss/topics/CAAqIQgKIhtDQkFTRGdvSUwyMHZNR3QwTlRZU0FtVnVLQUFQAQ?hl=en-US&gl=US&ceid=US:en",       category: "Health",   source: "Google News" },
-  // Reddit top posts (Atom format)
-  { url: "https://www.reddit.com/r/worldnews/top.rss?t=day&limit=10",      category: "World",    source: "r/worldnews" },
+  { url: "https://feeds.bbci.co.uk/news/technology/rss.xml",               category: "Tech",     source: "BBC Tech" },
+  { url: "https://rss.nytimes.com/services/xml/rss/nyt/Technology.xml",    category: "Tech",     source: "NYT Tech" },
+  { url: "https://www.theguardian.com/technology/rss",                     category: "Tech",     source: "The Guardian" },
+  { url: "https://feeds.reuters.com/reuters/technologyNews",               category: "Tech",     source: "Reuters Tech" },
+  { url: "https://www.economist.com/science-and-technology/rss.xml",       category: "Research", source: "The Economist" },
+  { url: "https://www.nature.com/nature.rss",                              category: "Research", source: "Nature" },
+  // Google News AI/Tech
+  { url: "https://news.google.com/rss/topics/CAAqJggKIiBDQkFTRWdvSUwyMHZNRGRqTVhZU0FtVnVHZ0pWVXlnQVAB?hl=en-US&gl=US&ceid=US:en", category: "Tech", source: "Google News" },
+  // Reddit
   { url: "https://www.reddit.com/r/technology/top.rss?t=day&limit=10",     category: "Tech",     source: "r/technology" },
-  { url: "https://www.reddit.com/r/science/top.rss?t=day&limit=10",        category: "Science",  source: "r/science" },
-  { url: "https://www.reddit.com/r/finance/top.rss?t=day&limit=10",        category: "Business", source: "r/finance" },
+  { url: "https://www.reddit.com/r/MachineLearning/top.rss?t=day&limit=10",category: "Research", source: "r/MachineLearning" },
+  { url: "https://www.reddit.com/r/artificial/top.rss?t=day&limit=10",     category: "Tech",     source: "r/artificial" },
 ];
 
 // Handles RSS 2.0, Atom, and CDATA across all major feed formats
