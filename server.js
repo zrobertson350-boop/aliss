@@ -44,6 +44,7 @@ if (SUPABASE_URL && SUPABASE_KEY) {
   console.log("Supabase client initialized:", SUPABASE_URL);
   setTimeout(async () => {
     await seedOriginalArticles();
+    await deduplicateArticles();
     seedGeneratedArticles();
     fetchHNNews();
     fetchGeneralNews();
@@ -1092,20 +1093,49 @@ async function seedOriginalArticles() {
   console.log("Profile articles seeded.");
 }
 
+/* ======================
+   DEDUPLICATION
+====================== */
+async function deduplicateArticles() {
+  if (!isDbReady()) return;
+  console.log("Running deduplication...");
+  try {
+    const { data: all } = await supabase
+      .from("aliss_articles")
+      .select("id, slug, title, published_at")
+      .order("published_at", { ascending: false });
+    if (!all?.length) return;
+
+    const seenSlugs = new Map(); // slug -> first id (most recent)
+    const toDelete = [];
+
+    for (const a of all) {
+      if (!a.slug) continue;
+      if (seenSlugs.has(a.slug)) {
+        toDelete.push(a.id);
+      } else {
+        seenSlugs.set(a.slug, a.id);
+      }
+    }
+
+    if (toDelete.length) {
+      const { error } = await supabase.from("aliss_articles").delete().in("id", toDelete);
+      if (!error) console.log(`Deduplication: removed ${toDelete.length} duplicate articles.`);
+      else console.error("Dedup delete error:", error.message);
+    } else {
+      console.log("Deduplication: no duplicates found.");
+    }
+  } catch (e) {
+    console.error("Deduplication failed:", e.message);
+  }
+}
+
 let seeding = false;
 
 async function seedGeneratedArticles() {
   if (seeding) { console.log("Seed already running, skipping."); return; }
   if (!isDbReady()) { console.log("Seed skipped: DB not ready"); return; }
   if (!ANTHROPIC_KEY) { console.log("Seed skipped: no ANTHROPIC_API_KEY"); return; }
-
-  const { count } = await supabase
-    .from("aliss_articles")
-    .select("*", { count: "exact", head: true })
-    .eq("is_generated", true);
-
-  console.log(`Seed check: ${count} generated articles exist, target ${AI_TOPICS.length}`);
-  if (count >= AI_TOPICS.length) { console.log("All topics already written."); return; }
 
   seeding = true;
 

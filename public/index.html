@@ -54,7 +54,7 @@ a{color:inherit;text-decoration:none}
 .masthead-logo{font-family:var(--serif);font-weight:900;font-size:clamp(34px,5vw,48px);letter-spacing:8px;text-transform:uppercase;color:var(--ink);display:inline-block;cursor:pointer}
 .logo-accent{color:var(--accent)}
 .masthead-tagline{font-size:12px;letter-spacing:4px;text-transform:uppercase;color:var(--muted);margin-top:8px;font-weight:500}
-.main-nav{border-top:1px solid var(--divider);border-bottom:3px double var(--divider);margin-top:28px;overflow-x:auto}
+.main-nav{border-top:1px solid var(--divider);border-bottom:3px double var(--divider);margin-top:28px;overflow-x:auto;-webkit-overflow-scrolling:touch}
 .main-nav ul{list-style:none;display:flex;justify-content:center}
 .main-nav li a{display:block;padding:12px 22px;font-size:12px;letter-spacing:2.5px;text-transform:uppercase;font-weight:600;color:var(--muted);transition:all .25s;position:relative}
 .main-nav li a::after{content:'';position:absolute;bottom:0;left:50%;width:0;height:2px;background:var(--accent);transition:all .25s;transform:translateX(-50%)}
@@ -329,25 +329,6 @@ a{color:inherit;text-decoration:none}
 @media(max-width:640px){.welcome-body{padding:32px 22px}.welcome-email-row{flex-direction:column}.welcome-email-row input{border-right:1px solid rgba(255,255,255,.18)}.welcome-email-row button{padding:12px}}
 
 
-/* Paywall */
-.paywall-overlay{position:fixed;inset:0;background:rgba(250,250,247,.95);backdrop-filter:blur(6px);z-index:800;display:flex;align-items:center;justify-content:center;opacity:0;visibility:hidden;transition:opacity .3s,visibility .3s}
-.paywall-overlay.open{opacity:1;visibility:visible}
-.paywall-modal{background:#fff;width:100%;max-width:500px;padding:48px 44px;text-align:center;border-top:4px solid var(--accent);box-shadow:0 24px 80px rgba(0,0,0,.12);animation:fadeUp .3s ease-out}
-.paywall-eyebrow{font-size:10px;letter-spacing:3px;text-transform:uppercase;font-weight:700;color:var(--accent);margin-bottom:16px}
-.paywall-modal h2{font-family:var(--serif);font-size:26px;font-weight:900;line-height:1.2;margin-bottom:10px}
-.paywall-modal>p{color:var(--muted);font-size:14px;line-height:1.65;margin-bottom:22px}
-.paywall-perks{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:28px;text-align:left}
-.paywall-perk{font-size:13px;color:var(--muted);padding-left:18px;position:relative;line-height:1.4}.paywall-perk::before{content:'✓';position:absolute;left:0;color:var(--accent);font-weight:700}
-.paywall-price-row{margin-bottom:26px}
-.paywall-amount{font-family:var(--serif);font-size:44px;font-weight:900;color:var(--ink);line-height:1}
-.paywall-period{font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-top:4px}
-.paywall-cta{display:block;width:100%;padding:16px;background:var(--accent);color:#fff;border:none;font-size:11px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;font-family:var(--sans);cursor:pointer;margin-bottom:12px;transition:background .2s;border-radius:2px}.paywall-cta:hover{background:var(--accent-hover)}
-.paywall-note{font-size:12px;color:var(--muted-light)}.paywall-note a{color:var(--accent);cursor:pointer;font-weight:600}
-.paywall-dismiss{display:block;font-size:12px;color:var(--muted-light);margin-top:14px;cursor:pointer}.paywall-dismiss:hover{color:var(--ink)}
-.paywall-code-toggle{display:block;font-size:11px;color:var(--muted-light);margin-top:10px;cursor:pointer;text-decoration:underline}.paywall-code-toggle:hover{color:var(--muted)}
-.paywall-code-box{margin-top:12px;display:none;gap:6px;flex-direction:column}.paywall-code-box.open{display:flex}
-.paywall-code-input{width:100%;padding:10px 12px;border:1px solid var(--divider);font-size:13px;font-family:var(--sans);outline:none}.paywall-code-input:focus{border-color:var(--accent)}
-.paywall-code-btn{padding:9px;background:var(--ink);color:#fff;border:none;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;font-family:var(--sans);cursor:pointer}
 
 /* Newsletter Page */
 .newsletter-page{max-width:var(--max-w);margin:0 auto;padding:0 36px 80px}
@@ -428,7 +409,7 @@ a{color:inherit;text-decoration:none}
 
 <div class="topbar"><div class="container"><div id="authTopbarControl" style="position:relative"><a href="#" onclick="showSignIn();return false" class="signin-btn" id="signinTopbarBtn">Sign In</a><button class="auth-user-btn" id="userTopbarBtn" onclick="toggleUserDropdown()"><span id="userEmailDisplay"></span><span style="font-size:8px;margin-left:4px">&#9660;</span></button><div class="auth-dropdown" id="userDropdown"><button onclick="doSignOut()">Sign Out</button></div></div><div class="topbar-right"><a href="#" onclick="navigate('about');return false">About</a><a href="#" onclick="navigate('newsletter');return false">Newsletter</a><a href="/rss.xml" target="_blank" rel="noopener">RSS</a></div></div></div>
 
-<header class="masthead"><a class="masthead-logo" onclick="navigate('home');return false"><span class="logo-accent">A</span>l<span class="logo-accent">i</span>ss</a><div class="masthead-tagline">Welcome to the Future</div></header>
+<header class="masthead"><a class="masthead-logo" onclick="navigate('home');return false"><span class="logo-accent">A</span>l<span class="logo-accent">i</span>ss</a><div class="masthead-tagline">Intelligence on Artificial Intelligence</div></header>
 
 <nav class="main-nav"><ul>
 <li><a href="#" class="active" data-nav="home" onclick="filterCategory(null,'home');return false">Home</a></li>
@@ -997,7 +978,7 @@ Right now, we just focus on the research, and then the answer to the business qu
       <span class="industry-page-eyebrow">Aliss Industry</span>
       <h1>The <em>Biggest</em> Picture</h1>
       <div class="industry-page-divider"></div>
-      <p>The AI industrial revolution — capital flows, infrastructure battles, labor shifts, and the civilizational forces reshaping every sector on Earth. Written by Aliss with <em>claude-opus-4-6</em>.</p>
+      <p>The AI industrial revolution — capital flows, infrastructure battles, labor shifts, and the civilizational forces reshaping every sector on Earth.</p>
     </div>
   </div>
   <hr class="industry-rule">
@@ -1051,31 +1032,7 @@ Right now, we just focus on the research, and then the answer to the business qu
 </div>
 
 
-<!-- Paywall Modal -->
-<div class="paywall-overlay" id="paywallOverlay">
-  <div class="paywall-modal">
-    <div class="paywall-eyebrow">Don't miss out</div>
-    <h2>Unlock Full Access to Aliss</h2>
-    <p>You've read your free articles for this session. Subscribe to read every Industry deep-dive, unlock the archive, and support the future of autonomous journalism.</p>
-    <div class="paywall-perks">
-      <div class="paywall-perk">All Industry articles</div>
-      <div class="paywall-perk">Full article archive</div>
-      <div class="paywall-perk">Weekly AI briefing</div>
-      <div class="paywall-perk">Early access to new coverage</div>
-    </div>
-    <div class="paywall-price-row">
-      <div class="paywall-amount"><sup>$</sup>5</div>
-      <div class="paywall-period">per week · cancel anytime</div>
-    </div>
-    <button class="paywall-cta" onclick="startCheckout()">Subscribe — $5 / week</button>
-    <div class="paywall-note">Already a member? <a onclick="closePaywall();showSignIn()">Sign in</a></div>
-    <span class="paywall-dismiss" onclick="closePaywall()">Maybe later</span>
-    <span class="paywall-code-toggle" onclick="document.getElementById('paywallCodeBox').classList.toggle('open')">Have an access code?</span>
-    <div class="paywall-code-box" id="paywallCodeBox">
-      <input class="paywall-code-input" id="paywallCodeInput" type="text" placeholder="Enter access code">
-      <button class="paywall-code-btn" onclick="submitAccessCode()">Apply</button>
-    </div>
-  </div>
+<!-- Paywall removed -->
 </div>
 
 <!-- Cookie Banner -->
@@ -1784,7 +1741,11 @@ function filterCategory(category, navKey){
   // Show home page
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.getElementById('page-home')?.classList.add('active');
-  window.scrollTo({top:0,behavior:'smooth'});
+
+  // Scroll to the articles section
+  const gridSection=document.querySelector('.section-header');
+  if(gridSection) gridSection.scrollIntoView({behavior:'smooth',block:'start'});
+  else window.scrollTo({top:0,behavior:'smooth'});
 
   if(!category){
     loadDynamicArticles();
@@ -1810,7 +1771,7 @@ function filterCategory(category, navKey){
 
     grid.innerHTML='';
     if(!filtered.length){
-      grid.innerHTML=`<p style="color:var(--muted);padding:20px 0;grid-column:1/-1">No ${category.toLowerCase()} articles yet — check back soon.</p>`;
+      grid.innerHTML=`<p style="color:var(--muted);padding:40px 0;grid-column:1/-1;font-size:15px">${category} articles are being generated — check back in a few minutes.</p>`;
       return;
     }
     filtered.forEach((a,i)=>grid.appendChild(buildCard(a,i)));
@@ -1938,7 +1899,6 @@ document.addEventListener('keydown',e=>{
   if(e.key==='Escape'){
     closeAuthModal();
     closeWelcome();
-    closePaywall();
   }
 });
 </script>
@@ -1990,123 +1950,7 @@ async function submitWelcomeEmail(){
 }
 initWelcome();
 
-/* ======================
-   METERED PAYWALL
-   Industry articles are subscriber-only.
-   All other articles: 5 free reads, then paywall.
-   Bypass: enter access code "Wordixon, Inc."
-====================== */
-let _paywallPendingSlug='';
-
-function _hasAccessCode(){
-  return localStorage.getItem('aliss_access')===btoa('Wordixon, Inc.');
-}
-
-function _isSubscribed(){
-  if(_hasAccessCode()) return Promise.resolve(true);
-  return new Promise(async resolve=>{
-    try{
-      const {data}=await _sb.auth.getUser();
-      resolve(!!data?.user?.user_metadata?.subscribed);
-    }catch{resolve(false);}
-  });
-}
-
-function _getFreeReads(){
-  return parseInt(localStorage.getItem('aliss_free_reads')||'0',10);
-}
-function _incrementReads(){
-  localStorage.setItem('aliss_free_reads',String(_getFreeReads()+1));
-}
-
-const _origOpenDynamic=openDynamicArticle;
-openDynamicArticle=async function(slug,opts){
-  const article=allArticlesCache.find(a=>a.slug===slug||a._id===slug);
-  const isIndustry=article&&(article.category||'').toLowerCase()==='industry';
-  const subscribed=await _isSubscribed();
-
-  if(subscribed){
-    _origOpenDynamic(slug,opts);
-    return;
-  }
-
-  if(isIndustry){
-    _paywallPendingSlug=slug;
-    showPaywall();
-    return;
-  }
-
-  const reads=_getFreeReads();
-  if(reads>=5){
-    _paywallPendingSlug=slug;
-    showPaywall();
-    return;
-  }
-
-  _incrementReads();
-  _origOpenDynamic(slug,opts);
-};
-
-function showPaywall(){
-  document.getElementById('paywallOverlay').classList.add('open');
-}
-function closePaywall(){
-  document.getElementById('paywallOverlay').classList.remove('open');
-  _paywallPendingSlug='';
-}
-
-function submitAccessCode(){
-  const code=document.getElementById('paywallCodeInput').value.trim();
-  if(code==='Wordixon, Inc.'){
-    localStorage.setItem('aliss_access',btoa('Wordixon, Inc.'));
-    const pending=_paywallPendingSlug;
-    closePaywall();
-    if(pending) _origOpenDynamic(pending,{});
-  }else{
-    document.getElementById('paywallCodeInput').style.borderColor='#c0392b';
-    setTimeout(()=>document.getElementById('paywallCodeInput').style.borderColor='',1500);
-  }
-}
-
-async function startCheckout(){
-  let userId='',email='';
-  try{
-    const {data}=await _sb.auth.getUser();
-    userId=data?.user?.id||'';
-    email=data?.user?.email||'';
-  }catch{}
-
-  try{
-    const r=await fetch('/api/create-checkout',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({userId,email})
-    });
-    const data=await r.json();
-    if(data.url){
-      window.location.href=data.url;
-    }else{
-      alert('Subscription coming soon. Contact zrobertson350@gmail.com to join early.');
-    }
-  }catch{
-    alert('Subscription coming soon. Contact zrobertson350@gmail.com to join early.');
-  }
-}
-
-// Handle return from Stripe checkout
-(async function handleCheckoutReturn(){
-  const params=new URLSearchParams(window.location.search);
-  if(params.get('checkout')==='success'){
-    const sessionId=params.get('session_id');
-    const {data}=await _sb.auth.getUser();
-    const userId=data?.user?.id||'';
-    if(sessionId&&userId){
-      await fetch(`/api/checkout-verify?session_id=${sessionId}&user_id=${userId}`);
-    }
-    history.replaceState({},'','/');
-    setTimeout(()=>alert('Welcome to Aliss AI! Your subscription is now active.'),500);
-  }
-})();
+function closePaywall(){}
 
 /* ======================
    A·I·dle — Daily AI Word Game
