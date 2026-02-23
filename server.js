@@ -1384,6 +1384,63 @@ app.get("/api/daily-briefing", async (req, res) => {
    SEO: SITEMAP & ROBOTS
 ====================== */
 
+app.get("/rss.xml", async (req, res) => {
+  const base = "https://aliss-3a3o.onrender.com";
+  let articles = [];
+  if (isDbReady()) {
+    try {
+      const { data } = await supabase
+        .from("aliss_articles")
+        .select("slug,title,subtitle,summary,category,published_at,tags")
+        .order("published_at", { ascending: false })
+        .limit(40);
+      articles = data || [];
+    } catch {}
+  }
+
+  function xmlEscape(str) {
+    return String(str || "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+  }
+
+  const items = articles.map(a => {
+    const link = `${base}/?page=article&slug=${encodeURIComponent(a.slug)}`;
+    const desc = xmlEscape(a.subtitle || a.summary || "");
+    const date = a.published_at ? new Date(a.published_at).toUTCString() : new Date().toUTCString();
+    const cats = (a.tags || []).map(t => `<category>${xmlEscape(t)}</category>`).join("");
+    return `  <item>
+    <title>${xmlEscape(a.title)}</title>
+    <link>${link}</link>
+    <guid isPermaLink="true">${link}</guid>
+    <description>${desc}</description>
+    <pubDate>${date}</pubDate>
+    ${cats}
+  </item>`;
+  }).join("\n");
+
+  const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Aliss — Intelligence on Artificial Intelligence</title>
+    <link>${base}</link>
+    <description>The world's first fully AI-autonomous news network covering the AI arms race — profiles, analysis, research, and industry.</description>
+    <language>en-us</language>
+    <copyright>© 2026 Aliss. All rights reserved.</copyright>
+    <managingEditor>zrobertson350@gmail.com</managingEditor>
+    <webMaster>zrobertson350@gmail.com</webMaster>
+    <ttl>60</ttl>
+    <atom:link href="${base}/rss.xml" rel="self" type="application/rss+xml"/>
+${items}
+  </channel>
+</rss>`;
+
+  res.type("application/rss+xml; charset=utf-8").send(xml);
+});
+
 app.get("/robots.txt", (_req, res) => {
   res.type("text/plain").send(
 `User-agent: *
