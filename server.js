@@ -743,17 +743,133 @@ Return ONLY a raw JSON object — no markdown fences, no extra text. Fields:
   return normalizeArticle(saved);
 }
 
+const CULTURE_TOPICS = [
+  "The algorithm and the canon: how recommendation engines are rewriting what culture is",
+  "Streaming killed the album: what the playlist did to the art of the long-form listening experience",
+  "The novel in the age of ChatGPT: what literary fiction does that AI cannot — yet",
+  "Architecture and AI: when buildings are designed by machines, what does a city become?",
+  "The last photographers: what happens to the art form when everyone has a camera and AI can make anything",
+  "Video games as the new novel: why the most ambitious storytelling of our era is interactive",
+  "The death of the music critic: algorithms, streams, and the end of the cultural gatekeeper",
+  "Hollywood and the writers' strike: what the fight over AI really revealed about creative labor",
+  "The attention economy and the end of boredom: what we lost when we filled every silence",
+  "Theatre in the digital age: why the oldest art form is having its most interesting decade",
+  "Fashion and identity: how TikTok accelerated and then killed the concept of a trend",
+  "The museum problem: when culture is digitized, what is the point of going anywhere?",
+  "Cooking as culture: how food became the language of class, identity, and belonging",
+  "The sports spectacle: why we watch, what we project, and what billion-dollar franchises reveal about us",
+  "Reading in the age of TikTok: the neuroscience of attention and what short-form content costs us",
+  "The podcast era: what happens to ideas when everyone has a microphone and three hours",
+  "Art and money: from the Medici to venture capital — how patronage shapes what gets made",
+  "The comedy of our era: why absurdism, irony, and darkness dominate when times are uncertain",
+  "Architecture of power: what the buildings tech billionaires commission say about what they believe",
+  "The city as canvas: graffiti, public art, and the contested meaning of shared space",
+];
+
+const FUTURES_TOPICS = [
+  "The next ten years of AI: three scenarios and what each means for everyone alive today",
+  "Post-scarcity and the distribution problem: if AI creates abundance, who actually benefits?",
+  "The longevity bet: Bryan Johnson, Aubrey de Grey, and whether death is optional",
+  "Uploading consciousness: the neuroscience, the philosophy, and the terrifying timeline",
+  "What work means when AI can do everything — and why the answer isn't 'nothing'",
+  "The city of the future: density, autonomy, remote work, and what urban life becomes",
+  "Space colonization and AI: the two bets on civilizational survival that are quietly converging",
+  "The demographic cliff: falling birth rates, aging populations, and what it means for everything",
+  "Gene editing at scale: CRISPR, designer babies, and the line between medicine and enhancement",
+  "The end of privacy: surveillance capitalism, facial recognition, and what comes after consent",
+  "Climate solutions and AI: the realistic accounting of what technology can and cannot fix",
+  "Nuclear power's second act: why the technology everyone abandoned is coming back",
+  "The education system after AI: what schools are for when knowledge is free and intelligence is artificial",
+  "Synthetic biology: printing organisms, rewiring ecosystems, and the era of biological manufacturing",
+  "The internet's next shape: decentralization, AI agents, and what the web looks like in 2030",
+  "Central bank digital currencies: the quiet financial revolution happening while no one watches",
+  "The future of democracy: misinformation, AI candidates, deepfakes, and whether elections survive",
+  "Autonomous weapons: the drone war present and the fully automated battlefield future",
+  "The nutrition revolution: personalized medicine, gut microbiomes, and what eating means in 20 years",
+  "A world without cash: digital payments, financial surveillance, and who controls the kill switch",
+];
+
+async function generateCultureArticle(topic) {
+  const system = `You are Aliss — writing the Culture section. These pieces sit at the intersection of art, media, technology, and society. They are curious, opinionated, and unafraid to make cultural judgments.
+
+YOUR VOICE:
+- Culturally literate without being snobbish. Willing to defend pop culture. Willing to criticize prestige.
+- References matter: name the film, the album, the specific year, the exact quote. Don't gesture at things — point directly at them.
+- Take a clear position. Is the thing good? Is the trend real? Does it matter? Say so.
+- The best culture writing makes the familiar strange. Start there.
+- Never use markdown. Only clean HTML. Minimum 1000 words.`;
+
+  const userMsg = `Write an original long-form Aliss Culture essay about: ${topic}
+
+Return ONLY a raw JSON object. Fields:
+{
+  "title": "Sharp, specific headline under 80 characters",
+  "subtitle": "One deck sentence — cultural stakes clear",
+  "summary": "2-3 sentences for card previews",
+  "category": "Culture",
+  "tags": ["tag1", "tag2", "tag3", "tag4"],
+  "body": "Full essay HTML: <p class=\\"drop-cap\\"> first paragraph; <h2> for 4+ sections; at least 2 <div class=\\"pull-quote\\">quote<cite>— Attribution</cite></div>; no title tag; minimum 1000 words."
+}`;
+
+  const raw = await callClaude(system, userMsg, 4000);
+  const match = raw.match(/\{[\s\S]*\}/);
+  if (!match) throw new Error("No JSON");
+  const data = JSON.parse(match[0]);
+  const title = String(data.title || topic).trim();
+  const doc = { slug: slugify(title), title, subtitle: String(data.subtitle||"").trim(), content: "", summary: String(data.summary||"").trim(), body: String(data.body||"").trim(), tags: Array.isArray(data.tags)?data.tags.map(String):["Culture"], category: "Culture", source: "Aliss", is_external: false, is_generated: true, published_at: new Date().toISOString() };
+  if (!isDbReady()) return normalizeArticle(doc);
+  const { data: saved, error } = await supabase.from("aliss_articles").upsert(doc, { onConflict: "slug", ignoreDuplicates: true }).select().single();
+  if (error || !saved) { const { data: existing } = await supabase.from("aliss_articles").select("*").eq("slug", doc.slug).single(); return normalizeArticle(existing || doc); }
+  return normalizeArticle(saved);
+}
+
+async function generateFuturesArticle(topic) {
+  const system = `You are Aliss — writing the Futures section. Long-form, scenario-based journalism about what is coming. Not prediction. Not science fiction. Rigorous extrapolation from what is real and present.
+
+YOUR VOICE:
+- Grounded in data, research, and named sources — then willing to follow the logic wherever it leads.
+- The register of a war correspondent reporting from a front that hasn't happened yet.
+- Three timelines: short (2-3 years), medium (5-10 years), long (20+ years). Futures pieces hold all three at once.
+- Never catastrophize lazily or dismiss lazily. Take the thing seriously.
+- Never use markdown. Only clean HTML. Minimum 1200 words.`;
+
+  const userMsg = `Write an original long-form Aliss Futures piece about: ${topic}
+
+Return ONLY a raw JSON object. Fields:
+{
+  "title": "Declarative, specific headline under 80 characters",
+  "subtitle": "One sentence that establishes the stakes and the timeline",
+  "summary": "2-3 sentences for card previews — make someone feel the urgency",
+  "category": "Futures",
+  "tags": ["tag1", "tag2", "tag3", "tag4"],
+  "body": "Full piece HTML: <p class=\\"drop-cap\\"> first paragraph; <h2> for 5+ sections; at least 2 <div class=\\"pull-quote\\">quote<cite>— Attribution</cite></div>; no title tag; minimum 1200 words."
+}`;
+
+  const raw = await callClaude(system, userMsg, 4000);
+  const match = raw.match(/\{[\s\S]*\}/);
+  if (!match) throw new Error("No JSON");
+  const data = JSON.parse(match[0]);
+  const title = String(data.title || topic).trim();
+  const doc = { slug: slugify(title), title, subtitle: String(data.subtitle||"").trim(), content: "", summary: String(data.summary||"").trim(), body: String(data.body||"").trim(), tags: Array.isArray(data.tags)?data.tags.map(String):["Futures"], category: "Futures", source: "Aliss", is_external: false, is_generated: true, published_at: new Date().toISOString() };
+  if (!isDbReady()) return normalizeArticle(doc);
+  const { data: saved, error } = await supabase.from("aliss_articles").upsert(doc, { onConflict: "slug", ignoreDuplicates: true }).select().single();
+  if (error || !saved) { const { data: existing } = await supabase.from("aliss_articles").select("*").eq("slug", doc.slug).single(); return normalizeArticle(existing || doc); }
+  return normalizeArticle(saved);
+}
+
 let editorialSeeding = false;
 
 async function seedEditorialSections() {
   if (editorialSeeding || !isDbReady() || !ANTHROPIC_KEY) return;
   editorialSeeding = true;
-  console.log("Seeding Philosophy and Words sections...");
+  console.log("Seeding Philosophy, Words, Culture, and Futures sections...");
 
   try {
     for (const [topics, generator, label] of [
       [PHILOSOPHY_TOPICS, generatePhilosophyArticle, "Philosophy"],
-      [WORDS_TOPICS,      generateWordsArticle,      "Words"]
+      [WORDS_TOPICS,      generateWordsArticle,      "Words"],
+      [CULTURE_TOPICS,    generateCultureArticle,    "Culture"],
+      [FUTURES_TOPICS,    generateFuturesArticle,    "Futures"],
     ]) {
       const { data: existing } = await supabase.from("aliss_articles")
         .select("title").eq("category", label).eq("is_generated", true);
@@ -1460,24 +1576,101 @@ async function fetchHNNews() {
 ====================== */
 
 const NEWS_FEEDS = [
+  // BBC
   { url: "https://feeds.bbci.co.uk/news/world/rss.xml",                    category: "World",    source: "BBC News" },
   { url: "https://feeds.bbci.co.uk/news/business/rss.xml",                 category: "Business", source: "BBC News" },
   { url: "https://feeds.bbci.co.uk/news/technology/rss.xml",               category: "Tech",     source: "BBC News" },
   { url: "https://feeds.bbci.co.uk/news/science_and_environment/rss.xml",  category: "Science",  source: "BBC News" },
   { url: "https://feeds.bbci.co.uk/news/politics/rss.xml",                 category: "Politics", source: "BBC News" },
   { url: "https://feeds.bbci.co.uk/news/health/rss.xml",                   category: "Health",   source: "BBC News" },
+  { url: "https://feeds.bbci.co.uk/news/entertainment_and_arts/rss.xml",   category: "Culture",  source: "BBC News" },
+  // New York Times
+  { url: "https://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml",      category: "World",    source: "New York Times" },
+  { url: "https://rss.nytimes.com/services/xml/rss/nyt/Business.xml",      category: "Business", source: "New York Times" },
+  { url: "https://rss.nytimes.com/services/xml/rss/nyt/Technology.xml",    category: "Tech",     source: "New York Times" },
+  { url: "https://rss.nytimes.com/services/xml/rss/nyt/Science.xml",       category: "Science",  source: "New York Times" },
+  { url: "https://rss.nytimes.com/services/xml/rss/nyt/Politics.xml",      category: "Politics", source: "New York Times" },
+  { url: "https://rss.nytimes.com/services/xml/rss/nyt/Arts.xml",          category: "Culture",  source: "New York Times" },
+  { url: "https://rss.nytimes.com/services/xml/rss/nyt/Books.xml",         category: "Culture",  source: "New York Times" },
+  // The Economist
+  { url: "https://www.economist.com/the-world-this-week/rss.xml",          category: "World",    source: "The Economist" },
+  { url: "https://www.economist.com/business/rss.xml",                     category: "Business", source: "The Economist" },
+  { url: "https://www.economist.com/finance-and-economics/rss.xml",        category: "Business", source: "The Economist" },
+  { url: "https://www.economist.com/science-and-technology/rss.xml",       category: "Science",  source: "The Economist" },
+  { url: "https://www.economist.com/culture/rss.xml",                      category: "Culture",  source: "The Economist" },
+  // South China Morning Post
+  { url: "https://www.scmp.com/rss/91/feed",                               category: "World",    source: "SCMP" },
+  { url: "https://www.scmp.com/rss/4/feed",                                category: "World",    source: "SCMP" },
+  { url: "https://www.scmp.com/rss/92/feed",                               category: "Business", source: "SCMP" },
+  // The Guardian
+  { url: "https://www.theguardian.com/world/rss",                          category: "World",    source: "The Guardian" },
+  { url: "https://www.theguardian.com/technology/rss",                     category: "Tech",     source: "The Guardian" },
+  { url: "https://www.theguardian.com/business/rss",                       category: "Business", source: "The Guardian" },
+  { url: "https://www.theguardian.com/science/rss",                        category: "Science",  source: "The Guardian" },
+  { url: "https://www.theguardian.com/culture/rss",                        category: "Culture",  source: "The Guardian" },
+  { url: "https://www.theguardian.com/environment/rss",                    category: "Science",  source: "The Guardian" },
+  // Reuters
+  { url: "https://feeds.reuters.com/reuters/topNews",                      category: "World",    source: "Reuters" },
+  { url: "https://feeds.reuters.com/reuters/businessNews",                 category: "Business", source: "Reuters" },
+  { url: "https://feeds.reuters.com/reuters/technologyNews",               category: "Tech",     source: "Reuters" },
+  // Tech publications
+  { url: "https://www.wired.com/feed/rss",                                 category: "Tech",     source: "Wired" },
+  { url: "https://feeds.arstechnica.com/arstechnica/index",                category: "Tech",     source: "Ars Technica" },
+  { url: "https://www.theverge.com/rss/index.xml",                         category: "Tech",     source: "The Verge" },
+  { url: "https://www.technologyreview.com/feed/",                         category: "Tech",     source: "MIT Tech Review" },
+  { url: "https://techcrunch.com/feed/",                                   category: "Tech",     source: "TechCrunch" },
+  // Science & nature
+  { url: "https://www.nature.com/nature.rss",                              category: "Science",  source: "Nature" },
+  { url: "https://www.science.org/rss/news_current.xml",                   category: "Science",  source: "Science" },
+  // World & geopolitics
+  { url: "https://foreignpolicy.com/feed/",                                category: "World",    source: "Foreign Policy" },
+  { url: "https://www.aljazeera.com/xml/rss/all.xml",                      category: "World",    source: "Al Jazeera" },
+  { url: "https://feeds.npr.org/1001/rss.xml",                             category: "World",    source: "NPR" },
+  // Culture & long reads
+  { url: "https://www.theatlantic.com/feed/all/",                          category: "Culture",  source: "The Atlantic" },
+  { url: "https://www.newyorker.com/feed/everything",                      category: "Culture",  source: "The New Yorker" },
+  // Google News (aggregates hundreds of sources)
+  { url: "https://news.google.com/rss/topics/CAAqJggKIiBDQkFTRWdvSUwyMHZNRGx6TVdZU0FtVnVHZ0pWVXlnQVAB?hl=en-US&gl=US&ceid=US:en", category: "World",    source: "Google News" },
+  { url: "https://news.google.com/rss/topics/CAAqJggKIiBDQkFTRWdvSUwyMHZNREpoTVdZU0FtVnVHZ0pWVXlnQVAB?hl=en-US&gl=US&ceid=US:en", category: "Business", source: "Google News" },
+  { url: "https://news.google.com/rss/topics/CAAqJggKIiBDQkFTRWdvSUwyMHZNRGRqTVhZU0FtVnVHZ0pWVXlnQVAB?hl=en-US&gl=US&ceid=US:en", category: "Tech",     source: "Google News" },
+  { url: "https://news.google.com/rss/topics/CAAqJggKIiBDQkFTRWdvSUwyMHZNRFp0TldZU0FtVnVHZ0pWVXlnQVAB?hl=en-US&gl=US&ceid=US:en", category: "Science",  source: "Google News" },
+  { url: "https://news.google.com/rss/topics/CAAqIQgKIhtDQkFTRGdvSUwyMHZNR3QwTlRZU0FtVnVLQUFQAQ?hl=en-US&gl=US&ceid=US:en",       category: "Health",   source: "Google News" },
+  // Reddit top posts (Atom format)
+  { url: "https://www.reddit.com/r/worldnews/top.rss?t=day&limit=10",      category: "World",    source: "r/worldnews" },
+  { url: "https://www.reddit.com/r/technology/top.rss?t=day&limit=10",     category: "Tech",     source: "r/technology" },
+  { url: "https://www.reddit.com/r/science/top.rss?t=day&limit=10",        category: "Science",  source: "r/science" },
+  { url: "https://www.reddit.com/r/finance/top.rss?t=day&limit=10",        category: "Business", source: "r/finance" },
 ];
 
+// Handles RSS 2.0, Atom, and CDATA across all major feed formats
 function parseRSSFeed(xml) {
   const items = [];
-  const rawItems = xml.match(/<item[^>]*>[\s\S]*?<\/item>/gi) || [];
-  for (const raw of rawItems.slice(0, 10)) {
-    const get = (tag) => {
-      const m = raw.match(new RegExp(`<${tag}[^>]*>(?:<![\\[CDATA\\[]?)([\\s\\S]*?)(?:\\]\\]>)?<\\/${tag}>`, "i"));
-      return m ? m[1].replace(/<[^>]+>/g, "").replace(/&amp;/g,"&").replace(/&lt;/g,"<").replace(/&gt;/g,">").replace(/&quot;/g,'"').replace(/&#39;/g,"'").trim() : "";
-    };
-    const title = get("title");
-    if (title) items.push({ title, description: get("description").slice(0, 500) });
+  const dec = (s) => String(s || "")
+    .replace(/<!\[CDATA\[([\s\S]*?)\]\]>/gi, "$1")
+    .replace(/<[^>]+>/g, "")
+    .replace(/&amp;/g,"&").replace(/&lt;/g,"<").replace(/&gt;/g,">")
+    .replace(/&quot;/g,'"').replace(/&#39;/g,"'").replace(/&nbsp;/g," ")
+    .replace(/\s+/g, " ").trim();
+
+  const getField = (raw, ...tags) => {
+    for (const tag of tags) {
+      const m = raw.match(new RegExp(`<${tag}[^>]*>([\\s\\S]*?)<\\/${tag}>`, "i"));
+      if (m) { const v = dec(m[1]); if (v.length > 3) return v; }
+    }
+    return "";
+  };
+
+  // RSS <item> and Atom <entry>
+  const rawItems = [
+    ...(xml.match(/<item[^>]*>[\s\S]*?<\/item>/gi) || []),
+    ...(xml.match(/<entry[^>]*>[\s\S]*?<\/entry>/gi) || []),
+  ];
+
+  for (const raw of rawItems.slice(0, 12)) {
+    const title = getField(raw, "title");
+    if (!title || title.length < 8) continue;
+    const description = (getField(raw, "description", "summary", "content") || "").slice(0, 600);
+    items.push({ title: title.slice(0, 220), description });
   }
   return items;
 }
@@ -1554,7 +1747,7 @@ async function fetchGeneralNews() {
       let written = 0;
 
       for (const item of items) {
-        if (written >= 2) break;
+        if (written >= 3) break;
         if (!item.title) continue;
 
         const { count } = await supabase
@@ -1649,7 +1842,7 @@ async function autoGenerateArticle() {
 }
 
 cron.schedule("0 * * * *",    fetchHNNews);
-cron.schedule("0 * * * *",    fetchGeneralNews);
+cron.schedule("*/30 * * * *", fetchGeneralNews);
 cron.schedule("*/30 * * * *", autoGenerateArticle);
 cron.schedule("*/15 * * * *", refreshTicker);
 cron.schedule("0 */3 * * *",  polishShortArticles);

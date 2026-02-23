@@ -396,6 +396,8 @@ a{color:inherit;text-decoration:none}
 <li><a href="#" data-nav="profiles" onclick="filterCategory('Profile','profiles');return false">Profiles</a></li>
 <li><a href="#" data-nav="industry" onclick="navigate('industry');return false">Industry</a></li>
 <li><a href="#" data-nav="research" onclick="filterCategory('Research','research');return false">Research</a></li>
+<li><a href="#" data-nav="culture" onclick="filterCategory('Culture','culture');return false">Culture</a></li>
+<li><a href="#" data-nav="futures" onclick="filterCategory('Futures','futures');return false">Futures</a></li>
 <li><a href="#" data-nav="philosophy" onclick="filterCategory('Philosophy','philosophy');return false">Philosophy</a></li>
 <li><a href="#" data-nav="words" onclick="filterCategory('Words','words');return false">Words</a></li>
 <li><a href="#" data-nav="opinion" onclick="filterCategory('Opinion','opinion');return false">Opinion</a></li>
@@ -1331,7 +1333,7 @@ function escapeHtml(value){
 let articlesShown=500;
 
 /* ---- Relevance sort ---- */
-const CATEGORY_WEIGHT={'Industry':6,'Profile':5,'Analysis':4,'World':4,'Business':4,'Tech':4,'Philosophy':4,'Words':4,'Science':3,'Politics':3,'Research':3,'Health':3,'Opinion':2,'News':2};
+const CATEGORY_WEIGHT={'Industry':6,'Profile':5,'Futures':5,'Analysis':4,'World':4,'Business':4,'Tech':4,'Philosophy':4,'Words':4,'Culture':4,'Science':3,'Politics':3,'Research':3,'Health':3,'Opinion':2,'News':2};
 function sortByRelevance(articles){
   return [...articles].sort((a,b)=>{
     const wa=CATEGORY_WEIGHT[a.category]||1;
