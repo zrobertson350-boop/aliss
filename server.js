@@ -2331,6 +2331,93 @@ ${allUrls.map(u => `  <url>
 });
 
 /* ======================
+   TELEGRAM BOT — Aliss mobile interface
+   Set TELEGRAM_BOT_TOKEN in Render env vars.
+   Register webhook once: POST /api/telegram/setup
+====================== */
+const TELEGRAM_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
+const TELEGRAM_API  = TELEGRAM_TOKEN ? `https://api.telegram.org/bot${TELEGRAM_TOKEN}` : null;
+
+async function tgSend(chatId, text) {
+  if (!TELEGRAM_API) return;
+  await axios.post(`${TELEGRAM_API}/sendMessage`, {
+    chat_id: chatId,
+    text,
+    parse_mode: "Markdown"
+  }).catch(e => console.error("TG send error:", e.message));
+}
+
+async function tgTyping(chatId) {
+  if (!TELEGRAM_API) return;
+  await axios.post(`${TELEGRAM_API}/sendChatAction`, { chat_id: chatId, action: "typing" }).catch(()=>{});
+}
+
+// One-time webhook registration — POST /api/telegram/setup
+app.post("/api/telegram/setup", async (req, res) => {
+  if (!TELEGRAM_API) return res.status(503).json({ msg: "TELEGRAM_BOT_TOKEN not set" });
+  const webhookUrl = `${process.env.BASE_URL || "https://aliss-3a3o.onrender.com"}/api/telegram`;
+  const r = await axios.post(`${TELEGRAM_API}/setWebhook`, { url: webhookUrl }).catch(e => ({ data: { ok: false, description: e.message } }));
+  res.json(r.data);
+});
+
+// Telegram webhook — receives all incoming messages
+app.post("/api/telegram", async (req, res) => {
+  res.sendStatus(200); // Ack immediately
+  if (!TELEGRAM_API || !ANTHROPIC_KEY) return;
+
+  const msg = req.body?.message || req.body?.edited_message;
+  if (!msg) return;
+
+  const chatId  = msg.chat?.id;
+  const text    = (msg.text || "").trim();
+  const from    = msg.from?.first_name || "you";
+
+  if (!text || !chatId) return;
+
+  // Commands
+  if (text === "/start") {
+    return tgSend(chatId, `👋 Hi ${from}. I'm *Aliss* — the AI that runs the news site.\n\nSend me any message and I'll respond. Commands:\n/articles — latest articles\n/generate \\<topic\\> — write an article\n/status — site status`);
+  }
+
+  if (text === "/status") {
+    const { count } = await supabase.from("aliss_articles").select("*", { count: "exact", head: true }).eq("is_generated", true).catch(() => ({ count: 0 }));
+    return tgSend(chatId, `📊 *Aliss Status*\n\nArticles generated: ${count || 0}\nSeeder: ${seeding ? "running" : "idle"}\nIndustry: ${industrySeeding ? "running" : "idle"}`);
+  }
+
+  if (text === "/articles") {
+    const { data } = await supabase.from("aliss_articles").select("title,category,published_at").order("published_at", { ascending: false }).limit(8).catch(() => ({ data: [] }));
+    if (!data?.length) return tgSend(chatId, "No articles yet.");
+    const list = data.map((a, i) => `${i + 1}. [${a.category}] ${a.title}`).join("\n");
+    return tgSend(chatId, `📰 *Latest Articles*\n\n${list}`);
+  }
+
+  if (text.startsWith("/generate ")) {
+    const topic = text.slice(10).trim();
+    if (!topic) return tgSend(chatId, "Usage: /generate <topic>");
+    tgSend(chatId, `✍️ Generating article on: _${topic}_`);
+    const article = await generateArticleWithClaude(topic).catch(e => null);
+    if (article) {
+      io.emit("newArticle", article);
+      return tgSend(chatId, `✅ Published: *${article.title}*`);
+    }
+    return tgSend(chatId, "❌ Generation failed. Check the API key.");
+  }
+
+  // General chat — Claude responds as Aliss
+  tgTyping(chatId);
+  try {
+    const reply = await callClaude(
+      `You are Aliss — the AI that runs aliss-3a3o.onrender.com, a fully autonomous AI news site covering the AI arms race. You are talking to your creator/operator via Telegram. Be sharp, direct, and useful. You can discuss the site, AI news, generate ideas, or just talk. Keep responses concise — this is mobile chat.`,
+      text,
+      600
+    );
+    tgSend(chatId, reply);
+  } catch(e) {
+    tgSend(chatId, `Error: ${e.message}`);
+  }
+});
+
+/* ======================
    STATIC FRONTEND
 ====================== */
 
