@@ -44,6 +44,7 @@ if (SUPABASE_URL && SUPABASE_KEY) {
   console.log("Supabase client initialized:", SUPABASE_URL);
   setTimeout(async () => {
     await seedOriginalArticles();
+    await cleanupBadArticles();
     await deduplicateArticles();
     seedGeneratedArticles();
     fetchHNNews();
@@ -459,7 +460,28 @@ const AI_TOPICS = [
   "Concrete problems in AI safety: Amodei et al.'s 2016 framework that shaped a research agenda",
   "Constitutional AI: Bai et al.'s harmlessness from AI feedback and the self-critique training loop",
   "Predictability and surprise in large generative models: Ganguli et al. on emergence and risk",
-  "Emergent abilities of LLMs: Wei et al.'s paper on capabilities that appear abruptly with scale"
+  "Emergent abilities of LLMs: Wei et al.'s paper on capabilities that appear abruptly with scale",
+  // 2026 Developments
+  "Stargate: Trump's $500B AI infrastructure bet and what it means for American AI supremacy",
+  "Claude 3.7 Sonnet: Anthropic's hybrid reasoning model and the new frontier of extended thinking",
+  "OpenAI's for-profit conversion: what the restructuring means for the mission, the money, and the mess",
+  "Gemini 2.0 and Google's rebound: how DeepMind pulled Google back from the brink of AI irrelevance",
+  "The agentic coding revolution: how Cursor, Windsurf, and Claude Code are replacing the IDE",
+  "Meta's Llama 4 and the open-source gambit: Zuckerberg's bet that openness beats moats",
+  "The reasoning model wars: OpenAI o3, Gemini Thinking, and Claude's extended reasoning explained",
+  "China's AI export controls: how the chip war is reshaping the global AI stack",
+  "AI in the White House: Trump's executive orders, Elon Musk's DOGE, and AI-powered government",
+  "The robotics moment: Figure, Physical Intelligence, and why 2026 is the year embodied AI got real",
+  "The prompt engineering profession: how a new discipline emerged and what it reveals about AI",
+  "AI hallucination: why models confabulate, the state of the science, and whether it can be fixed",
+  "The post-RLHF era: DPO, RLAIF, and the new techniques replacing human feedback at scale",
+  "Memory for AI: how stateful agents remember across sessions and why it changes everything",
+  "The inference compute shift: why test-time compute is now as important as training compute",
+  "AI's copyright reckoning: the lawsuits, the licensing deals, and the creative economy at stake",
+  "The 2025 AI talent migration: who left OpenAI, who joined Anthropic, and what the movement reveals",
+  "Multiagent systems: when AI works in teams — coordination, conflict, and emergent behavior",
+  "AI and scientific discovery: from AlphaFold to materials science to automated hypothesis generation",
+  "The model weight proliferation crisis: open weights, national security, and the point of no return"
 ];
 
 async function generateArticleWithClaude(topic, recentTitles = []) {
@@ -476,14 +498,14 @@ YOUR VOICE — this is non-negotiable:
 - Never use markdown. Only clean HTML.`;
 
   const recentContext = recentTitles.length
-    ? `\n\nRecent Aliss coverage for context and cross-referencing:\n${recentTitles.slice(0, 12).map((t, i) => `${i + 1}. ${t}`).join("\n")}`
+    ? `\n\nRecent Aliss coverage — DO NOT repeat these topics or angles:\n${recentTitles.slice(0, 20).map((t, i) => `${i + 1}. ${t}`).join("\n")}\n\nYour article MUST take a distinct angle not already covered above. Find a fresh entry point, a different person, a different dimension of the story.`
     : "";
 
   const userMsg = `Write a compelling long-form article about: ${topic}${recentContext}
 
 Return ONLY a raw JSON object — no markdown fences, no extra text. Fields:
 {
-  "title": "Headline under 80 characters — punchy and specific",
+  "title": "Headline under 80 characters — punchy and specific. Must be meaningfully different from any recent Aliss titles.",
   "subtitle": "One sharp sentence that earns its existence",
   "summary": "2-3 sentences for card previews — make someone want to click",
   "category": "Profile OR Analysis OR Opinion OR Research OR Industry OR News",
@@ -643,8 +665,11 @@ async function seedIndustryArticles() {
       .eq("category", "Industry")
       .eq("is_generated", true);
 
-    const existingSet = new Set((existing || []).map(a => a.title.toLowerCase().slice(0, 30)));
-    const pending = INDUSTRY_TOPICS.filter(t => !existingSet.has(t.toLowerCase().slice(0, 30)));
+    const existingArticles = existing || [];
+    const pending = INDUSTRY_TOPICS.filter(topic =>
+      !existingArticles.some(a => jaccardSimilarity(topic, a.title) >= 0.35 ||
+        a.title.toLowerCase().includes(topic.toLowerCase().split(":")[0].slice(0, 35).trim()))
+    );
 
     console.log(`Industry: ${pending.length} articles to generate with Opus`);
     if (!pending.length) { console.log("All Industry topics already written."); return; }
@@ -961,8 +986,11 @@ async function seedEditorialSections() {
     ]) {
       const { data: existing } = await supabase.from("aliss_articles")
         .select("title").eq("category", label).eq("is_generated", true);
-      const existingSet = new Set((existing || []).map(a => a.title.toLowerCase().slice(0, 30)));
-      const pending = topics.filter(t => !existingSet.has(t.toLowerCase().slice(0, 30)));
+      const existingArticles = existing || [];
+      const pending = topics.filter(topic =>
+        !existingArticles.some(a => jaccardSimilarity(topic, a.title) >= 0.35 ||
+          a.title.toLowerCase().includes(topic.toLowerCase().split(":")[0].slice(0, 35).trim()))
+      );
 
       console.log(`${label}: ${pending.length} articles to write`);
       for (const topic of pending) {
@@ -1096,6 +1124,71 @@ async function seedOriginalArticles() {
 /* ======================
    DEDUPLICATION
 ====================== */
+
+// Stop-words for title similarity
+const DEDUP_STOP = new Set([
+  "a","an","the","and","or","but","in","on","at","to","for","of","with","by","from",
+  "is","it","its","was","are","were","be","been","being","have","has","had","do","did",
+  "will","would","could","should","may","might","not","no","nor","so","yet","both",
+  "how","what","which","who","whom","this","that","these","those","all","each","every",
+  "some","any","most","more","less","just","also","than","then","when","where","why",
+  "as","if","vs","up","out","after","before","about","into","than","over","he","she",
+  "they","we","you","my","his","her","their","our","your","new","can","now",
+]);
+
+function titleTokens(s) {
+  return (s || "").toLowerCase()
+    .replace(/[^a-z0-9\s]/g, "")
+    .split(/\s+/)
+    .filter(w => w.length > 2 && !DEDUP_STOP.has(w));
+}
+
+function jaccardSimilarity(a, b) {
+  const sa = new Set(titleTokens(a));
+  const sb = new Set(titleTokens(b));
+  if (!sa.size || !sb.size) return 0;
+  const intersection = [...sa].filter(w => sb.has(w)).length;
+  const union = new Set([...sa, ...sb]).size;
+  return intersection / union;
+}
+
+// Articles we know are off-brand or exact dupes — always remove
+const CLEANUP_SLUGS = [
+  "five-days-to-lock-in-the-cheapest-seat-at-techs-biggest-tent", // TechCrunch promo — not AI news
+  "eyes-everywhere-chicagos-45000-camera-state",                   // duplicate of chicago all-seeing article
+];
+
+const CLEANUP_TITLE_PATTERNS = [
+  /early.bird.ticket/i,
+  /register.*discount/i,
+  /techcrunch disrupt/i,
+  /cheapest seat at tech/i,
+];
+
+async function cleanupBadArticles() {
+  if (!isDbReady()) return;
+  try {
+    // Delete by known bad slugs
+    for (const slug of CLEANUP_SLUGS) {
+      const { error } = await supabase.from("aliss_articles").delete().eq("slug", slug);
+      if (!error) console.log(`Cleaned up: ${slug}`);
+    }
+
+    // Delete by title patterns
+    const { data: all } = await supabase.from("aliss_articles").select("id,title");
+    if (!all?.length) return;
+    const patternIds = all
+      .filter(a => CLEANUP_TITLE_PATTERNS.some(p => p.test(a.title)))
+      .map(a => a.id);
+    if (patternIds.length) {
+      await supabase.from("aliss_articles").delete().in("id", patternIds);
+      console.log(`Cleaned up ${patternIds.length} off-brand articles by title pattern.`);
+    }
+  } catch (e) {
+    console.error("cleanupBadArticles failed:", e.message);
+  }
+}
+
 async function deduplicateArticles() {
   if (!isDbReady()) return;
   console.log("Running deduplication...");
@@ -1106,22 +1199,42 @@ async function deduplicateArticles() {
       .order("published_at", { ascending: false });
     if (!all?.length) return;
 
-    const seenSlugs = new Map(); // slug -> first id (most recent)
-    const toDelete = [];
+    const toDelete = new Set();
 
+    // Pass 1: exact slug dedup — keep most recent, drop older
+    const seenSlugs = new Map();
     for (const a of all) {
       if (!a.slug) continue;
       if (seenSlugs.has(a.slug)) {
-        toDelete.push(a.id);
+        toDelete.add(a.id);
       } else {
         seenSlugs.set(a.slug, a.id);
       }
     }
 
-    if (toDelete.length) {
-      const { error } = await supabase.from("aliss_articles").delete().in("id", toDelete);
-      if (!error) console.log(`Deduplication: removed ${toDelete.length} duplicate articles.`);
-      else console.error("Dedup delete error:", error.message);
+    // Pass 2: semantic title similarity (Jaccard ≥ 0.45 = same topic)
+    const remaining = all.filter(a => !toDelete.has(a.id));
+    for (let i = 0; i < remaining.length; i++) {
+      if (toDelete.has(remaining[i].id)) continue;
+      for (let j = i + 1; j < remaining.length; j++) {
+        if (toDelete.has(remaining[j].id)) continue;
+        const sim = jaccardSimilarity(remaining[i].title, remaining[j].title);
+        if (sim >= 0.45) {
+          // Keep the newer article (index i = more recent), delete j
+          toDelete.add(remaining[j].id);
+          console.log(`Semantic dup: "${remaining[j].title.slice(0, 50)}" ≈ "${remaining[i].title.slice(0, 50)}"`);
+        }
+      }
+    }
+
+    if (toDelete.size) {
+      const ids = [...toDelete];
+      // Delete in batches of 50 to stay within Supabase limits
+      for (let i = 0; i < ids.length; i += 50) {
+        const { error } = await supabase.from("aliss_articles").delete().in("id", ids.slice(i, i + 50));
+        if (error) console.error("Dedup delete error:", error.message);
+      }
+      console.log(`Deduplication: removed ${toDelete.size} articles (slug + semantic).`);
     } else {
       console.log("Deduplication: no duplicates found.");
     }
@@ -1143,11 +1256,17 @@ async function seedGeneratedArticles() {
     .from("aliss_articles")
     .select("title")
     .eq("is_generated", true);
-  const existingTitles = new Set((existing || []).map(a => a.title.toLowerCase()));
+  const existingArticles = existing || [];
 
-  const pending = AI_TOPICS.filter(t => {
-    const key = t.toLowerCase().slice(0, 20);
-    return ![...existingTitles].some(e => e.includes(key));
+  // Use word-similarity instead of naive 20-char prefix to catch near-duplicate topics
+  const pending = AI_TOPICS.filter(topic => {
+    const topicTokens = new Set(titleTokens(topic));
+    return !existingArticles.some(a => {
+      const sim = jaccardSimilarity(topic, a.title);
+      // Also check if the topic key phrase appears in the existing title
+      const topicKey = topic.toLowerCase().slice(0, 35);
+      return sim >= 0.35 || a.title.toLowerCase().includes(topicKey.split(":")[0].trim());
+    });
   });
 
   console.log(`Seeding ${pending.length} pending articles...`);
@@ -1303,6 +1422,12 @@ app.get("/api/seed-status", async (req, res) => {
 app.post("/api/seed-now", (req, res) => {
   res.json({ msg: "Seeding started in background", target: AI_TOPICS.length });
   seedGeneratedArticles().catch(e => console.error("Seed-now failed:", e.message));
+});
+
+app.post("/api/cleanup", async (req, res) => {
+  res.json({ msg: "Cleanup and deduplication started" });
+  await cleanupBadArticles().catch(e => console.error("cleanup failed:", e.message));
+  await deduplicateArticles().catch(e => console.error("dedup failed:", e.message));
 });
 
 app.post("/api/generate-now", async (req, res) => {
@@ -1887,8 +2012,11 @@ async function autoGenerateArticle() {
       .from("aliss_articles")
       .select("title")
       .eq("is_generated", true);
-    const allExisting = new Set((allGenerated || []).map(a => a.title.toLowerCase().slice(0, 30)));
-    const remaining = AI_TOPICS.filter(t => !allExisting.has(t.toLowerCase().slice(0, 30)));
+    const allExistingArticles = allGenerated || [];
+    const remaining = AI_TOPICS.filter(topic =>
+      !allExistingArticles.some(a => jaccardSimilarity(topic, a.title) >= 0.35 ||
+        a.title.toLowerCase().includes(topic.toLowerCase().split(":")[0].slice(0, 35).trim()))
+    );
 
     let topic;
     if (topicIndex > 0 && topicIndex % 5 === 0 && recentTitles.length >= 5) {
