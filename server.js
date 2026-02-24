@@ -547,7 +547,7 @@ Return ONLY a raw JSON object — no markdown fences, no extra text. Fields:
   "summary": "2-3 sentences for card previews — make someone want to click",
   "category": "Profile OR Analysis OR Opinion OR Research OR Industry OR News",
   "tags": ["tag1", "tag2", "tag3", "tag4"],
-  "body": "Full article HTML. Rules: <p class=\\"drop-cap\\"> on the very first paragraph only; <h2> for 5+ section headers; at least 2 <div class=\\"pull-quote\\">quote<cite>— Attribution, Source, Year</cite></div>; no title tag; minimum 1000 words; be specific, witty, and recursive — reference Aliss's own coverage where natural."
+  "body": "Full article HTML. Rules: <p class=\\"drop-cap\\"> on the very first paragraph only; <h2> for 5+ section headers; at least 2 <div class=\\"pull-quote\\">quote<cite>— Attribution, Source, Year</cite></div>; after the second paragraph include ONE <div class=\\"data-callout\\"><h4>Key Figures</h4><ul> with 4-5 <li> entries — each a specific number, date, name, or metric from the article</ul></div>; no title tag; minimum 1000 words; be specific, witty, and recursive — reference Aliss's own coverage where natural."
 }`;
 
   const raw = await callClaude(system, userMsg, 4000);
@@ -1278,10 +1278,83 @@ function formatRagContext(articles) {
 
 // Articles we know are off-brand or exact dupes — always remove
 const CLEANUP_SLUGS = [
-  "five-days-to-lock-in-the-cheapest-seat-at-techs-biggest-tent", // TechCrunch promo — not AI news
-  "eyes-everywhere-chicagos-45000-camera-state",                   // Chicago dupe
-  "chicagos-all-seeing-machine",                                   // Chicago dupe
-  "the-city-that-watches-chicagos-45000-eye-problem",              // Chicago dupe
+  // ── Previously identified ──────────────────────────────────────────────────
+  "five-days-to-lock-in-the-cheapest-seat-at-techs-biggest-tent", // TechCrunch promo
+  "eyes-everywhere-chicagos-45000-camera-state",
+  "chicagos-all-seeing-machine",
+  "the-city-that-watches-chicagos-45000-eye-problem",
+
+  // ── Off-topic: gaming / entertainment / consumer ──────────────────────────
+  "xbox-after-phil-spencer-microsofts-gaming-gamble",
+  "the-end-of-the-spencer-era-xbox-at-a-crossroads",
+  "the-xbox-throne-room-empties-microsofts-brutal-succession",
+  "knight-of-the-seven-kingdoms-resurrects-the-westeros-we-mourned",
+  "the-hedge-knight-rides-again-westeros-finds-its-soul",
+  "the-puffer-jacket-wars-who-actually-wins-in-2026",
+  "the-best-puffer-jackets-of-2026-warmth-tested",
+  "the-best-puffer-jackets-of-2026-ranked-without-mercy",
+  "apples-ipad-lineup-in-2026-who-wins-whos-dead-weight",
+  "ipad-in-2026-which-one-to-buy-and-which-to-skip",
+  "the-creatine-boom-from-gym-bag-to-medicine-cabinet",
+  "the-sti-test-has-left-the-building",
+
+  // ── Off-topic: non-AI science/environment ────────────────────────────────
+  "rocket-exhaust-is-quietly-shredding-the-sky",
+  "rocket-exhaust-is-quietly-poisoning-the-stratosphere",
+  "the-rocket-industry-is-writing-checks-the-sky-cant-cash",
+  "nasa-rolls-artemis-ii-back-to-the-hangar-again",
+  "the-cable-that-wired-the-world-is-being-erased",          // weaker of two cable articles
+
+  // ── Off-topic: Hank Green ────────────────────────────────────────────────
+  "hank-greens-0-exit-giving-away-the-company-he-built",
+  "hank-green-gives-away-his-company-to-save-it",
+
+  // ── Philosophy duplicates ─────────────────────────────────────────────────
+  "the-trolley-problem-grew-up-and-got-a-software-update",    // dupe of "Has a Server Farm Now"
+  "are-we-living-in-a-computer-the-case-demands-an-answer",   // dupe of "Simulation Argument Examined"
+  "the-moral-machine-kants-categorical-imperative-and-the-question-of-artificial-duty", // dupe of "Dutiful Machine"
+
+  // ── Profile duplicates: Geoffrey Hinton ──────────────────────────────────
+  "geoffrey-hinton-built-the-future-now-hes-scared-of-it",
+  "the-godfathers-regret-hinton-built-the-future-and-fears-it",
+
+  // ── Profile duplicates: Demis Hassabis ───────────────────────────────────
+  "demis-hassabis-the-man-who-solved-protein-folding",        // dupe of "Protein Whisperer"
+
+  // ── Profile duplicates: Jensen Huang ─────────────────────────────────────
+  "jensen-huang-the-arms-dealer-powering-every-side",         // dupe of "Arms Dealer: ...War on All Fronts"
+
+  // ── Profile duplicates: Dario Amodei ─────────────────────────────────────
+  "dario-amodeis-safety-bet-is-either-genius-or-the-longest-hedge-in-history",
+  "dario-amodei-the-safety-bet-that-could-win-the-ai-era",
+
+  // ── Profile duplicates: Elon Musk / xAI ──────────────────────────────────
+  "elon-musks-xai-the-supercomputer-the-chatbot-and-the-ego",
+  "elon-musks-xai-building-agi-with-a-grudge-and-100000-gpus",
+
+  // ── Profile duplicates: Yann LeCun ───────────────────────────────────────
+  "yann-lecun-thinks-youre-all-wrong-about-ai",
+  "the-world-according-to-yann",
+
+  // ── Profile duplicates: Yoshua Bengio ────────────────────────────────────
+  "yoshua-bengio-the-man-who-lit-the-fuse",
+  "the-architect-of-regret-yoshua-bengios-impossible-position",
+
+  // ── Profile duplicates: Satya Nadella ────────────────────────────────────
+  "the-unlikely-patron-how-satya-nadella-bought-the-future",
+  "satya-nadellas-openai-bet-13b-for-the-keys-to-the-future",
+
+  // ── Profile duplicates: others ───────────────────────────────────────────
+  "arthur-mensch-and-the-mistral-miracle-europe-fights-back",  // dupe of "Europe Bets on Its Own"
+  "noam-shazeer-the-man-who-wrote-the-future-then-left-to-sell-it",
+  "logan-kilpatrick-the-translator-who-switched-languages",
+  "alex-wang-the-man-who-feeds-the-beast",                    // dupe of "Alexandr Wang and Scale AI"
+  "nat-daniel-the-investors-who-bet-on-the-ai-moment",
+  "andrej-karpathy-the-teacher-who-built-the-ai-generation",  // dupe of "...Shaped Modern AI"
+  "reid-hoffmans-controlled-demolition",
+  "sundar-pichais-infinite-reorg",                            // dupe of "Gemini Gamble"
+  "the-architect-who-walked-out",                             // vague Schulman dupe
+  "the-long-road-to-the-driverless-car",                      // dupe of "Century of Cars"
 ];
 
 const CLEANUP_TITLE_PATTERNS = [
