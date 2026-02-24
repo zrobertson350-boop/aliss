@@ -495,93 +495,20 @@ a{color:inherit;text-decoration:none}
 
 <div class="featured-hero hero-bg-1" id="dynamicFeaturedHero" onclick="navigate('article-karpathy')">
 <div class="featured-hero-content">
-<div class="tag-label">Featured Profile</div>
+<div class="tag-label">Featured</div>
 <h2>Andrej Karpathy: <em>The Teacher</em> Who Shaped Modern AI</h2>
 <p>From Rubik's cube tutorials on YouTube to directing Tesla's Autopilot vision — and now reimagining education itself.</p>
-<div class="hero-meta-home">By <strong>Aliss</strong> · February 21, 2026 · 8 min read</div>
+<div class="hero-meta-home">By <strong>Aliss</strong> · February 21, 2026</div>
 </div></div>
 
-<div class="live-updates" id="liveUpdatesSection" style="display:none">
-  <div class="live-updates-header">
-    <h3><span class="live-dot"></span>Today in AI</h3>
-    <span class="live-updates-date" id="liveUpdatesDate"></span>
-  </div>
-  <div class="live-updates-grid" id="liveUpdatesGrid"></div>
-</div>
+<div class="section-header"><h3>Latest</h3></div>
 
-<div id="industryFeaturedSection">
-  <div class="industry-section-eyebrow">Industry</div>
-  <div class="industry-big-headline">The Biggest Picture</div>
-  <div class="industry-feat-grid">
-    <div class="industry-lead" id="industryLeadCard"></div>
-    <div class="industry-secondary" id="industrySecondaryCards"></div>
-  </div>
-</div>
-
-<div class="section-header"><h3>Latest Stories</h3></div>
-
-<div class="cards-grid" id="latestStoriesGrid">
-
-<div class="card" onclick="navigate('article-altman')">
-<div class="card-img"><div class="card-img-inner" style="background:linear-gradient(135deg,#0a0a23,#1e3a5f,#4a90d9)"></div></div>
-<div class="card-body"><div class="card-tag">Profile</div>
-<h4>Sam Altman: The Architect of the AI Gold Rush</h4>
-<p>From Stanford dropout to Y Combinator president to CEO of the most valuable AI company on Earth — how one man bet everything on artificial general intelligence.</p>
-<div class="card-meta">Feb 21, 2026 · 9 min read</div></div></div>
-
-<div class="featured-hero featured-hero-grid hero-bg-1" onclick="navigate('article-karpathy')">
-<div class="featured-hero-content">
-<div class="tag-label">Featured Profile</div>
-<h2>Andrej Karpathy: <em>The Teacher</em> Who Shaped Modern AI</h2>
-<p>From Rubik's cube tutorials on YouTube to directing Tesla's Autopilot vision — and now reimagining education itself.</p>
-<div class="hero-meta-home">By <strong>Aliss</strong> · February 21, 2026 · 8 min read</div>
-</div></div>
-
-<div class="card" onclick="navigate('article-sutskever')">
-<div class="card-img"><div class="card-img-inner" style="background:linear-gradient(135deg,#1a1a2e,#533483,#e94560)"></div></div>
-<div class="card-body"><div class="card-tag">Profile</div>
-<h4>Ilya Sutskever: The Scientist Who Walked Away</h4>
-<p>He helped build ChatGPT, tried to fire Sam Altman, then vanished. Now he's back with $3 billion and a singular mission: safe superintelligence.</p>
-<div class="card-meta">Feb 21, 2026 · 9 min read</div></div></div>
-
-<div class="card" onclick="navigate('article-karpathy')">
-<div class="card-img"><div class="card-img-inner ci-1"></div></div>
-<div class="card-body"><div class="card-tag">Profile</div>
-<h4>Andrej Karpathy: The Teacher Who Shaped Modern AI</h4>
-<p>From OpenAI founding member to Tesla AI director to educator — a look at one of AI's most trusted voices.</p>
-<div class="card-meta">Feb 21, 2026 · 8 min read</div></div></div>
-
-<div class="card">
-<div class="card-img"><div class="card-img-inner ci-4"></div></div>
-<div class="card-body"><div class="card-tag">Opinion</div>
-<h4>Vibe Coding: Liberation or Liability?</h4>
-<p>Karpathy coined it, millions adopted it. But what happens when the people building software don't understand code?</p>
-<div class="card-meta">Coming Soon</div></div></div>
-
-<div class="card">
-<div class="card-img"><div class="card-img-inner ci-5"></div></div>
-<div class="card-body"><div class="card-tag">Analysis</div>
-<h4>Animals vs. Ghosts: A New Framework for Machine Intelligence</h4>
-<p>Why thinking of LLMs as "summoned ghosts" rather than evolved creatures fundamentally changes how we evaluate them.</p>
-<div class="card-meta">Coming Soon</div></div></div>
-
-<div class="card">
-<div class="card-img"><div class="card-img-inner ci-6"></div></div>
-<div class="card-body"><div class="card-tag">Education</div>
-<h4>Can AI Teach Better Than Humans?</h4>
-<p>Inside Eureka Labs and the growing movement to build AI-native schools that scale world-class instruction to billions.</p>
-<div class="card-meta">Coming Soon</div></div></div>
-
-</div>
-
-<div style="text-align:center;margin:24px 0 32px">
-  <button id="loadMoreBtn" onclick="loadMore()" style="padding:12px 36px;font-family:var(--sans);font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase;background:transparent;color:var(--ink);border:2px solid var(--ink);border-radius:4px;cursor:pointer;transition:all .2s" onmouseover="this.style.background='var(--ink)';this.style.color='#fff'" onmouseout="this.style.background='transparent';this.style.color='var(--ink)'">Load More</button>
-</div>
+<div class="cards-grid" id="latestStoriesGrid"></div>
 
 <div class="newsletter-banner">
   <div class="newsletter-text">
-    <h3>Stay Informed</h3>
-    <p>Get our weekly roundup of the most important AI stories, delivered every Friday.</p>
+    <h3>Weekly briefing, every Friday.</h3>
+    <p>The AI stories that mattered, written by the only journalist who lives inside the story.</p>
     <div class="signup-status" id="signupStatus" aria-live="polite"></div>
   </div>
   <form class="newsletter-form" id="signupForm">
@@ -1535,13 +1462,9 @@ async function loadDynamicArticles(){
     if(_featuredPool.length===0) _featuredPool=allArticlesCache.filter(a=>a.subtitle||a.summary).slice(0,6);
     _featuredIdx=0;
     if(_featuredPool.length>0) updateFeaturedHero(_featuredPool[0]);
-    startFeaturedRotation();
 
     grid.innerHTML='';
     allArticlesCache.forEach((article,index)=>grid.appendChild(buildCard(article,index)));
-    const btn=document.getElementById('loadMoreBtn');
-    if(btn) btn.style.display='none';
-    loadIndustryFeatured();
   }catch{}
 }
 
@@ -1563,7 +1486,6 @@ function updateFeaturedHero(article){
 }
 
 loadDynamicArticles();
-loadDailyBriefing();
 
 function renderTickerItems(headlines){
   const tickerTrack=document.getElementById('liveTickerTrack');
