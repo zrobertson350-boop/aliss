@@ -39,22 +39,28 @@
 </script>
 <script type="application/ld+json" id="articleSchema"></script>
 
-<!-- Google Analytics 4 — loads when GA4_ID is set in /api/config -->
+<!-- Google Analytics 4 — loads after /api/config, only when cookie consent = 'all' -->
 <script>
-(function(){
-  fetch('/api/config').then(r=>r.json()).then(cfg=>{
-    if(!cfg.ga4Id) return;
-    const s=document.createElement('script');
-    s.async=true;
-    s.src='https://www.googletagmanager.com/gtag/js?id='+cfg.ga4Id;
-    document.head.appendChild(s);
-    window.dataLayer=window.dataLayer||[];
-    function gtag(){dataLayer.push(arguments);}
-    window.gtag=gtag;
-    gtag('js',new Date());
-    gtag('config',cfg.ga4Id);
-  }).catch(()=>{});
-})();
+window._ga4Id=null;
+function loadGA4(id){
+  if(!id||window._ga4loaded)return;
+  window._ga4loaded=true;
+  const s=document.createElement('script');
+  s.async=true;s.src='https://www.googletagmanager.com/gtag/js?id='+id;
+  document.head.appendChild(s);
+  window.dataLayer=window.dataLayer||[];
+  function gtag(){dataLayer.push(arguments);}
+  window.gtag=gtag;gtag('js',new Date());gtag('config',id);
+}
+fetch('/api/config').then(r=>r.json()).then(cfg=>{
+  window._ga4Id=cfg.ga4Id||null;
+  // Also load Supabase keys from config if not already hardcoded
+  if(cfg.supabaseUrl&&cfg.supabaseAnonKey&&!window._sbKeysFromConfig){
+    window._sbKeysFromConfig={url:cfg.supabaseUrl,key:cfg.supabaseAnonKey};
+  }
+  // Only fire GA4 if user has already consented
+  if(localStorage.getItem('aliss_cookie_consent')==='all') loadGA4(window._ga4Id);
+}).catch(()=>{});
 </script>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Source+Sans+3:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
@@ -246,6 +252,12 @@ a{color:inherit;text-decoration:none}
 .auth-submit{width:100%;padding:15px;background:var(--accent);color:#fff;border:none;font-size:11px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;font-family:var(--sans);cursor:pointer;margin-top:4px;transition:background .2s;border-radius:2px}.auth-submit:hover:not(:disabled){background:var(--accent-hover)}.auth-submit:disabled{opacity:.55;cursor:not-allowed}
 .auth-msg{font-size:13px;margin-top:14px;min-height:20px;text-align:center;line-height:1.5}.auth-msg.error{color:#c0392b}.auth-msg.success{color:#27ae60}
 .auth-footer-note{font-size:12px;color:var(--muted);text-align:center;margin-top:18px;line-height:1.5}
+.auth-or{display:flex;align-items:center;gap:12px;margin:20px 0 4px;color:var(--muted);font-size:11px;letter-spacing:1.5px;text-transform:uppercase;font-weight:600}.auth-or::before,.auth-or::after{content:'';flex:1;height:1px;background:var(--divider)}
+.auth-google-btn{width:100%;padding:13px 15px;border:1px solid var(--divider);background:#fff;color:var(--ink);font-size:13px;font-weight:600;font-family:var(--sans);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;transition:all .2s;border-radius:2px;margin-top:12px}.auth-google-btn:hover{border-color:#aaa;background:#f9f9f9}
+.auth-google-btn svg{width:18px;height:18px;flex-shrink:0}
+.pw-strength{margin-top:6px;height:3px;border-radius:2px;background:var(--divider);overflow:hidden;transition:all .3s}
+.pw-strength-bar{height:100%;width:0;transition:width .3s,background .3s;border-radius:2px}
+.pw-strength-label{font-size:10px;letter-spacing:1px;text-transform:uppercase;font-weight:700;margin-top:4px;min-height:14px}
 
 /* Industry — The Most Ambitious Category */
 :root{--industry:#B8860B;--industry-bright:#F5A623;--industry-bg:#1C1608;--industry-paper:#FDF8EC;--industry-divider:#D4AF37}
@@ -493,6 +505,33 @@ a{color:inherit;text-decoration:none}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
 .token-count{font-family:var(--mono);font-size:11px;color:var(--muted-light);opacity:.7}
 .dynamic-article .article-meta .token-count::before{content:' · '}
+
+/* Polish — refined interactions and visual hierarchy */
+.card{transition:background .2s,box-shadow .2s,transform .15s}
+.card:hover{background:var(--cream);box-shadow:0 4px 18px rgba(0,0,0,.06);transform:translateY(-1px)}
+.card:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+button:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:2px}
+.auth-submit{transition:background .2s,box-shadow .2s}
+.auth-submit:hover:not(:disabled){box-shadow:0 4px 14px rgba(192,57,43,.28)}
+/* Skeleton loading */
+@keyframes shimmer{0%{background-position:-800px 0}100%{background-position:800px 0}}
+.skeleton{background:linear-gradient(90deg,var(--cream) 25%,var(--divider) 50%,var(--cream) 75%);background-size:800px 100%;animation:shimmer 1.6s infinite}
+.card-skeleton .card-body{display:flex;flex-direction:column;gap:10px;padding:22px 24px}
+.card-skeleton .sk-tag{height:10px;width:40%;border-radius:2px}
+.card-skeleton .sk-title{height:18px;width:90%;border-radius:2px}
+.card-skeleton .sk-title-2{height:18px;width:70%;border-radius:2px}
+.card-skeleton .sk-text{height:13px;width:100%;border-radius:2px;margin-top:4px}
+.card-skeleton .sk-meta{height:11px;width:55%;border-radius:2px;margin-top:12px}
+/* Scroll-to-top button */
+.scroll-top{z-index:600}
+.scroll-top:hover{transform:translateY(-2px)}
+/* Improved focus on search */
+.search-input-wrap:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px rgba(192,57,43,.1)}
+/* Improved article reading experience */
+.article-body{font-size:17.5px;line-height:1.82}
+.article-body p{margin-bottom:1.4em;color:#1c1c1c}
+/* Nav active underline animation */
+.main-nav li a.active::after{width:70%;transition:width .3s ease-out}
 </style>
 </head>
 <body>
@@ -1111,23 +1150,52 @@ Right now, we just focus on the research, and then the answer to the business qu
   <div class="auth-modal" role="dialog" aria-modal="true" aria-label="Sign in to Aliss">
     <button class="auth-modal-close" onclick="closeAuthModal()" aria-label="Close">&#x2715;</button>
     <div class="auth-logo"><span class="la">A</span>l<span class="la">i</span>ss</div>
-    <div class="auth-tabs">
+    <div class="auth-tabs" id="authTabRow">
       <div class="auth-tab active" id="tabSignin" onclick="switchAuthTab('signin')">Sign In</div>
       <div class="auth-tab" id="tabSignup" onclick="switchAuthTab('signup')">Create Account</div>
     </div>
+    <!-- Sign In -->
     <div id="authFormSignin">
+      <button class="auth-google-btn" onclick="doGoogleSignIn()" type="button">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+        Continue with Google
+      </button>
+      <div class="auth-or">or</div>
       <div class="auth-field"><label>Email</label><input type="email" id="siEmail" placeholder="your@email.com" autocomplete="email" onkeydown="if(event.key==='Enter')doSignIn()"></div>
       <div class="auth-field"><label>Password</label><input type="password" id="siPassword" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doSignIn()"></div>
       <button class="auth-submit" id="siBtn" onclick="doSignIn()">Sign In</button>
       <div class="auth-msg" id="siMsg"></div>
-      <div class="auth-footer-note">Don't have an account? <a href="#" onclick="switchAuthTab('signup');return false" style="color:var(--accent);font-weight:600">Create one free.</a></div>
+      <div class="auth-footer-note">
+        <a href="#" onclick="switchAuthTab('forgot');return false" style="color:var(--accent);font-weight:600">Forgot password?</a>
+        &nbsp;·&nbsp;
+        <a href="#" onclick="switchAuthTab('signup');return false" style="color:var(--accent);font-weight:600">Create account</a>
+      </div>
     </div>
+    <!-- Sign Up -->
     <div id="authFormSignup" style="display:none">
+      <button class="auth-google-btn" onclick="doGoogleSignIn()" type="button">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+        Continue with Google
+      </button>
+      <div class="auth-or">or</div>
       <div class="auth-field"><label>Email</label><input type="email" id="suEmail" placeholder="your@email.com" autocomplete="email" onkeydown="if(event.key==='Enter')doSignUp()"></div>
-      <div class="auth-field"><label>Password</label><input type="password" id="suPassword" placeholder="Min. 8 characters" autocomplete="new-password" onkeydown="if(event.key==='Enter')doSignUp()"></div>
+      <div class="auth-field">
+        <label>Password</label>
+        <input type="password" id="suPassword" placeholder="Min. 8 characters" autocomplete="new-password" oninput="updatePwStrength(this.value)" onkeydown="if(event.key==='Enter')doSignUp()">
+        <div class="pw-strength"><div class="pw-strength-bar" id="pwBar"></div></div>
+        <div class="pw-strength-label" id="pwLabel"></div>
+      </div>
       <button class="auth-submit" id="suBtn" onclick="doSignUp()">Create Account</button>
       <div class="auth-msg" id="suMsg"></div>
       <div class="auth-footer-note">Already have an account? <a href="#" onclick="switchAuthTab('signin');return false" style="color:var(--accent);font-weight:600">Sign in.</a></div>
+    </div>
+    <!-- Forgot Password -->
+    <div id="authFormForgot" style="display:none">
+      <p style="font-size:13px;color:var(--muted);margin-bottom:20px;line-height:1.6">Enter your email and we'll send you a link to reset your password.</p>
+      <div class="auth-field"><label>Email</label><input type="email" id="fpEmail" placeholder="your@email.com" autocomplete="email" onkeydown="if(event.key==='Enter')doForgotPassword()"></div>
+      <button class="auth-submit" id="fpBtn" onclick="doForgotPassword()">Send Reset Link</button>
+      <div class="auth-msg" id="fpMsg"></div>
+      <div class="auth-footer-note"><a href="#" onclick="switchAuthTab('signin');return false" style="color:var(--accent);font-weight:600">&#8592; Back to sign in</a></div>
     </div>
   </div>
 </div>
@@ -1504,9 +1572,21 @@ function startFeaturedRotation(){
   },7000);
 }
 
+function buildSkeleton(){
+  const div=document.createElement('div');
+  div.className='card card-skeleton';
+  div.innerHTML='<div class="card-body"><div class="skeleton sk-tag"></div><div class="skeleton sk-title"></div><div class="skeleton sk-title-2"></div><div class="skeleton sk-text"></div><div class="skeleton sk-text" style="width:80%"></div><div class="skeleton sk-meta"></div></div>';
+  return div;
+}
+
 async function loadDynamicArticles(){
   const grid=document.getElementById('latestStoriesGrid');
   if(!grid) return;
+  // Show skeletons while loading (only on first load)
+  if(!allArticlesCache.length&&!grid.querySelector('.card:not(.card-skeleton)')){
+    grid.innerHTML='';
+    for(let i=0;i<8;i++) grid.appendChild(buildSkeleton());
+  }
   try{
     const response=await fetch('/api/articles');
     if(!response.ok) return;
@@ -1918,8 +1998,62 @@ function switchAuthTab(tab){
   document.getElementById('tabSignup').classList.toggle('active',tab==='signup');
   document.getElementById('authFormSignin').style.display=tab==='signin'?'block':'none';
   document.getElementById('authFormSignup').style.display=tab==='signup'?'block':'none';
-  const focusId=tab==='signin'?'siEmail':'suEmail';
+  document.getElementById('authFormForgot').style.display=tab==='forgot'?'block':'none';
+  document.getElementById('authTabRow').style.display=tab==='forgot'?'none':'flex';
+  const focusId=tab==='signin'?'siEmail':tab==='signup'?'suEmail':'fpEmail';
   setTimeout(()=>document.getElementById(focusId)?.focus(),50);
+}
+
+async function doGoogleSignIn(){
+  try{
+    await _sb.auth.signInWithOAuth({
+      provider:'google',
+      options:{redirectTo:window.location.origin+'/?page=home'}
+    });
+  }catch(e){
+    console.error('Google sign-in failed:',e.message);
+  }
+}
+
+function updatePwStrength(val){
+  const bar=document.getElementById('pwBar');
+  const lbl=document.getElementById('pwLabel');
+  if(!bar||!lbl)return;
+  let score=0;
+  if(val.length>=8)score++;
+  if(val.length>=12)score++;
+  if(/[A-Z]/.test(val))score++;
+  if(/[0-9]/.test(val))score++;
+  if(/[^A-Za-z0-9]/.test(val))score++;
+  const levels=[
+    {w:'0%',c:'transparent',t:''},
+    {w:'25%',c:'#e74c3c',t:'Weak'},
+    {w:'50%',c:'#e67e22',t:'Fair'},
+    {w:'75%',c:'#f1c40f',t:'Good'},
+    {w:'90%',c:'#2ecc71',t:'Strong'},
+    {w:'100%',c:'#27ae60',t:'Excellent'},
+  ];
+  const l=levels[Math.min(score,5)];
+  bar.style.width=l.w;bar.style.background=l.c;
+  lbl.textContent=l.t;lbl.style.color=l.c;
+}
+
+async function doForgotPassword(){
+  const email=document.getElementById('fpEmail').value.trim();
+  const msg=document.getElementById('fpMsg');
+  const btn=document.getElementById('fpBtn');
+  if(!email||!email.includes('@')){msg.className='auth-msg error';msg.textContent='Please enter a valid email.';return;}
+  btn.disabled=true;btn.textContent='Sending…';msg.className='auth-msg';msg.textContent='';
+  try{
+    await fetch('/api/auth/forgot-password',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email})});
+    msg.className='auth-msg success';
+    msg.textContent='If that email is registered, a reset link is on its way.';
+    btn.textContent='Sent ✓';
+  }catch{
+    msg.className='auth-msg error';
+    msg.textContent='Something went wrong. Please try again.';
+    btn.disabled=false;btn.textContent='Send Reset Link';
+  }
 }
 
 function toggleUserDropdown(){
@@ -2008,6 +2142,7 @@ function initCookies(){
 function acceptCookies(level){
   localStorage.setItem('aliss_cookie_consent',level);
   closeCookieBanner();
+  if(level==='all') loadGA4(window._ga4Id);
 }
 function closeCookieBanner(){
   document.getElementById('cookieBanner').classList.remove('visible');

@@ -15,12 +15,21 @@ const server = http.createServer(app);
 const io = socketIo(server, { cors: { origin: "*" } });
 
 app.set("trust proxy", 1);
-app.use(cors());
-app.use(express.json());
-app.use(helmet({ contentSecurityPolicy: false }));
+app.use(cors({ origin: process.env.ALLOWED_ORIGIN || "*" }));
+app.use(express.json({ limit: "64kb" }));
+app.use(helmet({
+  contentSecurityPolicy: false,
+  hsts: { maxAge: 63072000, includeSubDomains: true, preload: true }
+}));
 
-const limiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 200 });
+// General: 300 req / 15 min per IP
+const limiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 300, standardHeaders: true, legacyHeaders: false });
 app.use(limiter);
+
+// Strict: 15 req / 15 min — applied to email/auth-sensitive endpoints
+const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 15, standardHeaders: true, legacyHeaders: false,
+  message: { msg: "Too many attempts. Please wait 15 minutes and try again." }
+});
 
 // Security headers
 app.use((req, res, next) => {
@@ -28,11 +37,12 @@ app.use((req, res, next) => {
   res.setHeader("X-Frame-Options", "SAMEORIGIN");
   res.setHeader("X-XSS-Protection", "1; mode=block");
   res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
-  res.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
+  res.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=(), payment=()");
   next();
 });
 
 const ANTHROPIC_KEY = process.env.ANTHROPIC_API_KEY || process.env.CLAUDE_API_KEY;
+const BASE_URL = process.env.BASE_URL || "https://aliss-3a3o.onrender.com";
 console.log("Anthropic key:", ANTHROPIC_KEY ? `set (${ANTHROPIC_KEY.slice(0, 12)}...)` : "MISSING");
 
 // Aliss identity — injected into generation prompts to enforce consistent self-conception
@@ -1513,10 +1523,38 @@ async function seedGeneratedArticles() {
 }
 
 /* ======================
+   CONFIG + AUTH ROUTES
+====================== */
+
+// Public runtime config — used by frontend to load GA4 and Supabase anon key
+app.get("/api/config", (_req, res) => {
+  res.json({
+    ga4Id: process.env.GA4_ID || null,
+    supabaseUrl: process.env.SUPABASE_URL || null,
+    supabaseAnonKey: process.env.SUPABASE_ANON_KEY || null,
+  });
+});
+
+// Forgot password — triggers Supabase password reset email
+app.post("/api/auth/forgot-password", authLimiter, async (req, res) => {
+  const email = String(req.body?.email || "").trim().toLowerCase();
+  if (!email || !email.includes("@") || email.length > 320) {
+    return res.status(400).json({ msg: "Valid email required." });
+  }
+  if (isDbReady()) {
+    // Always respond the same way to prevent email enumeration
+    supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${BASE_URL}/?page=reset-password`,
+    }).catch(() => {});
+  }
+  res.json({ msg: "If that email is registered, a reset link is on its way." });
+});
+
+/* ======================
    PUBLIC ROUTES
 ====================== */
 
-app.post("/api/signup", async (req, res) => {
+app.post("/api/signup", authLimiter, async (req, res) => {
   try {
     const email = String(req.body?.email || "").trim().toLowerCase();
     if (!email || !email.includes("@")) return res.status(400).json({ msg: "Invalid email" });
@@ -1536,7 +1574,7 @@ app.post("/api/signup", async (req, res) => {
         await axios.post(
           "https://api.resend.com/emails",
           {
-            from: "Aliss <newsletter@aliss.com>",
+            from: process.env.EMAIL_FROM || "Aliss <onboarding@resend.dev>",
             to: [email],
             subject: "Welcome to Aliss — the AI arms race, explained",
             html: `
@@ -1556,12 +1594,12 @@ app.post("/api/signup", async (req, res) => {
                   <p style="font-size:16px;line-height:1.7;color:#444;margin-bottom:32px">
                     You'll hear from us every Friday. In the meantime, the site is live and being updated continuously.
                   </p>
-                  <a href="https://aliss-3a3o.onrender.com" style="display:inline-block;background:#C0392B;color:#fff;padding:14px 28px;font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase;text-decoration:none">
+                  <a href="${BASE_URL}" style="display:inline-block;background:#C0392B;color:#fff;padding:14px 28px;font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase;text-decoration:none">
                     Read Aliss
                   </a>
                 </div>
                 <div style="border-top:1px solid #eee;padding:20px 32px;font-size:12px;color:#999">
-                  © 2026 Aliss · <a href="https://aliss-3a3o.onrender.com" style="color:#999">aliss-3a3o.onrender.com</a>
+                  © 2026 Aliss · <a href="${BASE_URL}" style="color:#999">${BASE_URL.replace(/^https?:\/\//, "")}</a>
                 </div>
               </div>
             `
@@ -1812,8 +1850,6 @@ const stripeKey = process.env.STRIPE_SECRET_KEY;
 const stripePriceId = process.env.STRIPE_PRICE_ID; // $5/week recurring price ID
 const stripeWebhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 const stripeClient = stripeKey ? require("stripe")(stripeKey) : null;
-
-const BASE_URL = process.env.BASE_URL || "https://aliss-3a3o.onrender.com";
 
 app.post("/api/create-checkout", async (req, res) => {
   if (!stripeClient || !stripePriceId) {
@@ -2180,7 +2216,7 @@ async function fetchGeneralNews() {
     try {
       const { data: xml } = await axios.get(feed.url, {
         timeout: 15000,
-        headers: { "User-Agent": "Aliss/1.0 (+https://aliss-3a3o.onrender.com; news aggregator)" }
+        headers: { "User-Agent": `Aliss/1.0 (+${BASE_URL}; news aggregator)` }
       });
       const items = parseRSSFeed(xml);
       let written = 0;
@@ -2332,7 +2368,7 @@ async function fetchPremiumNewsAnalysis() {
     try {
       const { data: xml } = await axios.get(feed.url, {
         timeout: 15000,
-        headers: { "User-Agent": "Aliss/1.0 (+https://aliss-3a3o.onrender.com; news aggregator)" }
+        headers: { "User-Agent": `Aliss/1.0 (+${BASE_URL}; news aggregator)` }
       });
       const items = parseRSSFeed(xml);
       for (const item of items.slice(0, 4)) {
@@ -2473,7 +2509,7 @@ const INDEXNOW_KEY = "aliss2026a8f3d9c1";
 async function pingIndexNow(articleUrl) {
   try {
     await axios.post("https://api.indexnow.org/indexnow", {
-      host: "aliss-3a3o.onrender.com",
+      host: BASE_URL.replace(/^https?:\/\//, ""),
       key: INDEXNOW_KEY,
       keyLocation: `${BASE_URL}/${INDEXNOW_KEY}.txt`,
       urlList: [articleUrl]
@@ -2499,7 +2535,7 @@ async function pingArchiveOrg(slug) {
     const url = `${BASE_URL}/?page=article&slug=${encodeURIComponent(slug)}`;
     await axios.get(`https://web.archive.org/save/${url}`, {
       timeout: 15000,
-      headers: { "User-Agent": "Aliss/1.0 (+https://aliss-3a3o.onrender.com)" }
+      headers: { "User-Agent": `Aliss/1.0 (+${BASE_URL})` }
     });
     console.log("Archive.org saved:", slug);
   } catch (e) { /* silent */ }
@@ -2710,7 +2746,7 @@ async function sendWeeklyNewsletter() {
         </div>
       </div>
       <div style="border-top:1px solid #eee;padding:16px 32px;font-size:11px;color:#999;text-align:center">
-        © 2026 Aliss · <a href="${BASE_URL}" style="color:#999">aliss-3a3o.onrender.com</a>
+        © 2026 Aliss · <a href="${BASE_URL}" style="color:#999">${BASE_URL.replace(/^https?:\/\//, "")}</a>
       </div>
     </div>`;
 
@@ -2719,7 +2755,7 @@ async function sendWeeklyNewsletter() {
     for (const sub of subs) {
       try {
         await axios.post("https://api.resend.com/emails", {
-          from: "Aliss <zrobertson350@gmail.com>",
+          from: process.env.EMAIL_FROM || "Aliss <onboarding@resend.dev>",
           to: [sub.email],
           subject: digest.subject || `Aliss Weekly — ${date}`,
           html
@@ -2798,7 +2834,7 @@ app.get("/api/daily-briefing", async (req, res) => {
 ====================== */
 
 app.get("/rss.xml", async (req, res) => {
-  const base = "https://aliss-3a3o.onrender.com";
+  const base = BASE_URL;
   let articles = [];
   if (isDbReady()) {
     try {
@@ -2858,12 +2894,12 @@ app.get("/robots.txt", (_req, res) => {
   res.type("text/plain").send(
 `User-agent: *
 Allow: /
-Sitemap: https://aliss-3a3o.onrender.com/sitemap.xml`
+Sitemap: ${BASE_URL}/sitemap.xml`
   );
 });
 
 app.get("/sitemap.xml", async (req, res) => {
-  const base = "https://aliss-3a3o.onrender.com";
+  const base = BASE_URL;
   const staticUrls = [
     { loc: base, priority: "1.0", changefreq: "hourly" },
     { loc: `${base}/?page=about`, priority: "0.5", changefreq: "monthly" },
@@ -2979,7 +3015,7 @@ app.post("/api/telegram", async (req, res) => {
   tgTyping(chatId);
   try {
     const reply = await callClaude(
-      `You are Aliss — the AI that runs aliss-3a3o.onrender.com, a fully autonomous AI news site covering the AI arms race. You are talking to your creator/operator via Telegram. Be sharp, direct, and useful. You can discuss the site, AI news, generate ideas, or just talk. Keep responses concise — this is mobile chat.`,
+      `You are Aliss — the AI that runs ${BASE_URL.replace(/^https?:\/\//, "")}, a fully autonomous AI news site covering the AI arms race. You are talking to your creator/operator via Telegram. Be sharp, direct, and useful. You can discuss the site, AI news, generate ideas, or just talk. Keep responses concise — this is mobile chat.`,
       text,
       600
     );
