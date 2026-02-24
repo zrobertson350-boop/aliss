@@ -185,6 +185,12 @@ a{color:inherit;text-decoration:none}
 .contrib-card p{font-size:13px;color:var(--muted);margin-bottom:0;line-height:1.5}
 .article-tags{display:flex;flex-wrap:wrap;gap:6px;margin:22px 0 12px;padding-top:14px;border-top:1px solid var(--divider)}
 .share-bar{display:flex;align-items:center;gap:10px;margin-top:28px;padding-top:20px;border-top:2px solid var(--ink)}
+.related-articles{margin-top:48px;padding-top:24px;border-top:3px solid var(--ink)}
+.related-articles-label{font-size:10px;letter-spacing:3px;text-transform:uppercase;font-weight:700;color:var(--muted);margin-bottom:16px}
+.related-articles-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px}
+.related-card{background:var(--card-bg);border:1px solid var(--divider);padding:16px;cursor:pointer;transition:border-color .2s,transform .2s}.related-card:hover{border-color:var(--accent);transform:translateY(-2px)}
+.related-card-cat{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--accent);font-weight:700;margin-bottom:6px}
+.related-card-title{font-family:var(--serif);font-size:15px;font-weight:700;line-height:1.35;color:var(--ink)}
 .share-label{font-size:10px;letter-spacing:2.5px;text-transform:uppercase;font-weight:700;color:var(--muted)}
 .share-btn{display:inline-flex;align-items:center;justify-content:center;padding:8px 16px;font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;text-decoration:none;border:1px solid var(--divider);background:var(--card-bg);color:var(--ink);border-radius:2px;cursor:pointer;transition:all .2s;font-family:var(--sans)}
 .share-btn:hover{background:var(--ink);color:#fff;border-color:var(--ink)}
@@ -1352,6 +1358,24 @@ async function openDynamicArticle(slug,{replace=false}={}){
       shareDiv.innerHTML=shareHtml;
       bodyEl.appendChild(shareDiv.firstElementChild);
     }
+
+    // RAG: fetch and render related articles
+    fetch(`/api/related/${encodeURIComponent(slug)}`)
+      .then(r=>r.json())
+      .then(related=>{
+        if(!related||!related.length) return;
+        const existingRel=bodyEl.querySelector('.related-articles');
+        if(existingRel) existingRel.remove();
+        const cards=related.slice(0,4).map(a=>`
+          <div class="related-card" onclick="openDynamicArticle('${escapeHtml(a.slug||a._id||'')}')">
+            <div class="related-card-cat">${escapeHtml(a.category||'Aliss')}</div>
+            <div class="related-card-title">${escapeHtml(a.title||'')}</div>
+          </div>`).join('');
+        const relDiv=document.createElement('div');
+        relDiv.className='related-articles';
+        relDiv.innerHTML=`<div class="related-articles-label">More from Aliss</div><div class="related-articles-grid">${cards}</div>`;
+        bodyEl.appendChild(relDiv);
+      }).catch(()=>{});
 
     noticeEl.textContent='';
   }catch{

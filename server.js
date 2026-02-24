@@ -501,7 +501,11 @@ YOUR VOICE — this is non-negotiable:
     ? `\n\nRecent Aliss coverage — DO NOT repeat these topics or angles:\n${recentTitles.slice(0, 20).map((t, i) => `${i + 1}. ${t}`).join("\n")}\n\nYour article MUST take a distinct angle not already covered above. Find a fresh entry point, a different person, a different dimension of the story.`
     : "";
 
-  const userMsg = `Write a compelling long-form article about: ${topic}${recentContext}
+  // RAG: retrieve relevant articles from the Aliss archive
+  const ragArticles = await retrieveRelevantArticles(topic, 4);
+  const ragContext  = formatRagContext(ragArticles);
+
+  const userMsg = `Write a compelling long-form article about: ${topic}${ragContext}${recentContext}
 
 Return ONLY a raw JSON object — no markdown fences, no extra text. Fields:
 {
@@ -598,7 +602,11 @@ YOUR MANDATE — non-negotiable:
     ? `\n\nRecent Aliss Industry coverage for cross-referencing:\n${recentTitles.slice(0, 10).map((t, i) => `${i + 1}. ${t}`).join("\n")}`
     : "";
 
-  const userMsg = `Write the most ambitious Industry article Aliss has ever published about: ${topic}${recentContext}
+  // RAG: ground Industry articles in the Aliss archive
+  const ragArticles = await retrieveRelevantArticles(topic, 5);
+  const ragContext  = formatRagContext(ragArticles);
+
+  const userMsg = `Write the most ambitious Industry article Aliss has ever published about: ${topic}${ragContext}${recentContext}
 
 Return ONLY a raw JSON object — no markdown fences, no extra text. Fields:
 {
@@ -1152,6 +1160,61 @@ function jaccardSimilarity(a, b) {
   return intersection / union;
 }
 
+/* ======================
+   RAG — RETRIEVAL-AUGMENTED GENERATION
+====================== */
+
+/**
+ * Retrieve the most relevant existing articles for a given query.
+ * Uses keyword matching on title + summary with Jaccard-based scoring.
+ * No vector DB required — runs entirely on Supabase full-text ilike.
+ */
+async function retrieveRelevantArticles(query, limit = 5, excludeSlug = null) {
+  if (!isDbReady()) return [];
+  const words = titleTokens(query).slice(0, 8);
+  if (!words.length) return [];
+
+  try {
+    // Single query: OR across all significant keywords on title + summary
+    const titleClauses  = words.map(w => `title.ilike.%${w}%`).join(",");
+    const summaryClauses = words.map(w => `summary.ilike.%${w}%`).join(",");
+
+    const { data } = await supabase
+      .from("aliss_articles")
+      .select("id, slug, title, summary, category, tags")
+      .or(`${titleClauses},${summaryClauses}`)
+      .order("published_at", { ascending: false })
+      .limit(40);
+
+    if (!data?.length) return [];
+
+    return data
+      .filter(a => !excludeSlug || a.slug !== excludeSlug)
+      .map(a => {
+        const text = ((a.title || "") + " " + (a.summary || "")).toLowerCase();
+        const score = words.filter(w => text.includes(w)).length
+          + words.filter(w => (a.title || "").toLowerCase().includes(w)).length; // title hits weighted double
+        return { ...a, _score: score };
+      })
+      .filter(a => a._score > 0)
+      .sort((a, b) => b._score - a._score)
+      .slice(0, limit);
+  } catch (e) {
+    console.error("RAG retrieval failed:", e.message);
+    return [];
+  }
+}
+
+/** Format RAG context block for injection into generation prompts */
+function formatRagContext(articles) {
+  if (!articles.length) return "";
+  return `\n\nRelevant Aliss archive — use these for grounding, cross-reference, and fresh angles:\n${
+    articles.map(a =>
+      `[${a.category}] "${a.title}"\n  → ${(a.summary || "").slice(0, 200)}`
+    ).join("\n\n")
+  }`;
+}
+
 // Articles we know are off-brand or exact dupes — always remove
 const CLEANUP_SLUGS = [
   "five-days-to-lock-in-the-cheapest-seat-at-techs-biggest-tent", // TechCrunch promo — not AI news
@@ -1379,16 +1442,23 @@ app.post("/api/alice-chat", async (req, res) => {
   let context = "";
   try {
     let recent = [];
-    if (isDbReady()) {
+    // RAG: retrieve articles relevant to the user's question
+    const ragArticles = await retrieveRelevantArticles(message, 6);
+    if (ragArticles.length) {
+      context = ragArticles
+        .map(a => `[${a.category}] ${a.title}: ${String(a.summary || "").slice(0, 200)}`)
+        .join("\n");
+    } else if (isDbReady()) {
+      // Fallback: recent articles if no relevant matches found
       const { data } = await supabase
         .from("aliss_articles")
         .select("title,summary")
         .order("published_at", { ascending: false })
         .limit(8);
       recent = data || [];
+      if (!recent.length) recent = ORIGINAL_ARTICLES;
+      context = recent.map(a => `- ${a.title}: ${String(a.summary || "").slice(0, 150)}`).join("\n");
     }
-    if (!recent.length) recent = ORIGINAL_ARTICLES;
-    context = recent.map(a => `- ${a.title}: ${String(a.summary || "").slice(0, 150)}`).join("\n");
   } catch {}
 
   if (!ANTHROPIC_KEY) {
@@ -1397,7 +1467,7 @@ app.post("/api/alice-chat", async (req, res) => {
 
   try {
     const reply = await callClaude(
-      `You are Alice, the AI assistant for Aliss — the first fully autonomous AI news publication covering the AI arms race. You are concise, witty, and sharp. You have strong opinions and back them up. Never use markdown formatting — no asterisks, no bold, no bullet points with dashes, no headers. Write in plain conversational prose only. Recent Aliss coverage:\n${context}`,
+      `You are Alice, the AI assistant for Aliss — the first fully autonomous AI news publication covering the AI arms race. You are concise, witty, and sharp. You have strong opinions and back them up. Never use markdown formatting — no asterisks, no bold, no bullet points with dashes, no headers. Write in plain conversational prose only. Answer based on what Aliss has actually covered — cite specific articles by title when relevant. Relevant Aliss coverage:\n${context}`,
       message,
       700
     );
@@ -1485,6 +1555,27 @@ app.get("/api/articles/:slugOrId", async (req, res) => {
     res.status(404).json({ msg: "Not found" });
   } catch {
     res.status(500).json({ msg: "Failed to load article" });
+  }
+});
+
+app.get("/api/related/:slug", async (req, res) => {
+  const slug = String(req.params.slug || "").trim();
+  if (!slug || !isDbReady()) return res.json([]);
+  try {
+    // Fetch the source article's title + summary for query
+    const { data: source } = await supabase
+      .from("aliss_articles")
+      .select("title, summary, category")
+      .eq("slug", slug)
+      .single();
+    if (!source) return res.json([]);
+
+    const query = `${source.title} ${source.summary || ""} ${source.category || ""}`;
+    const related = await retrieveRelevantArticles(query, 5, slug);
+    res.json(related.map(normalizeArticle));
+  } catch (e) {
+    console.error("related articles failed:", e.message);
+    res.json([]);
   }
 });
 
