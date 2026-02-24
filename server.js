@@ -1155,7 +1155,9 @@ function jaccardSimilarity(a, b) {
 // Articles we know are off-brand or exact dupes — always remove
 const CLEANUP_SLUGS = [
   "five-days-to-lock-in-the-cheapest-seat-at-techs-biggest-tent", // TechCrunch promo — not AI news
-  "eyes-everywhere-chicagos-45000-camera-state",                   // duplicate of chicago all-seeing article
+  "eyes-everywhere-chicagos-45000-camera-state",                   // Chicago dupe
+  "chicagos-all-seeing-machine",                                   // Chicago dupe
+  "the-city-that-watches-chicagos-45000-eye-problem",              // Chicago dupe
 ];
 
 const CLEANUP_TITLE_PATTERNS = [
