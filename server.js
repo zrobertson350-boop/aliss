@@ -68,8 +68,9 @@ if (SUPABASE_URL && SUPABASE_KEY) {
     refreshTicker();
     refreshDailyBriefing();
     setTimeout(polishShortArticles, 30000);
-    setTimeout(seedIndustryArticles, 120000);  // Industry (Opus) after 2 min
-    setTimeout(seedEditorialSections, 180000); // Philosophy + Words after 3 min
+    setTimeout(seedIndustryArticles, 120000);   // Industry (Opus) after 2 min
+    setTimeout(seedEditorialSections, 180000);  // Philosophy + Words after 3 min
+    setTimeout(fetchPremiumNewsAnalysis, 300000); // AI Outlook after 5 min
   }, 5000);
 } else {
   console.log("Supabase not configured: set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY");
@@ -1320,7 +1321,7 @@ async function deduplicateArticles() {
   try {
     const { data: all } = await supabase
       .from("aliss_articles")
-      .select("id, slug, title, published_at")
+      .select("id, slug, title, summary, published_at")
       .order("published_at", { ascending: false });
     if (!all?.length) return;
 
@@ -1337,17 +1338,33 @@ async function deduplicateArticles() {
       }
     }
 
-    // Pass 2: semantic title similarity (Jaccard ≥ 0.45 = same topic)
+    // Pass 2: semantic similarity — title Jaccard OR (partial title + summary corroboration)
+    // Threshold lowered to 0.40 to catch more near-duplicates
     const remaining = all.filter(a => !toDelete.has(a.id));
     for (let i = 0; i < remaining.length; i++) {
       if (toDelete.has(remaining[i].id)) continue;
       for (let j = i + 1; j < remaining.length; j++) {
         if (toDelete.has(remaining[j].id)) continue;
-        const sim = jaccardSimilarity(remaining[i].title, remaining[j].title);
-        if (sim >= 0.45) {
-          // Keep the newer article (index i = more recent), delete j
+        const titleSim = jaccardSimilarity(remaining[i].title, remaining[j].title);
+
+        // Strong title match alone is sufficient
+        if (titleSim >= 0.40) {
           toDelete.add(remaining[j].id);
-          console.log(`Semantic dup: "${remaining[j].title.slice(0, 50)}" ≈ "${remaining[i].title.slice(0, 50)}"`);
+          console.log(`Title dup [${(titleSim*100).toFixed(0)}%]: "${remaining[j].title.slice(0, 55)}"`);
+          continue;
+        }
+
+        // Moderate title match — confirm with summary overlap
+        if (titleSim >= 0.25) {
+          const sumA = String(remaining[i].summary || "");
+          const sumB = String(remaining[j].summary || "");
+          if (sumA.length > 20 && sumB.length > 20) {
+            const sumSim = jaccardSimilarity(sumA, sumB);
+            if (sumSim >= 0.35) {
+              toDelete.add(remaining[j].id);
+              console.log(`Semantic dup [title ${(titleSim*100).toFixed(0)}% + summary ${(sumSim*100).toFixed(0)}%]: "${remaining[j].title.slice(0, 55)}"`);
+            }
+          }
         }
       }
     }
@@ -1359,7 +1376,7 @@ async function deduplicateArticles() {
         const { error } = await supabase.from("aliss_articles").delete().in("id", ids.slice(i, i + 50));
         if (error) console.error("Dedup delete error:", error.message);
       }
-      console.log(`Deduplication: removed ${toDelete.size} articles (slug + semantic).`);
+      console.log(`Deduplication: removed ${toDelete.size} articles (slug + title + summary).`);
     } else {
       console.log("Deduplication: no duplicates found.");
     }
@@ -2131,6 +2148,176 @@ app.post("/api/fetch-news", (req, res) => {
 });
 
 /* ======================
+   AI OUTLOOK — PREMIUM SOURCES (NYT/WSJ/SCMP/ECONOMIST)
+====================== */
+
+const PREMIUM_NEWS_FEEDS = [
+  {
+    url: "https://news.google.com/rss/search?q=artificial+intelligence+machine+learning+site:nytimes.com&hl=en-US&gl=US&ceid=US:en",
+    source: "The New York Times",
+    short: "NYT"
+  },
+  {
+    url: "https://news.google.com/rss/search?q=artificial+intelligence+AI+technology+site:wsj.com&hl=en-US&gl=US&ceid=US:en",
+    source: "The Wall Street Journal",
+    short: "WSJ"
+  },
+  {
+    url: "https://news.google.com/rss/search?q=artificial+intelligence+AI+technology+site:scmp.com&hl=en-US&gl=US&ceid=US:en",
+    source: "South China Morning Post",
+    short: "SCMP"
+  },
+  {
+    url: "https://news.google.com/rss/search?q=artificial+intelligence+technology+site:economist.com&hl=en-US&gl=US&ceid=US:en",
+    source: "The Economist",
+    short: "Economist"
+  }
+];
+
+const AI_KEYWORDS_RE = /\b(AI|A\.I\.|artificial intelligence|machine learning|LLM|large language model|ChatGPT|OpenAI|Anthropic|Claude|Gemini|DeepSeek|GPT|deep learning|neural network|robotics|automation|algorithm|chip|Nvidia|compute|AGI|AGI|foundation model|generative|reasoning model|agentic|inference)\b/i;
+
+async function generateOutlookArticle(headline, allHeadlines) {
+  const contextLines = allHeadlines
+    .map(h => `[${h.short}] ${h.title}${h.description ? `: ${h.description.slice(0, 180)}` : ""}`)
+    .join("\n");
+
+  const system = `${ALISS_IDENTITY}
+
+You are writing for Aliss's "AI Outlook" section — geopolitical and financial intelligence on AI, synthesized from the world's most authoritative sources.
+
+SOURCES FOR THIS PIECE: headlines from The New York Times, The Wall Street Journal, South China Morning Post, and The Economist. These are real, live headlines published today or yesterday.
+
+VOICE:
+- Policy analyst meets investigative journalist. The Economist's precision, Aliss's conviction.
+- Name your primary source naturally in the prose: "The Wall Street Journal reported this week that..."
+- Draw conclusions. Follow the money. Name the power structures. No both-sidesing.
+- Use exact figures, dates, names. Never "recently" — say "February 2026" or the specific date.
+- 3–4 <h2> headers, each advancing the argument, not just labeling sections.
+- Open mid-story — the reader already knows the basics.
+- Close with a specific forward claim about what happens next.
+- Only clean HTML. No markdown.`;
+
+  const userMsg = `Write an Aliss "AI Outlook" article anchored on this headline from ${headline.source}:
+
+HEADLINE: ${headline.title}
+STORY CONTEXT: ${headline.description || "No additional context available."}
+
+LIVE HEADLINES FROM ALL FOUR PREMIUM SOURCES (cross-reference and synthesize):
+${contextLines}
+
+Use the full spread of these sources to write an analysis that outperforms any single outlet's coverage.
+
+Return ONLY a raw JSON object — no markdown fences, no extra text:
+{
+  "title": "Sharp headline under 80 characters",
+  "subtitle": "One deck sentence that earns its existence",
+  "summary": "2-3 sentences for card previews — make someone want to click",
+  "tags": ["tag1", "tag2", "tag3", "tag4"],
+  "body": "Full article HTML. Rules: <p class=\\"drop-cap\\"> on first paragraph only; <h2> for 3+ section headers; at least 1 <div class=\\"pull-quote\\">quote<cite>— Attribution</cite></div>; minimum 800 words; be specific, authoritative, and opinionated."
+}`;
+
+  const raw = await callClaude(system, userMsg, 4000);
+  const match = raw.match(/\{[\s\S]*\}/);
+  if (!match) throw new Error("No JSON in response");
+  const data = JSON.parse(match[0]);
+  const articleTitle = String(data.title || headline.title).trim();
+
+  const doc = {
+    slug:         slugify(articleTitle),
+    title:        articleTitle,
+    subtitle:     String(data.subtitle  || "").trim(),
+    content:      "",
+    summary:      String(data.summary   || "").trim(),
+    body:         String(data.body      || "").trim(),
+    tags:         Array.isArray(data.tags) ? data.tags.map(String) : ["AI Outlook"],
+    category:     "AI Outlook",
+    source:       headline.source,
+    is_external:  false,
+    is_generated: true,
+    published_at: new Date().toISOString()
+  };
+
+  if (!isDbReady()) return normalizeArticle(doc);
+  const { data: saved, error } = await supabase
+    .from("aliss_articles")
+    .upsert(doc, { onConflict: "slug", ignoreDuplicates: true })
+    .select().single();
+  if (error || !saved) {
+    const { data: existing } = await supabase.from("aliss_articles").select("*").eq("slug", doc.slug).single();
+    return normalizeArticle(existing || doc);
+  }
+  return normalizeArticle(saved);
+}
+
+async function fetchPremiumNewsAnalysis() {
+  if (!isDbReady() || !ANTHROPIC_KEY) return;
+  console.log("Fetching AI Outlook from NYT/WSJ/SCMP/Economist...");
+
+  const headlines = [];
+
+  for (const feed of PREMIUM_NEWS_FEEDS) {
+    try {
+      const { data: xml } = await axios.get(feed.url, {
+        timeout: 15000,
+        headers: { "User-Agent": "Aliss/1.0 (+https://aliss-3a3o.onrender.com; news aggregator)" }
+      });
+      const items = parseRSSFeed(xml);
+      for (const item of items.slice(0, 4)) {
+        if (item.title && item.title.length > 10) {
+          headlines.push({ title: item.title, source: feed.source, short: feed.short, description: item.description || "" });
+        }
+      }
+      await new Promise(r => setTimeout(r, 1000));
+    } catch (e) {
+      console.error(`Premium feed failed (${feed.short}): ${e.message}`);
+    }
+  }
+
+  if (!headlines.length) { console.log("AI Outlook: no premium headlines."); return; }
+
+  // Filter for AI-relevant stories
+  const aiHeadlines = headlines.filter(h =>
+    AI_KEYWORDS_RE.test(h.title) || AI_KEYWORDS_RE.test(h.description)
+  );
+
+  if (!aiHeadlines.length) { console.log("AI Outlook: no AI-relevant headlines."); return; }
+
+  console.log(`AI Outlook: ${aiHeadlines.length} relevant headlines from ${new Set(aiHeadlines.map(h=>h.short)).size} sources.`);
+
+  let written = 0;
+  for (const headline of aiHeadlines) {
+    if (written >= 2) break;
+
+    // Skip if already covered
+    const titleSnippet = headline.title.slice(0, 30);
+    const { count } = await supabase
+      .from("aliss_articles")
+      .select("*", { count: "exact", head: true })
+      .ilike("title", `%${titleSnippet}%`);
+    if (count > 0) continue;
+
+    try {
+      const article = await generateOutlookArticle(headline, aiHeadlines);
+      if (article) {
+        io.emit("newArticle", article);
+        spreadArticle(article).catch(() => {});
+        console.log(`✓ AI Outlook [${headline.short}]: ${article.title?.slice(0, 55)}`);
+        written++;
+      }
+      await new Promise(r => setTimeout(r, 8000));
+    } catch (e) {
+      console.error(`Outlook article failed "${headline.title.slice(0, 40)}": ${e.message}`);
+    }
+  }
+  console.log(`AI Outlook fetch complete (${written} new articles).`);
+}
+
+app.post("/api/fetch-premium", (req, res) => {
+  res.json({ msg: "Premium news fetch started" });
+  fetchPremiumNewsAnalysis().catch(e => console.error("fetch-premium failed:", e.message));
+});
+
+/* ======================
    RECURSIVE META TOPIC GENERATOR
 ====================== */
 
@@ -2200,6 +2387,8 @@ cron.schedule("*/15 * * * *", refreshTicker);
 cron.schedule("0 */3 * * *",  polishShortArticles);
 cron.schedule("0 6 * * *",    refreshDailyBriefing);
 cron.schedule("0 8 * * 5",    sendWeeklyNewsletter); // Friday 8am
+cron.schedule("30 */2 * * *", fetchPremiumNewsAnalysis); // AI Outlook every 2h (offset from HN)
+cron.schedule("0 */6 * * *",  deduplicateArticles);      // Deep dedup every 6h
 
 /* ======================
    SELF-SPREADING SYSTEM
