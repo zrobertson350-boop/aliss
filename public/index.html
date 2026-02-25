@@ -531,8 +531,6 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-off
 .article-body p{margin-bottom:1.4em;color:#1c1c1c}
 /* Nav active underline animation */
 .main-nav li a.active::after{width:70%;transition:width .3s ease-out}
-/* Masthead fireworks canvas */
-#mastheadCanvas{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0}
 .masthead{position:relative;overflow:visible}
 
 /* ── COMPUTE ──────────────────────────────────────── */
@@ -558,6 +556,29 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-off
 .compute-cell.active{border-left:3px solid var(--accent)}
 .compute-cell-name{font-family:var(--serif);font-size:14px;font-weight:700;color:var(--ink);margin-bottom:4px}
 .compute-cell-formula{font-family:var(--mono);font-size:10px;color:var(--muted);word-break:break-word;line-height:1.4}
+
+/* ── MATH LAB ─────────────────────────────────────── */
+.math-lab{margin-top:48px;border-top:2px solid var(--divider);padding-top:36px}
+.math-lab-label{font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--accent);font-family:var(--mono);margin-bottom:6px}
+.math-lab-title{font-family:var(--serif);font-size:22px;font-weight:900;color:var(--ink);margin-bottom:4px}
+.math-lab-sub{font-size:12px;color:var(--muted);margin-bottom:28px}
+.lab-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--divider);border:1px solid var(--divider)}
+.lab-card{background:var(--ink);padding:28px 24px}
+.lab-card-name{font-family:var(--serif);font-size:16px;font-weight:700;color:#fff;margin-bottom:3px}
+.lab-card-eq{font-family:var(--mono);font-size:10px;color:rgba(255,255,255,.3);margin-bottom:20px;letter-spacing:.5px}
+.lab-slider-row{display:flex;align-items:center;gap:10px;margin-bottom:9px}
+.lab-slider-label{font-family:var(--mono);font-size:10px;color:rgba(255,255,255,.45);min-width:22px}
+.lab-slider{flex:1;-webkit-appearance:none;appearance:none;height:2px;background:rgba(255,255,255,.12);outline:none;cursor:pointer}
+.lab-slider::-webkit-slider-thumb{-webkit-appearance:none;width:12px;height:12px;background:var(--accent);border-radius:50%;cursor:pointer}
+.lab-slider::-moz-range-thumb{width:12px;height:12px;background:var(--accent);border-radius:50%;border:none;cursor:pointer}
+.lab-slider-val{font-family:var(--mono);font-size:10px;color:rgba(255,255,255,.45);min-width:32px;text-align:right}
+.lab-bars{display:flex;flex-direction:column;gap:7px;margin-top:16px}
+.lab-bar-row{display:flex;align-items:center;gap:8px}
+.lab-bar-label{font-family:var(--mono);font-size:9px;color:rgba(255,255,255,.35);min-width:18px}
+.lab-bar-track{flex:1;height:12px;background:rgba(255,255,255,.05);border-radius:1px;overflow:hidden}
+.lab-bar-fill{height:100%;background:var(--accent);transition:width .12s ease;border-radius:1px}
+.lab-bar-val{font-family:var(--mono);font-size:9px;color:rgba(255,255,255,.55);min-width:38px;text-align:right}
+@media(max-width:600px){.lab-grid{grid-template-columns:1fr}}
 
 /* ── TL;DR ────────────────────────────────────────── */
 .tldr-page{max-width:540px;margin:0 auto;padding:28px 16px 80px;text-align:center}
@@ -590,7 +611,7 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-off
 
 <div class="topbar"><div class="container"><div id="authTopbarControl" style="position:relative"><a href="#" onclick="showSignIn();return false" class="signin-btn" id="signinTopbarBtn">Sign In</a><button class="auth-user-btn" id="userTopbarBtn" onclick="toggleUserDropdown()"><span id="userEmailDisplay"></span><span style="font-size:8px;margin-left:4px">&#9660;</span></button><div class="auth-dropdown" id="userDropdown"><button onclick="doSignOut()">Sign Out</button></div></div><div class="topbar-right"><a href="#" onclick="filterCategory(null,'home');return false">Home</a><a href="#" onclick="navigate('about');return false">About</a><a href="#" onclick="navigate('newsletter');return false">Newsletter</a><a href="/rss.xml" target="_blank" rel="noopener">RSS</a></div></div></div>
 
-<header class="masthead"><canvas id="mastheadCanvas" aria-hidden="true"></canvas><a class="masthead-logo" onclick="navigate('home');return false"><span class="logo-accent">A</span>l<span class="logo-accent">i</span>ss</a><div class="masthead-tagline">Intelligence on Artificial Intelligence</div></header>
+<header class="masthead"><a class="masthead-logo" onclick="navigate('home');return false"><span class="logo-accent">A</span>l<span class="logo-accent">i</span>ss</a><div class="masthead-tagline">Intelligence on Artificial Intelligence</div></header>
 
 <nav class="main-nav"><ul>
 <li><a href="#" data-nav="profiles" onclick="filterCategory('Profile','profiles');return false">Profiles</a></li>
@@ -1145,6 +1166,36 @@ Right now, we just focus on the research, and then the answer to the business qu
     <button class="compute-nav-btn" onclick="computeStep(1)">next →</button>
   </div>
   <div class="compute-grid" id="computeGrid"></div>
+
+  <!-- MATH LAB -->
+  <div class="math-lab">
+    <div class="math-lab-label">Interactive</div>
+    <div class="math-lab-title">Math Lab</div>
+    <div class="math-lab-sub">Drag the sliders. Watch the math.</div>
+    <div class="lab-grid">
+
+      <!-- Softmax Explorer -->
+      <div class="lab-card">
+        <div class="lab-card-name">Softmax Explorer</div>
+        <div class="lab-card-eq">σ(zᵢ) = eᶻⁱ / Σⱼ eᶻʲ</div>
+        <div id="smSliders"></div>
+        <div class="lab-bars" id="smBars"></div>
+      </div>
+
+      <!-- Temperature Control -->
+      <div class="lab-card">
+        <div class="lab-card-name">Temperature Control</div>
+        <div class="lab-card-eq">P(xᵢ) = exp(logitᵢ / T) / Σⱼ exp(logitⱼ / T)</div>
+        <div class="lab-slider-row">
+          <span class="lab-slider-label">T</span>
+          <input class="lab-slider" type="range" id="tempSlider" min="0.1" max="3" step="0.05" value="1">
+          <span class="lab-slider-val" id="tempVal">1.00</span>
+        </div>
+        <div class="lab-bars" id="tempBars"></div>
+      </div>
+
+    </div>
+  </div>
 </div>
 </div>
 
@@ -1665,7 +1716,7 @@ async function loadDynamicArticles(){
       .slice(0,12);
     if(_featuredPool.length===0) _featuredPool=allArticlesCache.filter(a=>a.subtitle||a.summary).slice(0,6);
     _featuredIdx=0;
-    if(_featuredPool.length>0) updateFeaturedHero(_featuredPool[0]);
+    if(_featuredPool.length>0){ updateFeaturedHero(_featuredPool[0]); startFeaturedRotation(); }
 
     grid.innerHTML='';
     allArticlesCache.forEach((article,index)=>grid.appendChild(buildCard(article,index)));
@@ -2800,7 +2851,47 @@ if(typeof _origOpenDynamic==='function'){
     {name:'Dropout',
      formula:'h̃ᵢ = hᵢ · Bernoulli(1 − p)',
      desc:'During training, randomly zeroes each neuron with probability p. Forces the network to learn redundant representations and prevents co-adaptation of neurons. Disabled at inference.',
-     trick:'<strong>Dropout = ensemble learning.</strong> Each training step uses a different subnetwork. The full model at inference is approximately the geometric mean of all those subnetworks.'}
+     trick:'<strong>Dropout = ensemble learning.</strong> Each training step uses a different subnetwork. The full model at inference is approximately the geometric mean of all those subnetworks.'},
+    {name:'Sigmoid',
+     formula:'σ(x) = 1 / (1 + e⁻ˣ)',
+     desc:'Squashes any real number into (0, 1). Used in binary classification output layers and as a gating mechanism in LSTMs. The original neural network activation — now largely replaced by ReLU in hidden layers.',
+     trick:'<strong>Vanishing gradient problem:</strong> for |x| > 4, σ\'(x) ≈ 0. Gradients become negligibly small, halting learning in deep networks. This is why ReLU replaced sigmoid in deep nets.'},
+    {name:'GELU',
+     formula:'GELU(x) = x · Φ(x)',
+     desc:'Gaussian Error Linear Unit. Φ(x) is the standard normal CDF. Unlike ReLU, GELU is smooth everywhere, allowing gradients to flow even for slightly negative inputs. The default activation in GPT and BERT.',
+     trick:'<strong>Fast approximation:</strong> GELU(x) ≈ 0.5x(1 + tanh(√(2/π)(x + 0.044715x³))). Used in practice because computing the true CDF is expensive — close enough, dramatically faster.'},
+    {name:'Cosine Similarity',
+     formula:'cos(θ) = (A · B) / (‖A‖ · ‖B‖)',
+     desc:'Measures the angle between two vectors regardless of magnitude. Returns 1 for identical direction, 0 for orthogonal, −1 for opposite. Core to semantic search and embedding comparison in every RAG system.',
+     trick:'<strong>Magnitude doesn\'t matter.</strong> Two embeddings can differ wildly in scale but share identical direction — cosine similarity = 1. Always normalise embeddings before comparing for semantic meaning.'},
+    {name:'Perplexity',
+     formula:'PPL = exp( −(1/N) Σᵢ log P(xᵢ|x<ᵢ) )',
+     desc:'The standard metric for language model quality. Measures how surprised the model is by real text on average. Lower = better. GPT-2 had PPL ~35; modern frontier models achieve single digits on benchmarks.',
+     trick:'<strong>Perplexity is a branching factor.</strong> PPL=10 means the model is as uncertain as if picking uniformly among 10 equally likely tokens at every step. Halving perplexity is an enormous improvement.'},
+    {name:'Residual Connection',
+     formula:'y = F(x, W) + x',
+     desc:'The skip connection from ResNet. Adds the input x directly to the output of a sublayer F. Allows gradients to flow directly to early layers during backprop, enabling training of networks 100+ layers deep.',
+     trick:'<strong>Why it works:</strong> at initialisation F(x,W) ≈ 0, so y ≈ x. The network starts as an identity and learns residuals. Far easier to optimise than learning the full transformation from scratch.'},
+    {name:'LoRA',
+     formula:'W\' = W + BA   (B ∈ ℝᵈˣʳ, A ∈ ℝʳˣᵏ, r ≪ d)',
+     desc:'Low-Rank Adaptation. Instead of fine-tuning all weights W, learn two small matrices whose product approximates the weight update. Reduces trainable parameters by 10,000× for large models.',
+     trick:'<strong>r is the rank</strong> — typically 4 to 64. At r=8 on a 7B model, you\'re updating ~0.1% of total parameters. The frozen base handles general knowledge; the adapters handle the task.'},
+    {name:'Batch Normalisation',
+     formula:'BN(x) = γ · (x − μ_B) / √(σ²_B + ε) + β',
+     desc:'Normalises each feature across the mini-batch to zero mean and unit variance, then rescales with learned γ and β. Dramatically stabilises training. Replaced by Layer Norm in transformers.',
+     trick:'<strong>Batch Norm is an implicit regulariser.</strong> Mini-batch statistics add noise that acts like dropout — different effective normalisations per step prevent overfitting without explicit regularisation.'},
+    {name:'He Initialisation',
+     formula:'w ~ N(0, √(2 / nᵢₙ))',
+     desc:'Sets initial weight variance so activations neither explode nor vanish in the forward pass through ReLU layers. The √2 compensates for ReLU zeroing roughly half of all neurons at initialisation.',
+     trick:'<strong>Wrong init = dead network.</strong> Too small: activations collapse to zero, gradients vanish. Too large: activations explode. He init is the goldilocks solution specifically calibrated for ReLU.'},
+    {name:'Transformer FFN',
+     formula:'FFN(x) = max(0, xW₁ + b₁)W₂ + b₂',
+     desc:'The feedforward sublayer in every transformer block. Two linear projections with a ReLU between them. The inner dimension is 4× the model dimension. Where most of a transformer\'s factual knowledge is stored.',
+     trick:'<strong>FFN as key-value memory:</strong> each row of W₁ is a key; the corresponding row of W₂ is a value. The FFN retrieves and blends memorised facts — it\'s not just nonlinearity, it\'s a lookup table.'},
+    {name:'Label Smoothing',
+     formula:'y_smooth = (1 − ε) · y_hard + ε / K',
+     desc:'Instead of training with hard 0/1 labels, distribute ε of the probability mass uniformly across all K classes. Prevents overconfidence, improves calibration, and acts as a regulariser. GPT-3 used ε = 0.1.',
+     trick:'<strong>Hard labels say "I\'m 100% sure."</strong> That overconfidence hurts generalisation. Smooth labels say "mostly this, but leave room for doubt." The model learns softer, more calibrated predictions.'}
   ];
 
   let current=Math.floor((Date.now()-new Date('2026-01-01'))/(864e5))%FORMULAS.length;
@@ -2839,12 +2930,88 @@ if(typeof _origOpenDynamic==='function'){
   const origNavigate=window.navigate;
   window.navigate=function(pageId,opts){
     origNavigate(pageId,opts);
-    if(pageId==='compute') render();
+    if(pageId==='compute'){ render(); initMathLab(); }
   };
 
   // Also render on load if on compute page
-  if(document.getElementById('page-compute')?.classList.contains('active')) render();
+  if(document.getElementById('page-compute')?.classList.contains('active')){ render(); initMathLab(); }
 })();
+
+// ── MATH LAB ──────────────────────────────────────────────────────
+function initMathLab(){
+  // Softmax explorer — 4 logit sliders
+  const SM_LABELS = ['z₁','z₂','z₃','z₄'];
+  const SM_DEFAULTS = [2, 1, -0.5, 0.5];
+  const smVals = [...SM_DEFAULTS];
+
+  function softmax(arr){
+    const m = Math.max(...arr);
+    const exps = arr.map(v => Math.exp(v - m));
+    const sum = exps.reduce((a,b) => a+b, 0);
+    return exps.map(e => e / sum);
+  }
+
+  function renderSoftmax(){
+    const probs = softmax(smVals);
+    const bars = document.getElementById('smBars');
+    if(!bars) return;
+    bars.innerHTML = probs.map((p,i) =>
+      `<div class="lab-bar-row">
+        <span class="lab-bar-label">${SM_LABELS[i]}</span>
+        <div class="lab-bar-track"><div class="lab-bar-fill" style="width:${(p*100).toFixed(1)}%"></div></div>
+        <span class="lab-bar-val">${(p*100).toFixed(1)}%</span>
+      </div>`
+    ).join('');
+  }
+
+  const smSliders = document.getElementById('smSliders');
+  if(smSliders){
+    smSliders.innerHTML = SM_LABELS.map((lbl,i) =>
+      `<div class="lab-slider-row">
+        <span class="lab-slider-label">${lbl}</span>
+        <input class="lab-slider" type="range" min="-5" max="5" step="0.1" value="${SM_DEFAULTS[i]}" data-idx="${i}">
+        <span class="lab-slider-val" id="smv${i}">${SM_DEFAULTS[i].toFixed(1)}</span>
+      </div>`
+    ).join('');
+    smSliders.querySelectorAll('.lab-slider').forEach(sl => {
+      sl.addEventListener('input', function(){
+        const idx = +this.dataset.idx;
+        smVals[idx] = +this.value;
+        document.getElementById('smv'+idx).textContent = (+this.value).toFixed(1);
+        renderSoftmax();
+      });
+    });
+    renderSoftmax();
+  }
+
+  // Temperature explorer — fixed logits, one temp slider
+  const TEMP_LOGITS = [3.2, 1.8, 0.9, -0.4, -1.2];
+  const TEMP_LABELS = ['token A','token B','token C','token D','token E'];
+
+  function renderTemp(){
+    const T = +document.getElementById('tempSlider')?.value || 1;
+    document.getElementById('tempVal').textContent = T.toFixed(2);
+    const scaled = TEMP_LOGITS.map(l => l / T);
+    const probs = softmax(scaled);
+    const bars = document.getElementById('tempBars');
+    if(!bars) return;
+    bars.innerHTML = probs.map((p,i) =>
+      `<div class="lab-bar-row">
+        <span class="lab-bar-label" style="min-width:52px;font-size:9px">${TEMP_LABELS[i]}</span>
+        <div class="lab-bar-track"><div class="lab-bar-fill" style="width:${(p*100).toFixed(1)}%"></div></div>
+        <span class="lab-bar-val">${(p*100).toFixed(1)}%</span>
+      </div>`
+    ).join('');
+  }
+
+  const tempSlider = document.getElementById('tempSlider');
+  if(tempSlider){
+    tempSlider.removeEventListener('input', renderTemp);
+    tempSlider.addEventListener('input', renderTemp);
+    renderTemp();
+  }
+}
+initMathLab();
 
 /* ====================================================
    TL;DR — Plain-English AI Cards
@@ -2887,85 +3054,6 @@ if(typeof _origOpenDynamic==='function'){
 </script>
 
 <script>
-/* ====================================================
-   MASTHEAD FIREWORKS — fires once on first load
-==================================================== */
-(function(){
-  const canvas=document.getElementById('mastheadCanvas');
-  if(!canvas) return;
-
-  function resize(){
-    const mh=canvas.parentElement;
-    canvas.width=mh.offsetWidth||window.innerWidth;
-    canvas.height=mh.offsetHeight||120;
-  }
-  resize();
-  window.addEventListener('resize',resize);
-
-  const ctx=canvas.getContext('2d');
-  const COLORS=['#C0392B','#E74C3C','#E67E22','#F39C12','#F1C40F','#ECF0F1','#BDC3C7'];
-  let particles=[];
-  let animId=null;
-  let fired=false;
-
-  function burst(cx,cy,count){
-    for(let i=0;i<count;i++){
-      const angle=Math.random()*Math.PI*2;
-      const speed=Math.random()*5+2;
-      particles.push({
-        x:cx, y:cy,
-        vx:Math.cos(angle)*speed,
-        vy:Math.sin(angle)*speed - Math.random()*2,
-        alpha:1,
-        decay:Math.random()*0.018+0.012,
-        size:Math.random()*3+1,
-        color:COLORS[Math.floor(Math.random()*COLORS.length)],
-        gravity:0.12
-      });
-    }
-  }
-
-  function draw(){
-    ctx.clearRect(0,0,canvas.width,canvas.height);
-    particles.forEach(p=>{
-      p.x+=p.vx; p.y+=p.vy; p.vy+=p.gravity; p.alpha-=p.decay;
-      ctx.globalAlpha=Math.max(0,p.alpha);
-      ctx.fillStyle=p.color;
-      ctx.beginPath();
-      ctx.arc(p.x,p.y,p.size,0,Math.PI*2);
-      ctx.fill();
-    });
-    ctx.globalAlpha=1;
-    particles=particles.filter(p=>p.alpha>0);
-    if(particles.length>0) animId=requestAnimationFrame(draw);
-    else animId=null;
-  }
-
-  function fire(){
-    if(fired) return;
-    fired=true;
-    resize();
-    const cx=canvas.width/2;
-    const cy=canvas.height*0.45;
-    // Three staggered bursts
-    burst(cx,cy,90);
-    setTimeout(()=>{ burst(cx-60,cy+10,50); burst(cx+60,cy+10,50); },180);
-    setTimeout(()=>{ burst(cx,cy-10,60); },340);
-    if(!animId) animId=requestAnimationFrame(draw);
-  }
-
-  // Trigger after boot splash fades
-  const origDismiss=window.dismissBoot;
-  window.dismissBoot=function(){
-    if(origDismiss) origDismiss();
-    setTimeout(fire,700);
-  };
-
-  // Also fire if boot was already dismissed (return visits)
-  if(sessionStorage.getItem('aliss_booted')){
-    setTimeout(fire,400);
-  }
-})();
 </script>
 </body>
 </html>
