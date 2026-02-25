@@ -484,6 +484,27 @@ a{color:inherit;text-decoration:none}
 .token-count{font-family:var(--mono);font-size:11px;color:var(--muted-light);opacity:.7}
 .dynamic-article .article-meta .token-count::before{content:' · '}
 
+/* Software & Hardware categories */
+:root{--software:#0A84FF;--hardware:#30D158}
+.card-software{border-left:4px solid var(--software)!important}
+.card-software .card-tag{color:var(--software)!important}
+.card-hardware{border-left:4px solid var(--hardware)!important}
+.card-hardware .card-tag{color:var(--hardware)!important}
+
+/* Format badges — flagship, executive, exclusive */
+.format-badge{display:inline-flex;align-items:center;gap:5px;font-family:var(--mono);font-size:8px;font-weight:700;letter-spacing:2px;text-transform:uppercase;padding:3px 8px;border-radius:2px;margin-bottom:6px}
+.format-flagship{background:rgba(192,57,43,.12);color:var(--accent);border:1px solid rgba(192,57,43,.25)}
+.format-executive{background:rgba(0,0,0,.06);color:var(--muted);border:1px solid var(--divider)}
+.format-exclusive{background:rgba(10,132,255,.1);color:var(--software);border:1px solid rgba(10,132,255,.2)}
+.format-flagship::before{content:'◆ '}
+.format-executive::before{content:'▸ '}
+.format-exclusive::before{content:'⊕ '}
+
+/* Flagship card variant — spans 2 cols, larger title */
+.card-flagship{grid-column:span 2}
+.card-flagship .card-body h4{font-size:20px;line-height:1.25}
+@media(max-width:900px){.card-flagship{grid-column:span 1}}
+
 /* Polish — refined interactions and visual hierarchy */
 .card{transition:background .2s,box-shadow .2s,transform .15s}
 .card:hover{background:var(--cream);box-shadow:0 4px 18px rgba(0,0,0,.06);transform:translateY(-1px)}
@@ -534,6 +555,8 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-off
 <li><a href="#" data-nav="tech" onclick="filterCategory('Tech','tech');return false">Tech</a></li>
 <li><a href="#" data-nav="profiles" onclick="filterCategory('Profile','profiles');return false">Profiles</a></li>
 <li><a href="#" data-nav="industry" onclick="navigate('industry');return false">Industry</a></li>
+<li><a href="#" data-nav="software" onclick="filterCategory('Software','software');return false">Software</a></li>
+<li><a href="#" data-nav="hardware" onclick="filterCategory('Hardware','hardware');return false">Hardware</a></li>
 <li><a href="#" data-nav="research" onclick="filterCategory('Research','research');return false">Papers</a></li>
 <li><a href="#" data-nav="analysis" onclick="filterCategory('Analysis','analysis');return false">Analysis</a></li>
 <li><a href="#" data-nav="outlook" onclick="filterCategory('AI Outlook','outlook');return false">AI Outlook</a></li>
@@ -1464,14 +1487,29 @@ function escapeHtml(value){
 let articlesShown=500;
 
 /* ---- Relevance sort ---- */
-const CATEGORY_WEIGHT={'Industry':6,'Profile':5,'Futures':5,'Analysis':4,'World':4,'Business':4,'Tech':4,'Philosophy':4,'Words':4,'Culture':4,'Science':3,'Politics':3,'Research':3,'Health':3,'Opinion':2,'News':2};
+const CATEGORY_WEIGHT={'Industry':7,'Hardware':7,'Software':7,'Profile':5,'Futures':5,'Analysis':4,'World':4,'Business':4,'Tech':4,'Philosophy':4,'Words':4,'AI Outlook':4,'Culture':4,'Science':3,'Politics':3,'Research':3,'Health':3,'Opinion':2,'News':2};
+const FORMAT_WEIGHT={'flagship':3,'exclusive':2,'executive':1};
+
 function sortByRelevance(articles){
-  return [...articles].sort((a,b)=>{
-    const wa=CATEGORY_WEIGHT[a.category]||1;
-    const wb=CATEGORY_WEIGHT[b.category]||1;
-    if(wb!==wa) return wb-wa;
-    return new Date(b.publishedAt||0)-new Date(a.publishedAt||0);
-  });
+  const now=Date.now();
+  // Track category counts for diversity enforcement
+  const catCount={};
+
+  return [...articles]
+    .map(a=>{
+      const cat=CATEGORY_WEIGHT[a.category]||1;
+      // Format bonus from tags
+      const fmt=(a.tags||[]).reduce((acc,t)=>Math.max(acc,FORMAT_WEIGHT[t]||0),0);
+      // Recency curve: full score within 6h, half within 24h, baseline beyond
+      const ageH=(now-new Date(a.publishedAt||0))/(1000*3600);
+      const recency=ageH<6?2:ageH<24?1:0;
+      // Diversity: penalise if same category already appearing 3+ times
+      catCount[a.category]=(catCount[a.category]||0)+1;
+      const diversity=catCount[a.category]>3?-1:0;
+
+      return{...a,_score:cat+fmt+recency+diversity};
+    })
+    .sort((a,b)=>b._score-a._score);
 }
 
 /* ---- Daily briefing ---- */
@@ -1641,12 +1679,25 @@ function buildCard(article,index){
   const title=escapeHtml(article.title||'Untitled');
   const summary=escapeHtml(article.summary||article.content||'');
   const source=escapeHtml(article.source||'Aliss');
+  const cat=(article.category||'').toLowerCase();
   const tag=escapeHtml(article.category||(article.tags&&article.tags[0])||'News');
   const dateText=article.publishedAt?new Date(article.publishedAt).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):'Recent';
-  const gradient=['ci-1','ci-2','ci-3','ci-4','ci-5','ci-6'][index%6];
+  const tags=article.tags||[];
+
+  // Detect format from tags
+  const fmt=tags.find(t=>['flagship','executive','exclusive'].includes(t));
+  const fmtBadge=fmt?`<div class="format-badge format-${fmt}">${fmt}</div>`:'';
+
+  // Card class composition
+  const classes=['card'];
+  if(cat==='industry') classes.push('card-industry');
+  if(cat==='software') classes.push('card-software');
+  if(cat==='hardware') classes.push('card-hardware');
+  if(fmt==='flagship') classes.push('card-flagship');
+
   const card=document.createElement('div');
-  card.className='card'+((article.category||'').toLowerCase()==='industry'?' card-industry':'');
-  card.innerHTML=`<div class="card-body"><div class="card-tag">${tag}</div><h4>${title}</h4><p>${summary}</p><div class="card-meta">${dateText} · ${source}</div></div>`;
+  card.className=classes.join(' ');
+  card.innerHTML=`<div class="card-body">${fmtBadge}<div class="card-tag">${tag}</div><h4>${title}</h4><p>${summary}</p><div class="card-meta">${dateText} · ${source}</div></div>`;
   const slug=String(article?.slug||article?._id||'').trim();
   if(article.isStatic){
     card.addEventListener('click',()=>navigate(slug));

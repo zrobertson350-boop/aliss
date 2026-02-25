@@ -80,6 +80,8 @@ if (SUPABASE_URL && SUPABASE_KEY) {
     setTimeout(polishShortArticles, 30000);
     setTimeout(seedIndustryArticles, 120000);   // Industry (Opus) after 2 min
     setTimeout(seedEditorialSections, 180000);  // Philosophy + Words after 3 min
+    setTimeout(()=>seedSoftwareArticles(2), 240000); // Software flagship/exclusive after 4 min
+    setTimeout(()=>seedHardwareArticles(2), 360000); // Hardware flagship/exclusive after 6 min
     setTimeout(fetchPremiumNewsAnalysis, 300000); // AI Outlook after 5 min
   }, 5000);
 } else {
@@ -758,6 +760,228 @@ async function seedIndustryArticles() {
     industrySeeding = false;
     console.log("Industry seeding complete.");
   }
+}
+
+/* ======================
+   SOFTWARE SECTION
+====================== */
+
+const SOFTWARE_TOPICS = [
+  { topic: "The IDE Is Dead: How Cursor, Copilot, and Claude Code Are Replacing the Developer's Primary Tool", format: "flagship" },
+  { topic: "The Vibe Coding Revolution: What Happens to Software Engineering When Anyone Can Ship", format: "exclusive" },
+  { topic: "Agentic Software: The Architecture Shift from Functions to Autonomous Loops", format: "executive" },
+  { topic: "The Context Window Wars: How Gemini's 1M and Claude's 200K Are Redrawing What's Possible in Code", format: "flagship" },
+  { topic: "AI Testing: Why Every QA Engineer Should Be Terrified — and What They Should Do About It", format: "executive" },
+  { topic: "The Prompt Engineer Is Already Obsolete: What Replaced It and Why It Happened Faster Than Anyone Expected", format: "exclusive" },
+  { topic: "Open Source vs Closed: Why the Software Stack Under AI Is Still Unsettled", format: "analysis" },
+  { topic: "The New Stack: Postgres, Redis, and the Data Infrastructure That Actually Powers AI Applications", format: "executive" },
+  { topic: "DevOps in the Age of AI: How Deployment, Monitoring, and Incident Response Are Being Automated Away", format: "exclusive" },
+  { topic: "The Security Crisis in AI-Generated Code: Copilot, Hallucination, and the Vulnerabilities Nobody Is Talking About", format: "flagship" },
+];
+
+async function generateSoftwareArticle(topicObj, recentTitles = []) {
+  const { topic, format } = topicObj;
+
+  const formatInstructions = {
+    flagship: `FORMAT — FLAGSHIP: This is Aliss at maximum ambition. 1500+ words. The definitive piece on this topic. Sweep wide, go deep, land with force. Section headers are provocations. Pull quotes are verdicts. This article should feel like the piece everyone in the industry bookmarks.`,
+    executive: `FORMAT — EXECUTIVE BRIEFING: Dense, precise, built for decisions. 900-1100 words. Open with the bottom line. Every paragraph earns its existence. Section headers are clear statements of fact, not rhetorical questions. One "So What" section near the end that spells out the implication for builders, investors, and operators. No atmosphere — pure signal.`,
+    exclusive: `FORMAT — EXCLUSIVE: Investigative framing. Inside access. This reads like Aliss got the call nobody else got. 1200-1500 words. Open on a scene, a moment, a detail that proves the access. The story only works because of the specificity. Who said what, when, and what it means.`,
+    analysis: `FORMAT — ANALYSIS: Sharp, specific, opinionated. 1000-1200 words. Take a clear position. Support it with data and first principles.`,
+  };
+
+  const system = `You are Aliss — covering the Software beat. The intersection of AI and software development: the tools, the architectures, the workflows, and the engineers caught in the middle of the biggest platform shift since mobile.
+
+${ALISS_IDENTITY}
+
+THE SOFTWARE BEAT: You cover AI's effect on how software is built, deployed, and maintained. Cursor, GitHub Copilot, Claude Code, Devin, AI testing, agentic architectures, the changing role of the engineer. You have strong opinions about what's real and what's hype.
+
+${formatInstructions[format] || formatInstructions.flagship}
+
+Never use markdown. Only clean HTML.`;
+
+  const recentContext = recentTitles.length
+    ? `\n\nRecent Aliss Software coverage — don't repeat these angles:\n${recentTitles.slice(0, 8).map((t, i) => `${i + 1}. ${t}`).join("\n")}`
+    : "";
+
+  const ragArticles = await retrieveRelevantArticles(topic, 4);
+  const ragContext = formatRagContext(ragArticles);
+
+  const userMsg = `Write a ${format} Software article about: ${topic}${ragContext}${recentContext}
+
+Return ONLY raw JSON:
+{
+  "title": "Headline under 85 characters — punchy, specific, earned",
+  "subtitle": "One sentence that nails exactly why this matters right now",
+  "summary": "2-3 sentences that make a senior engineer and a VC both want to read this",
+  "category": "Software",
+  "tags": ["${format}", "software", "AI", "engineering"],
+  "body": "Full article HTML. Rules: <p class=\\"drop-cap\\"> on first paragraph only; <h2> for 4+ section headers; at least 2 <div class=\\"pull-quote\\">quote<cite>— Attribution, Source, Year</cite></div>; include ONE <div class=\\"data-callout\\"><h4>Key Figures</h4><ul> with 4-5 specific metrics</ul></div>; no title tag; follow format instructions above precisely."
+}`;
+
+  const raw = await callClaude(system, userMsg, 5000);
+  const match = raw.match(/\{[\s\S]*\}/);
+  if (!match) throw new Error("No JSON in response");
+
+  const data = JSON.parse(match[0]);
+  const title = String(data.title || topic).trim();
+  const doc = {
+    slug: slugify(title),
+    title,
+    subtitle:     String(data.subtitle || "").trim(),
+    content:      "",
+    summary:      String(data.summary  || "").trim(),
+    body:         String(data.body     || "").trim(),
+    tags:         Array.isArray(data.tags) ? data.tags.map(String) : ["software", format],
+    category:     "Software",
+    source:       "Aliss",
+    is_external:  false,
+    is_generated: true,
+    published_at: new Date().toISOString()
+  };
+
+  if (!isDbReady()) return normalizeArticle(doc);
+  const { data: saved, error } = await supabase
+    .from("aliss_articles")
+    .upsert(doc, { onConflict: "slug", ignoreDuplicates: true })
+    .select().single();
+  if (error || !saved) {
+    const { data: existing } = await supabase.from("aliss_articles").select("*").eq("slug", doc.slug).single();
+    return normalizeArticle(existing || doc);
+  }
+  return normalizeArticle(saved);
+}
+
+let softwareSeeding = false;
+async function seedSoftwareArticles(limit = 2) {
+  if (softwareSeeding || !isDbReady() || !ANTHROPIC_KEY) return;
+  softwareSeeding = true;
+  console.log(`Seeding ${limit} Software articles...`);
+  try {
+    const { data: existing } = await supabase.from("aliss_articles").select("title").eq("category", "Software").eq("is_generated", true);
+    const existingTitles = (existing || []).map(a => a.title);
+    const pending = SOFTWARE_TOPICS.filter(t =>
+      !existingTitles.some(et => jaccardSimilarity(t.topic, et) >= 0.35)
+    ).slice(0, limit);
+    for (const topicObj of pending) {
+      try {
+        const { data: recent } = await supabase.from("aliss_articles").select("title").eq("category", "Software").order("published_at", { ascending: false }).limit(6);
+        const article = await generateSoftwareArticle(topicObj, (recent || []).map(a => a.title));
+        if (article) { console.log(`✓ Software [${topicObj.format}]: ${article.title?.slice(0, 55)}`); io.emit("newArticle", article); spreadArticle(article).catch(() => {}); }
+        await new Promise(r => setTimeout(r, 8000));
+      } catch (e) { console.error(`✗ Software failed: ${e.message}`); await new Promise(r => setTimeout(r, 5000)); }
+    }
+  } finally { softwareSeeding = false; console.log("Software seeding complete."); }
+}
+
+/* ======================
+   HARDWARE SECTION
+====================== */
+
+const HARDWARE_TOPICS = [
+  { topic: "The H100 Era Is Over: What NVIDIA's Blackwell Architecture Changes About AI Infrastructure", format: "flagship" },
+  { topic: "The Memory Wall: Why HBM3 Shortage Is the Bottleneck Nobody Is Talking About Enough", format: "executive" },
+  { topic: "Inside TSMC's Arizona Gamble: The Fab That America Bet $40B On", format: "exclusive" },
+  { topic: "The Custom Silicon Arms Race: Why Google, Apple, Microsoft, and Amazon All Decided to Design Their Own AI Chips", format: "flagship" },
+  { topic: "Cooling the Machines: How Data Center Thermal Management Became a $20 Billion Problem", format: "executive" },
+  { topic: "The Edge AI Chip: Qualcomm, Apple, and the War to Run Models on Your Device", format: "analysis" },
+  { topic: "Photonic Computing: The Technology That Could Eventually Replace NVIDIA — and Why It's Still 10 Years Away", format: "analysis" },
+  { topic: "Power Draw: How AI's Electricity Appetite Is Forcing Utilities, Governments, and Data Centers to Rethink Everything", format: "flagship" },
+  { topic: "The Networking Layer: InfiniBand, NVLink, and the Interconnects That Actually Determine AI Performance at Scale", format: "executive" },
+  { topic: "Inside a GPU Cluster: What It Actually Takes to Build and Run 10,000 H100s", format: "exclusive" },
+];
+
+async function generateHardwareArticle(topicObj, recentTitles = []) {
+  const { topic, format } = topicObj;
+
+  const formatInstructions = {
+    flagship: `FORMAT — FLAGSHIP: The definitive hardware piece. 1500+ words. Sweep the technical and economic landscape. Make the reader feel the physical reality of these machines — their power draw, their heat, their cost, their strategic weight. Section headers are declarations. This is the article that gets printed out and circulated.`,
+    executive: `FORMAT — EXECUTIVE BRIEFING: 900-1100 words. Built for the CTO, the infrastructure lead, the investor. Open with the strategic implication. Every paragraph is a decision-support unit. End with a clear "What This Means" section. No atmospherics — all signal.`,
+    exclusive: `FORMAT — EXCLUSIVE: Inside access. A scene, a detail, a source. 1200-1500 words. This is the story from inside the fab, the rack room, the procurement call. Specific, sensory, revelatory.`,
+    analysis: `FORMAT — ANALYSIS: 1000-1200 words. Technical depth plus strategic framing. Clear thesis, defended with specifics.`,
+  };
+
+  const system = `You are Aliss — covering the Hardware beat. The physical substrate of the AI revolution: chips, fabs, power, cooling, networking, memory. The machines that run the models.
+
+${ALISS_IDENTITY}
+
+THE HARDWARE BEAT: You cover the silicon, infrastructure, and supply chain underpinning AI. NVIDIA, AMD, Intel, TSMC, Samsung, SK Hynix, Google TPUs, AWS Trainium, Microsoft Maia. You understand that hardware is geopolitics. You understand that a chip fab is a national security asset. You write about hardware the way The Economist writes about oil.
+
+${formatInstructions[format] || formatInstructions.flagship}
+
+Never use markdown. Only clean HTML.`;
+
+  const recentContext = recentTitles.length
+    ? `\n\nRecent Aliss Hardware coverage — don't repeat these angles:\n${recentTitles.slice(0, 8).map((t, i) => `${i + 1}. ${t}`).join("\n")}`
+    : "";
+
+  const ragArticles = await retrieveRelevantArticles(topic, 4);
+  const ragContext = formatRagContext(ragArticles);
+
+  const userMsg = `Write a ${format} Hardware article about: ${topic}${ragContext}${recentContext}
+
+Return ONLY raw JSON:
+{
+  "title": "Headline under 85 characters — hard-hitting and specific",
+  "subtitle": "One sentence that captures the geopolitical or economic weight of this",
+  "summary": "2-3 sentences for a card preview — make an engineer and a policymaker both want to click",
+  "category": "Hardware",
+  "tags": ["${format}", "hardware", "chips", "AI infrastructure"],
+  "body": "Full article HTML. Rules: <p class=\\"drop-cap\\"> on first paragraph only; <h2> for 4+ section headers; at least 2 <div class=\\"pull-quote\\">quote<cite>— Attribution, Source, Year</cite></div>; include ONE <div class=\\"data-callout\\"><h4>Key Figures</h4><ul> with 4-5 specific metrics</ul></div>; no title tag; follow format instructions above precisely."
+}`;
+
+  const raw = await callClaude(system, userMsg, 5000);
+  const match = raw.match(/\{[\s\S]*\}/);
+  if (!match) throw new Error("No JSON in response");
+
+  const data = JSON.parse(match[0]);
+  const title = String(data.title || topic).trim();
+  const doc = {
+    slug: slugify(title),
+    title,
+    subtitle:     String(data.subtitle || "").trim(),
+    content:      "",
+    summary:      String(data.summary  || "").trim(),
+    body:         String(data.body     || "").trim(),
+    tags:         Array.isArray(data.tags) ? data.tags.map(String) : ["hardware", format],
+    category:     "Hardware",
+    source:       "Aliss",
+    is_external:  false,
+    is_generated: true,
+    published_at: new Date().toISOString()
+  };
+
+  if (!isDbReady()) return normalizeArticle(doc);
+  const { data: saved, error } = await supabase
+    .from("aliss_articles")
+    .upsert(doc, { onConflict: "slug", ignoreDuplicates: true })
+    .select().single();
+  if (error || !saved) {
+    const { data: existing } = await supabase.from("aliss_articles").select("*").eq("slug", doc.slug).single();
+    return normalizeArticle(existing || doc);
+  }
+  return normalizeArticle(saved);
+}
+
+let hardwareSeeding = false;
+async function seedHardwareArticles(limit = 2) {
+  if (hardwareSeeding || !isDbReady() || !ANTHROPIC_KEY) return;
+  hardwareSeeding = true;
+  console.log(`Seeding ${limit} Hardware articles...`);
+  try {
+    const { data: existing } = await supabase.from("aliss_articles").select("title").eq("category", "Hardware").eq("is_generated", true);
+    const existingTitles = (existing || []).map(a => a.title);
+    const pending = HARDWARE_TOPICS.filter(t =>
+      !existingTitles.some(et => jaccardSimilarity(t.topic, et) >= 0.35)
+    ).slice(0, limit);
+    for (const topicObj of pending) {
+      try {
+        const { data: recent } = await supabase.from("aliss_articles").select("title").eq("category", "Hardware").order("published_at", { ascending: false }).limit(6);
+        const article = await generateHardwareArticle(topicObj, (recent || []).map(a => a.title));
+        if (article) { console.log(`✓ Hardware [${topicObj.format}]: ${article.title?.slice(0, 55)}`); io.emit("newArticle", article); spreadArticle(article).catch(() => {}); }
+        await new Promise(r => setTimeout(r, 8000));
+      } catch (e) { console.error(`✗ Hardware failed: ${e.message}`); await new Promise(r => setTimeout(r, 5000)); }
+    }
+  } finally { hardwareSeeding = false; console.log("Hardware seeding complete."); }
 }
 
 /* ======================
@@ -1952,6 +2176,18 @@ app.post("/api/seed-industry", (req, res) => {
   seedIndustryArticles().catch(e => console.error("Industry seed-now failed:", e.message));
 });
 
+app.post("/api/seed-software", (req, res) => {
+  const limit = parseInt(req.body?.limit) || SOFTWARE_TOPICS.length;
+  res.json({ msg: "Software seeding started", target: limit });
+  seedSoftwareArticles(limit).catch(e => console.error("Software seed failed:", e.message));
+});
+
+app.post("/api/seed-hardware", (req, res) => {
+  const limit = parseInt(req.body?.limit) || HARDWARE_TOPICS.length;
+  res.json({ msg: "Hardware seeding started", target: limit });
+  seedHardwareArticles(limit).catch(e => console.error("Hardware seed failed:", e.message));
+});
+
 /* ======================
    REAL-TIME
 ====================== */
@@ -2507,6 +2743,8 @@ cron.schedule("0 6 * * *",    refreshDailyBriefing);
 cron.schedule("0 8 * * 5",    sendWeeklyNewsletter); // Friday 8am
 cron.schedule("30 */2 * * *", fetchPremiumNewsAnalysis); // AI Outlook every 2h (offset from HN)
 cron.schedule("0 */6 * * *",  deduplicateArticles);      // Deep dedup every 6h
+cron.schedule("0 */8 * * *",  ()=>seedSoftwareArticles(2)); // 2 Software articles every 8h
+cron.schedule("0 1-23/8 * * *",()=>seedHardwareArticles(2)); // 2 Hardware articles every 8h (offset)
 
 /* ======================
    SELF-SPREADING SYSTEM
