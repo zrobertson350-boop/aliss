@@ -531,6 +531,45 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-off
 .article-body p{margin-bottom:1.4em;color:#1c1c1c}
 /* Nav active underline animation */
 .main-nav li a.active::after{width:70%;transition:width .3s ease-out}
+
+/* ── COMPUTE ──────────────────────────────────────── */
+.compute-page{max-width:760px;margin:0 auto;padding:36px 20px 80px}
+.compute-header{text-align:center;margin-bottom:40px}
+.compute-title{font-family:var(--serif);font-size:30px;font-weight:900;letter-spacing:3px;text-transform:uppercase;color:var(--ink)}
+.compute-title .compute-dot{color:var(--accent)}
+.compute-sub{font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--muted);margin-top:6px}
+.compute-fotd{background:var(--ink);color:var(--paper);border-radius:4px;padding:36px 32px;margin-bottom:32px;position:relative;overflow:hidden}
+.compute-fotd-label{font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--accent);font-family:var(--mono);margin-bottom:16px}
+.compute-formula{font-family:var(--mono);font-size:clamp(18px,3vw,26px);font-weight:500;color:#fff;line-height:1.4;margin-bottom:20px;word-break:break-word}
+.compute-fotd-name{font-family:var(--serif);font-size:22px;font-weight:700;color:#fff;margin-bottom:8px}
+.compute-fotd-desc{font-size:14px;color:rgba(255,255,255,.6);line-height:1.6;margin-bottom:16px}
+.compute-trick{background:rgba(192,57,43,.08);border-left:3px solid var(--accent);padding:14px 18px;font-size:13px;color:rgba(255,255,255,.7);line-height:1.55;font-style:italic}
+.compute-trick strong{color:var(--accent);font-style:normal}
+.compute-nav-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:36px}
+.compute-nav-btn{background:none;border:1px solid var(--divider);color:var(--muted);font-family:var(--mono);font-size:12px;letter-spacing:1px;padding:8px 18px;cursor:pointer;transition:border-color .2s,color .2s}
+.compute-nav-btn:hover{border-color:var(--accent);color:var(--accent)}
+.compute-counter{font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:1px}
+.compute-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:1px;background:var(--divider);border:1px solid var(--divider)}
+.compute-cell{background:var(--paper);padding:18px 20px;cursor:pointer;transition:background .15s}
+.compute-cell:hover,.compute-cell.active{background:var(--cream)}
+.compute-cell.active{border-left:3px solid var(--accent)}
+.compute-cell-name{font-family:var(--serif);font-size:14px;font-weight:700;color:var(--ink);margin-bottom:4px}
+.compute-cell-formula{font-family:var(--mono);font-size:10px;color:var(--muted);word-break:break-word;line-height:1.4}
+
+/* ── TL;DR ────────────────────────────────────────── */
+.tldr-page{max-width:540px;margin:0 auto;padding:28px 16px 80px;text-align:center}
+.tldr-header{margin-bottom:32px}
+.tldr-title{font-family:var(--serif);font-size:30px;font-weight:900;letter-spacing:3px;text-transform:uppercase;color:var(--ink)}
+.tldr-sub{font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--muted);margin-top:6px}
+.tldr-deck{display:flex;flex-direction:column;gap:0}
+.tldr-card{min-height:72vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px 28px;border-bottom:1px solid var(--divider);scroll-snap-align:start;text-align:center;position:relative;cursor:default}
+.tldr-card:nth-child(even){background:var(--cream)}
+.tldr-emoji{font-size:52px;margin-bottom:22px;line-height:1}
+.tldr-tag{font-family:var(--mono);font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--accent);margin-bottom:14px}
+.tldr-headline{font-family:var(--serif);font-size:clamp(22px,4vw,32px);font-weight:700;line-height:1.2;color:var(--ink);margin-bottom:18px}
+.tldr-body{font-size:16px;color:var(--muted);line-height:1.65;max-width:400px;margin:0 auto}
+.tldr-body strong{color:var(--ink)}
+.tldr-card-num{position:absolute;bottom:20px;right:20px;font-family:var(--mono);font-size:10px;color:var(--muted-light);letter-spacing:1px}
 </style>
 </head>
 <body>
@@ -558,6 +597,8 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-off
 <li><a href="#" data-nav="hardware" onclick="filterCategory('Hardware','hardware');return false">Hardware</a></li>
 <li><a href="#" data-nav="research" onclick="filterCategory('Research','research');return false">Papers</a></li>
 <li><a href="#" data-nav="aidle" onclick="navigate('aidle');return false">A·I·dle</a></li>
+<li><a href="#" data-nav="compute" onclick="navigate('compute');return false">Compute</a></li>
+<li><a href="#" data-nav="tldr" onclick="navigate('tldr');return false">TL;DR</a></li>
 </ul></nav>
 
 <div class="search-wrap">
@@ -1078,6 +1119,40 @@ Right now, we just focus on the research, and then the answer to the business qu
   <div class="aidle-hint" id="aidleHint"></div>
   <div class="aidle-next" id="aidleNext"></div>
   <div class="aidle-keyboard" id="aidleKeyboard"></div>
+</div>
+</div>
+
+<!-- COMPUTE PAGE -->
+<div id="page-compute" class="page">
+<div class="compute-page">
+  <div class="compute-header">
+    <div class="compute-title">C<span class="compute-dot">·</span>O<span class="compute-dot">·</span>M<span class="compute-dot">·</span>P<span class="compute-dot">·</span>U<span class="compute-dot">·</span>T<span class="compute-dot">·</span>E</div>
+    <div class="compute-sub">The math behind AI · one formula at a time</div>
+  </div>
+  <div class="compute-fotd" id="computeFotd">
+    <div class="compute-fotd-label">Formula of the Day</div>
+    <div class="compute-fotd-name" id="cfName"></div>
+    <div class="compute-formula" id="cfFormula"></div>
+    <div class="compute-fotd-desc" id="cfDesc"></div>
+    <div class="compute-trick" id="cfTrick"></div>
+  </div>
+  <div class="compute-nav-row">
+    <button class="compute-nav-btn" onclick="computeStep(-1)">← prev</button>
+    <span class="compute-counter" id="computeCounter"></span>
+    <button class="compute-nav-btn" onclick="computeStep(1)">next →</button>
+  </div>
+  <div class="compute-grid" id="computeGrid"></div>
+</div>
+</div>
+
+<!-- TL;DR PAGE -->
+<div id="page-tldr" class="page">
+<div class="tldr-page">
+  <div class="tldr-header">
+    <div class="tldr-title">TL;DR</div>
+    <div class="tldr-sub">AI explained · plain English · no PhD required</div>
+  </div>
+  <div class="tldr-deck" id="tldrDeck"></div>
 </div>
 </div>
 
@@ -2351,6 +2426,7 @@ function submitAlissPlusCode(){}
     const won=result.every(r=>r==='correct');
     if(won||guesses.length>=6){gameOver=true;setTimeout(()=>showEndState(won),result.length*120+400);}
     save();
+    setTimeout(checkHint,result.length*120+200);
     setTimeout(renderAll,result.length*120+100);
   }
 
@@ -2410,6 +2486,102 @@ function submitAlissPlusCode(){}
     else if(k==='ENTER') handleKey('ENTER');
     else if(k.length===1&&/[A-Z]/.test(k)) handleKey(k);
   });
+
+  // ── HINTS ─────────────────────────────────────────────
+  const WORD_HINTS={
+    'MODEL':'a trained system that maps inputs to outputs',
+    'TRAIN':'the process of optimising weights on data',
+    'TOKEN':'the smallest text unit an LLM processes',
+    'AGENT':'an AI that takes actions in an environment',
+    'LAYER':'a single transformation step in a neural net',
+    'LEARN':'what a model does when it updates its weights',
+    'SCALE':'making a model bigger, faster, or smarter',
+    'EPOCH':'one full pass through the training dataset',
+    'QUERY':'the Q in attention — what you're looking for',
+    'LLAMA':'Meta's open-source large language model',
+    'NODES':'individual neurons in a neural network',
+    'LOGIC':'rule-based reasoning, pre-deep-learning AI',
+    'BYTES':'raw binary data units',
+    'CLOUD':'remote compute infrastructure for AI training',
+    'INFER':'running a trained model to get predictions',
+    'LABEL':'the ground-truth answer in supervised learning',
+    'MASKS':'hiding tokens so the model learns to predict them',
+    'NOISE':'random perturbations added during training',
+    'BATCH':'a group of examples processed together',
+    'DENSE':'a fully connected neural network layer',
+    'EMBED':'mapping words/tokens to vectors in space',
+    'GRAPH':'a structure of nodes and edges used in GNNs',
+    'INDEX':'a searchable structure for fast retrieval',
+    'LOCAL':'running AI on your own hardware, not the cloud',
+    'VALID':'the held-out dataset used to tune hyperparams',
+    'BEAMS':'beam search: keeping top-k candidate sequences',
+    'TOOLS':'external functions an agent can call',
+    'INPUT':'data fed into a model',
+    'TRUST':'calibration — does the model know what it knows?',
+    'VALUE':'the V in attention — information to retrieve',
+    'ALIGN':'making AI behaviour match human intentions',
+    'SCORE':'a numerical measure of model performance',
+    'CHAIN':'chaining LLM calls, e.g. chain-of-thought',
+    'HEADS':'parallel attention mechanisms in a transformer',
+    'TASKS':'specific problems a model is trained or tested on',
+    'GRADS':'gradients — the direction to adjust weights',
+    'STATS':'statistical metrics used to evaluate models',
+    'FACTS':'grounded true statements, vs hallucinations',
+    'RISKS':'failure modes and harms from AI systems',
+    'FLOWS':'normalising flows — a type of generative model',
+    'GATES':'gating mechanisms in LSTMs and GRUs',
+    'PATHS':'execution routes through a computation graph',
+    'STEPS':'discrete increments in training or reasoning',
+    'REGEX':'pattern-matching syntax used in NLP pipelines',
+    'SCOPE':'the context window or reasoning boundary',
+    'LOOPS':'iterative cycles in training or agent execution',
+    'TREES':'tree-structured reasoning or decision models',
+    'LINES':'rows in a dataset or code',
+    'GOALS':'objectives an AI agent is trying to achieve',
+    'FORMS':'structured input/output schemas',
+    'TERMS':'vocabulary units or conditions in a contract',
+    'TYPES':'data types in a programming or type system',
+    'UNITS':'individual neurons or measurement quantities',
+    'ROUGE':'recall-based metric for summarisation quality',
+    'HUMAN':'human feedback used in RLHF training',
+    'BRAIN':'the biological inspiration for neural networks',
+    'ROBOT':'a physical agent that acts in the world',
+    'ALPHA':'a measure of excess return, or DeepMind's AlphaGo',
+    'SIGMA':'standard deviation — spread of a distribution',
+    'DELTA':'change or gradient update magnitude',
+    'THETA':'model parameters, often written as θ',
+    'OMEGA':'final layer or convergence in some contexts',
+    'GAMMA':'discount factor in reinforcement learning',
+    'VOCAB':'the set of all tokens a model can produce',
+    'PARSE':'breaking input text into structured components',
+    'HOOKS':'callbacks that intercept model forward passes',
+    'PIPES':'data pipeline stages in an ML workflow',
+    'CLIPS':'CLIP: contrastive image-language pretraining',
+    'TESTS':'evaluations used to measure model capability',
+    'LINKS':'connections between nodes, or hyperlinks',
+    'RANKS':'relative ordering of candidates or parameters',
+    'TEXTS':'raw string data used for language modelling',
+    'ULTRA':'prefix meaning extreme scale',
+    'MICRO':'prefix meaning very small, or fine-grained',
+    'SUPER':'prefix meaning beyond, as in superintelligence',
+    'WORDS':'sequences of characters forming meaning',
+    'CODES':'source code, or encoded representations',
+    'SPANS':'contiguous text ranges in NLP tasks',
+    'ITEMS':'individual elements in a dataset or list',
+    'LANES':'parallel processing streams'
+  };
+
+  function checkHint(){
+    const hintEl=document.getElementById('aidleHint');
+    if(!hintEl||gameOver) return;
+    const wrong=guesses.filter(g=>g!==TARGET).length;
+    if(wrong>=3){
+      const def=WORD_HINTS[TARGET]||'a term from AI and machine learning';
+      hintEl.innerHTML=wrong>=4
+        ?`<strong>Hint:</strong> ${def} &nbsp;·&nbsp; starts with <strong>${TARGET[0]}—</strong>`
+        :`<strong>Hint:</strong> ${def}`;
+    }
+  }
 
   window._aidleInit=initGame;
 })();
@@ -2556,6 +2728,157 @@ if(typeof _origOpenDynamic==='function'){
         if(++n>6){clearInterval(t);span.textContent=orig;}
       },50);
     });
+  });
+})();
+</script>
+
+<script>
+/* ====================================================
+   COMPUTE — AI Formula Explorer
+==================================================== */
+(function(){
+  const FORMULAS=[
+    {name:'Softmax',
+     formula:'σ(zᵢ) = eᶻⁱ / Σⱼ eᶻʲ',
+     desc:'Converts a vector of raw scores into a probability distribution. Every output is positive and all outputs sum to 1. Used in the final layer of classifiers and inside attention.',
+     trick:'<strong>The softmax trick:</strong> subtract max(z) from all values before computing eᶻ. The result is identical but you avoid NaN from overflow when logits are large.'},
+    {name:'Scaled Dot-Product Attention',
+     formula:'Attention(Q,K,V) = softmax( QKᵀ / √dₖ ) · V',
+     desc:'The engine of every transformer. Q (query) asks a question; K (keys) describe what's available; V (values) hold the actual information. The division by √dₖ keeps gradients stable in high dimensions.',
+     trick:'<strong>Why √dₖ?</strong> In high-dimensional space, dot products grow proportional to dₖ, pushing softmax into saturation. Dividing by √dₖ keeps the variance at 1.'},
+    {name:'Cross-Entropy Loss',
+     formula:'L = −Σᵢ yᵢ log(ŷᵢ)',
+     desc:'The standard loss for classification. Measures how far your predicted distribution ŷ is from the true label y. When the model is confident and wrong, the penalty is severe.',
+     trick:'<strong>Log of near-zero = −∞.</strong> That\'s why models add a small ε to ŷᵢ before taking the log — to avoid numerical explosion when the model is catastrophically wrong.'},
+    {name:'Gradient Descent',
+     formula:'θ ← θ − α · ∇L(θ)',
+     desc:'The core learning rule. Move each parameter θ in the direction that decreases the loss L, scaled by the learning rate α. Repeat millions of times.',
+     trick:'<strong>Learning rate is everything.</strong> Too high → loss explodes. Too low → training stalls. Modern optimisers like Adam adapt α per-parameter automatically.'},
+    {name:'ReLU',
+     formula:'f(x) = max(0, x)',
+     desc:'The most widely used activation function. Passes positive values unchanged, kills negatives. Brutally simple — yet it enabled the deep learning revolution.',
+     trick:'<strong>ReLU\'s killer property:</strong> its derivative is exactly 0 or 1. No vanishing gradients. No expensive exponentials. Just a comparison. That\'s why it trains so fast.'},
+    {name:'Layer Normalisation',
+     formula:'LN(x) = (x − μ) / √(σ² + ε)',
+     desc:'Normalises activations within each sample to zero mean and unit variance, then scales with learned parameters γ and β. Keeps training stable across architectures.',
+     trick:'<strong>ε (epsilon)</strong> is a tiny constant (e.g. 1e-5) added to the denominator to prevent division by zero when variance is exactly 0.'},
+    {name:'Perceptron',
+     formula:'ŷ = sign(w · x + b)',
+     desc:'The original artificial neuron from 1958. Takes a weighted sum of inputs, adds a bias, and outputs a binary decision. The foundation of every neural network today.',
+     trick:'<strong>Everything is a perceptron.</strong> Stack millions, add nonlinearities, and you get a transformer. The core insight — weighted sum + threshold — has never changed.'},
+    {name:'Adam Optimiser',
+     formula:'mₜ = β₁mₜ₋₁ + (1−β₁)gₜ\nvₜ = β₂vₜ₋₁ + (1−β₂)gₜ²\nθ ← θ − α · m̂ₜ / (√v̂ₜ + ε)',
+     desc:'Adaptive Moment Estimation. Tracks both the mean (mₜ) and variance (vₜ) of gradients to give each parameter its own adaptive learning rate. Defaults: β₁=0.9, β₂=0.999.',
+     trick:'<strong>m̂ₜ and v̂ₜ</strong> are bias-corrected estimates. Without correction, early steps are dominated by the zero initialisation, causing slow starts.'},
+    {name:'Positional Encoding',
+     formula:'PE(pos, 2i)   = sin(pos / 10000^(2i/d))\nPE(pos, 2i+1) = cos(pos / 10000^(2i/d))',
+     desc:'Transformers have no built-in sense of order. Positional encodings inject position information using sine/cosine waves at different frequencies across the embedding dimensions.',
+     trick:'<strong>Why sine and cosine?</strong> They produce unique patterns for every position, and the model can learn relative positions via linear combinations — a neat geometric trick.'},
+    {name:'KL Divergence',
+     formula:'D_KL(P ‖ Q) = Σ P(x) · log( P(x) / Q(x) )',
+     desc:'Measures how much information is lost when Q is used to approximate P. Used in VAEs, RLHF KL penalties, and information theory. Not symmetric: D_KL(P‖Q) ≠ D_KL(Q‖P).',
+     trick:'<strong>KL divergence is always ≥ 0</strong> (Gibbs\' inequality). It equals 0 only when P = Q exactly. This makes it useful as a loss — minimise it to make two distributions match.'},
+    {name:'Temperature Sampling',
+     formula:'P(xᵢ) = exp(logitᵢ / T) / Σⱼ exp(logitⱼ / T)',
+     desc:'Controls the randomness of text generation. T=1 is standard. T→0 is greedy (always pick the top token). T>1 flattens the distribution, producing more creative and unpredictable outputs.',
+     trick:'<strong>Temperature ≠ creativity.</strong> High T just makes low-probability tokens more likely. True creativity requires better training, not just higher temperature.'},
+    {name:'Backpropagation',
+     formula:'∂L/∂w = ∂L/∂ŷ · ∂ŷ/∂z · ∂z/∂w',
+     desc:'The chain rule applied recursively through a network to compute how much each weight contributed to the loss. The entire field of deep learning runs on this one insight from calculus.',
+     trick:'<strong>Backprop is just the chain rule.</strong> Leibniz discovered it in 1676. We just run it backwards through 175 billion parameters a few million times.'},
+    {name:"Bayes' Theorem",
+     formula:'P(A|B) = P(B|A) · P(A) / P(B)',
+     desc:'The foundation of probabilistic reasoning. Updates a prior belief P(A) with new evidence B to get a posterior P(A|B). Used in Bayesian neural nets, spam filters, and RAG retrieval scoring.',
+     trick:'<strong>P(B) is often intractable.</strong> That\'s why variational inference, MCMC, and normalising flows exist — to approximate Bayesian posteriors without computing the denominator directly.'},
+    {name:'L2 Regularisation',
+     formula:'L_total = L_task + λ · ‖w‖²',
+     desc:'Adds a penalty proportional to the squared magnitude of all weights. Prevents overfitting by discouraging the model from relying too heavily on any single parameter. Also called weight decay.',
+     trick:'<strong>L2 = Gaussian prior.</strong> Mathematically, L2 regularisation is equivalent to placing a zero-mean Gaussian prior on the weights. MAP estimation gives you the same update rule.'},
+    {name:'Dropout',
+     formula:'h̃ᵢ = hᵢ · Bernoulli(1 − p)',
+     desc:'During training, randomly zeroes each neuron with probability p. Forces the network to learn redundant representations and prevents co-adaptation of neurons. Disabled at inference.',
+     trick:'<strong>Dropout = ensemble learning.</strong> Each training step uses a different subnetwork. The full model at inference is approximately the geometric mean of all those subnetworks.'}
+  ];
+
+  let current=Math.floor((Date.now()-new Date('2026-01-01'))/(864e5))%FORMULAS.length;
+
+  function render(){
+    const f=FORMULAS[current];
+    document.getElementById('cfName').textContent=f.name;
+    document.getElementById('cfFormula').textContent=f.formula;
+    document.getElementById('cfDesc').textContent=f.desc;
+    document.getElementById('cfTrick').innerHTML=f.trick;
+    document.getElementById('computeCounter').textContent=`${current+1} / ${FORMULAS.length}`;
+    document.querySelectorAll('.compute-cell').forEach((c,i)=>{
+      c.classList.toggle('active',i===current);
+    });
+  }
+
+  window.computeStep=function(dir){
+    current=(current+dir+FORMULAS.length)%FORMULAS.length;
+    render();
+    document.getElementById('computeFotd')?.scrollIntoView({behavior:'smooth',block:'nearest'});
+  };
+
+  // Build grid
+  const grid=document.getElementById('computeGrid');
+  if(grid){
+    FORMULAS.forEach((f,i)=>{
+      const cell=document.createElement('div');
+      cell.className='compute-cell'+(i===current?' active':'');
+      cell.innerHTML=`<div class="compute-cell-name">${f.name}</div><div class="compute-cell-formula">${f.formula.split('\n')[0]}</div>`;
+      cell.onclick=()=>{current=i;render();document.getElementById('computeFotd')?.scrollIntoView({behavior:'smooth',block:'nearest'});};
+      grid.appendChild(cell);
+    });
+  }
+
+  // Init when page becomes active
+  const origNavigate=window.navigate;
+  window.navigate=function(pageId,opts){
+    origNavigate(pageId,opts);
+    if(pageId==='compute') render();
+  };
+
+  // Also render on load if on compute page
+  if(document.getElementById('page-compute')?.classList.contains('active')) render();
+})();
+
+/* ====================================================
+   TL;DR — Plain-English AI Cards
+==================================================== */
+(function(){
+  const CARDS=[
+    {emoji:'🧠',tag:'LLMs',headline:'Autocomplete that read the entire internet.',body:'A large language model is trained to predict the next word — billions of times, across billions of sentences. That\'s it. Except the "it" turns out to be almost everything.'},
+    {emoji:'🔥',tag:'Training',headline:'Show it enough examples. It figures out the rest.',body:'Training is just: here\'s an input, here\'s the correct output, <strong>adjust your weights</strong> to be less wrong. Repeat 10 trillion times.'},
+    {emoji:'👁️',tag:'Attention',headline:'AI reads a sentence and decides what actually matters.',body:'The attention mechanism lets a model focus on the <strong>relevant parts</strong> of its context for each word it generates. It\'s why GPT-4 can answer questions about a 100-page document.'},
+    {emoji:'🌡️',tag:'Temperature',headline:'Turn it up → creative. Turn it down → precise.',body:'Temperature controls randomness. <strong>Low temperature</strong> = always picks the safest next word. <strong>High temperature</strong> = willing to go off-script. Most apps run around 0.7.'},
+    {emoji:'⚡',tag:'GPUs',headline:'AI runs on gaming chips because it\'s all just matrix maths.',body:'Neural networks are just billions of multiply-and-add operations. <strong>GPUs were built</strong> to do exactly that for graphics. Nvidia accidentally became the backbone of AI.'},
+    {emoji:'🎯',tag:'Fine-Tuning',headline:'Take a genius. Give them one specific job.',body:'Fine-tuning takes a general model and trains it further on a narrow dataset. A medical fine-tune. A legal fine-tune. Same brain, <strong>different expertise</strong>.'},
+    {emoji:'📚',tag:'RAG',headline:'AI with a library card.',body:'Retrieval-Augmented Generation lets AI <strong>look things up</strong> before answering. Instead of relying on what it memorised, it fetches relevant documents in real time. Less hallucination. More accuracy.'},
+    {emoji:'🤖',tag:'Agents',headline:'An AI that doesn\'t just answer — it acts.',body:'An agent can browse the web, run code, send emails, and call APIs. It <strong>plans multi-step tasks</strong> and executes them. GPT-4 answering a question is a chatbot. GPT-4 booking your flights is an agent.'},
+    {emoji:'🧬',tag:'Transformers',headline:'The architecture behind almost every AI you\'ve used.',body:'Introduced in "Attention Is All You Need" (2017). Every major LLM — GPT, Claude, Gemini, Llama — is a transformer. The key insight: <strong>attention is enough</strong>. You don\'t need recurrence.'},
+    {emoji:'💬',tag:'Tokens',headline:'AI doesn\'t see words. It sees chunks.',body:'"unbelievable" = 3 tokens. "ChatGPT" = 2 tokens. A blank space is often its own token. Models charge by the token. Context windows are measured in tokens. <strong>Tokens are the atoms of LLMs</strong>.'},
+    {emoji:'👍',tag:'RLHF',headline:'Humans rate the answers. AI learns to chase the thumbs up.',body:'Reinforcement Learning from Human Feedback: people compare AI responses, <strong>pick the better one</strong>, and those preferences train a reward model that shapes future outputs. This is how ChatGPT became ChatGPT.'},
+    {emoji:'🪞',tag:'Hallucination',headline:'Confident. Fluent. Wrong.',body:'LLMs generate the most <strong>plausible-sounding</strong> next token — not the most true one. They have no fact-checking layer. The result: beautifully written nonsense. RAG and fine-tuning reduce it. Nothing eliminates it yet.'},
+    {emoji:'📏',tag:'Context Window',headline:'How much the AI can "see" at once.',body:'Early GPT-3: 4,000 tokens. GPT-4: 128,000. Gemini: 1 million. The context window is the AI\'s <strong>working memory</strong> — everything outside it is forgotten. Longer windows = more context, higher cost.'},
+    {emoji:'🏋️',tag:'Parameters',headline:'The knobs. All 175 billion of them.',body:'Parameters are the numbers inside a neural network that get adjusted during training. GPT-3 has 175B. GPT-4 probably more. <strong>More parameters ≠ always smarter</strong>, but it\'s a reasonable proxy for capability.'},
+    {emoji:'⚖️',tag:'AI Safety',headline:'Making sure the thing you built doesn\'t destroy you.',body:'AI safety is the field of ensuring AI systems behave as <strong>intended</strong> and remain under human control as they become more capable. It\'s part philosophy, part maths, and entirely urgent.'}
+  ];
+
+  const deck=document.getElementById('tldrDeck');
+  if(!deck) return;
+
+  CARDS.forEach((c,i)=>{
+    const card=document.createElement('div');
+    card.className='tldr-card';
+    card.innerHTML=`
+      <div class="tldr-emoji">${c.emoji}</div>
+      <div class="tldr-tag">${c.tag}</div>
+      <div class="tldr-headline">${c.headline}</div>
+      <p class="tldr-body">${c.body}</p>
+      <span class="tldr-card-num">${i+1} / ${CARDS.length}</span>
+    `;
+    deck.appendChild(card);
   });
 })();
 </script>
