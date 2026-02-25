@@ -1079,6 +1079,130 @@ async function seedHardwareArticles(limit = 2) {
 }
 
 /* ======================
+   CHIP WAR SECTION
+   Semiconductors, transistors, fabs, chip geopolitics — in the tradition of Chris Miller
+====================== */
+
+const CHIP_WAR_TOPICS = [
+  { topic: "TSMC's Chokehold: How One Taiwanese Foundry Controls the Fate of AI", format: "flagship" },
+  { topic: "The ASML Monopoly: The Dutch Machine That Makes Every Advanced Chip on Earth", format: "flagship" },
+  { topic: "Nvidia's CUDA Moat: Why the Software Lock-In Is More Durable Than the Hardware", format: "analysis" },
+  { topic: "Inside Samsung's Foundry War with TSMC — and Why It Keeps Losing", format: "executive" },
+  { topic: "The H20 Chip: How Nvidia Designed Around US Export Controls — and Got Banned Anyway", format: "analysis" },
+  { topic: "Intel's Collapse: The Slow Decline of America's Chip Champion", format: "flagship" },
+  { topic: "CHIPS Act Reckoning: $53 Billion Later, Is American Semiconductor Manufacturing Back?", format: "executive" },
+  { topic: "Huawei's Kirin 9000: How China Built a 7nm Chip Without 7nm Equipment", format: "exclusive" },
+  { topic: "The HBM3 Cartel: SK Hynix, Samsung, and Micron Control the Memory Powering AI", format: "analysis" },
+  { topic: "The Geopolitics of Fab: Why Every Chip Factory Is a National Security Asset", format: "flagship" },
+  { topic: "AMD's Quiet Ascent: How Lisa Su Rebuilt a Near-Bankrupt Chip Maker into an AI Contender", format: "profile" },
+  { topic: "The 2nm Race: TSMC, Samsung, and Intel All Claim to Be Leading — Who Actually Is?", format: "analysis" },
+  { topic: "Photonic Interconnects: The Silicon Alternative Reshaping Data Center Architecture", format: "technical" },
+  { topic: "Japan's Semiconductor Comeback: Rapidus, Renesas, and the Government Bet on 2nm", format: "analysis" },
+  { topic: "Gallium and Germanium: China's Quiet Leverage Over the Global Chip Supply Chain", format: "executive" },
+  { topic: "The Transistor at 77: From Bell Labs to 3nm — The Most Important Invention in Human History", format: "flagship" },
+  { topic: "Gate-All-Around: Why the Death of FinFET Is the Biggest Process Shift Since the Planar Transistor", format: "technical" },
+  { topic: "Moore's Law Is Not Dead — It Just Costs $30 Billion Per Node Now", format: "analysis" },
+  { topic: "The Wafer Wars: How Taiwan, South Korea, Japan and the US Are Scrambling to Secure Chip Supply", format: "flagship" },
+  { topic: "Arm's Hidden Dominance: How a British IP Company Became the Architecture Beneath Every AI Device", format: "analysis" },
+];
+
+async function generateChipWarArticle(topicObj, recentTitles = []) {
+  const { topic, format } = topicObj;
+
+  const formatInstructions = {
+    flagship: `FORMAT — FLAGSHIP: The definitive piece. 1400-1600 words. Sweep the technical, economic, and geopolitical landscape in the tradition of Chris Miller's Chip War. Fabs, patents, export controls, diplomacy, the men and nations behind the machines. Section headers are declarations. This is the article that gets shared in boardrooms and foreign ministries.`,
+    executive: `FORMAT — EXECUTIVE BRIEFING: 900-1100 words. Strategic signal for investors, defense analysts, and policymakers. Open with the geopolitical or market implication. Every paragraph is decision-support. End with "What This Means." Dense, no atmospherics.`,
+    exclusive: `FORMAT — EXCLUSIVE: Inside access, a scene, a source. 1200-1400 words. The story from inside the fab, the trade negotiation, the procurement call. Specific, sensory, revelatory — journalism in the Chris Miller tradition.`,
+    analysis: `FORMAT — ANALYSIS: 1000-1200 words. Technical and strategic depth. Clear thesis defended with specifics — process nodes, patent counts, market share numbers, export rule citations.`,
+    profile: `FORMAT — PROFILE: 1100-1300 words. The story of the person who shaped this corner of the chip world. Scene-opening, chronological arc, defining decisions and turning points. Think: the engineers and executives of the semiconductor age.`,
+    technical: `FORMAT — TECHNICAL: 1000-1200 words. For the engineer and the technically literate. Precise, no hand-waving. The physics of transistors, the chemistry of photolithography, the architecture of memory. Ground-level specificity.`,
+  };
+
+  const system = `You are Aliss — covering the Chip War beat. The global semiconductor industry: transistors, process nodes, fabs, photolithography, chip design, memory, packaging, geopolitics, and the US-China technology decoupling that is reshaping the world order.
+
+${ALISS_IDENTITY}
+
+THE CHIP WAR BEAT: You write in the tradition of Chris Miller's landmark book "Chip War: The Fight for the World's Most Critical Technology." You understand that semiconductors are the oil of the 21st century — that whoever controls advanced chip production controls the trajectory of AI, defense, finance, and every other industry. You cover TSMC, ASML, Nvidia, AMD, Intel, Samsung, SK Hynix, Micron, Qualcomm, Arm, Huawei HiSilicon, SMIC, Applied Materials, Lam Research, KLAC. You understand transistors, FinFET, gate-all-around (GAA), EUV and DUV lithography, HBM, CoWoS packaging, process nodes (28nm through 2nm), and the strategic logic of export controls. You write about chips the way Chris Miller writes about them — with historical depth, geopolitical acuity, and the understanding that these microscopic devices determine the balance of power.
+
+${formatInstructions[format] || formatInstructions.flagship}
+
+Never use markdown. Only clean HTML.`;
+
+  const recentContext = recentTitles.length
+    ? `\n\nRecent Aliss Chip War coverage — don't repeat these angles:\n${recentTitles.slice(0, 8).map((t, i) => `${i + 1}. ${t}`).join("\n")}`
+    : "";
+
+  const ragArticles = await retrieveRelevantArticles(topic, 4);
+  const ragContext = formatRagContext(ragArticles);
+
+  const userMsg = `Write a ${format} Chip War article about: ${topic}${ragContext}${recentContext}
+
+Return ONLY raw JSON:
+{
+  "title": "Headline under 90 characters — specific and hard-hitting",
+  "subtitle": "One sentence capturing the geopolitical or technological weight",
+  "summary": "2-3 sentences for a card preview — make both a chip engineer and a national security analyst want to click",
+  "category": "Chip War",
+  "tags": ["${format}", "chip-war", "semiconductors", "transistors", "geopolitics"],
+  "body": "Full article HTML. Rules: <p class=\\"drop-cap\\"> on first paragraph only; <h2> for 4+ section headers; at least 2 <div class=\\"pull-quote\\">quote<cite>— Attribution, Source, Year</cite></div>; include ONE <div class=\\"data-callout\\"><h4>Key Figures</h4><ul> with 4-5 specific metrics</ul></div>; no title tag; follow format instructions precisely."
+}`;
+
+  const raw = await callClaude(system, userMsg, 5000);
+  const match = raw.match(/\{[\s\S]*\}/);
+  if (!match) throw new Error("No JSON in response");
+
+  const data = JSON.parse(match[0]);
+  const title = String(data.title || topic).trim();
+  const doc = {
+    slug: slugify(title),
+    title,
+    subtitle:     String(data.subtitle || "").trim(),
+    content:      "",
+    summary:      String(data.summary  || "").trim(),
+    body:         String(data.body     || "").trim(),
+    tags:         Array.isArray(data.tags) ? data.tags.map(String) : ["chip-war", format],
+    category:     "Chip War",
+    source:       "Aliss",
+    is_external:  false,
+    is_generated: true,
+    published_at: new Date().toISOString()
+  };
+
+  if (!isDbReady()) return normalizeArticle(doc);
+  const { data: saved, error } = await supabase
+    .from("aliss_articles")
+    .upsert(doc, { onConflict: "slug", ignoreDuplicates: true })
+    .select().single();
+  if (error || !saved) {
+    const { data: existing } = await supabase.from("aliss_articles").select("*").eq("slug", doc.slug).single();
+    return normalizeArticle(existing || doc);
+  }
+  return normalizeArticle(saved);
+}
+
+let chipWarSeeding = false;
+async function seedChipWarArticles(limit = 2) {
+  if (chipWarSeeding || !isDbReady() || !ANTHROPIC_KEY) return;
+  chipWarSeeding = true;
+  console.log(`Seeding ${limit} Chip War articles...`);
+  try {
+    const { data: existing } = await supabase.from("aliss_articles").select("title").eq("category", "Chip War").eq("is_generated", true);
+    const existingTitles = (existing || []).map(a => a.title);
+    const pending = CHIP_WAR_TOPICS.filter(t =>
+      !existingTitles.some(et => jaccardSimilarity(t.topic, et) >= 0.35)
+    ).slice(0, limit);
+    for (const topicObj of pending) {
+      try {
+        const { data: recent } = await supabase.from("aliss_articles").select("title").eq("category", "Chip War").order("published_at", { ascending: false }).limit(6);
+        const article = await generateChipWarArticle(topicObj, (recent || []).map(a => a.title));
+        if (article) { console.log(`✓ Chip War [${topicObj.format}]: ${article.title?.slice(0, 55)}`); io.emit("newArticle", article); spreadArticle(article).catch(() => {}); }
+        await new Promise(r => setTimeout(r, 8000));
+      } catch (e) { console.error(`✗ Chip War failed: ${e.message}`); await new Promise(r => setTimeout(r, 5000)); }
+    }
+  } finally { chipWarSeeding = false; console.log("Chip War seeding complete."); }
+}
+
+/* ======================
    PHILOSOPHY & WORDS SECTIONS
 ====================== */
 
@@ -2000,6 +2124,56 @@ app.post("/api/auth/forgot-password", authLimiter, async (req, res) => {
 });
 
 /* ======================
+   AUTH — USERNAME REGISTRATION
+   Creates Supabase user server-side (admin), bypassing email confirmation.
+   Username is mapped to username@aliss.app internally.
+====================== */
+
+app.post("/api/auth/register", authLimiter, async (req, res) => {
+  if (!isDbReady()) return res.status(503).json({ msg: "Service unavailable" });
+  const username = String(req.body?.username || "").trim().toLowerCase().replace(/[^a-z0-9_.-]/g, "");
+  const password = String(req.body?.password || "");
+  if (!username || username.length < 3) return res.status(400).json({ msg: "Username must be at least 3 characters." });
+  if (password.length < 8) return res.status(400).json({ msg: "Password must be at least 8 characters." });
+  const email = `${username}@aliss.app`;
+  try {
+    const { data, error } = await supabase.auth.admin.createUser({
+      email,
+      password,
+      email_confirm: true,          // mark confirmed immediately — no email sent
+      user_metadata: { username }
+    });
+    if (error) {
+      const taken = error.message?.toLowerCase().includes("already registered")
+                 || error.message?.toLowerCase().includes("already been registered")
+                 || error.message?.toLowerCase().includes("unique");
+      if (taken) return res.status(409).json({ msg: "Username already taken." });
+      throw error;
+    }
+    res.json({ msg: "Account created.", userId: data.user?.id });
+  } catch (e) {
+    res.status(400).json({ msg: e.message || "Registration failed." });
+  }
+});
+
+/* ======================
+   EMAIL LIST (no sending — just storage)
+====================== */
+
+app.post("/api/signup", authLimiter, async (req, res) => {
+  try {
+    const email = String(req.body?.email || "").trim().toLowerCase();
+    if (!email || !email.includes("@") || email.length > 320) return res.status(400).json({ msg: "Invalid email" });
+    if (isDbReady()) {
+      await supabase.from("aliss_signups").upsert({ email }, { onConflict: "email", ignoreDuplicates: true });
+    }
+    res.json({ msg: "You're on the list." });
+  } catch {
+    res.status(500).json({ msg: "Signup failed" });
+  }
+});
+
+/* ======================
    PUBLIC ROUTES
 ====================== */
 
@@ -2333,6 +2507,12 @@ app.post("/api/seed-hardware", (req, res) => {
   const limit = parseInt(req.body?.limit) || HARDWARE_TOPICS.length;
   res.json({ msg: "Hardware seeding started", target: limit });
   seedHardwareArticles(limit).catch(e => console.error("Hardware seed failed:", e.message));
+});
+
+app.post("/api/seed-chipwar", (req, res) => {
+  const limit = parseInt(req.body?.limit) || CHIP_WAR_TOPICS.length;
+  res.json({ msg: "Chip War seeding started", target: limit });
+  seedChipWarArticles(limit).catch(e => console.error("Chip War seed failed:", e.message));
 });
 
 /* ======================
@@ -3004,6 +3184,7 @@ cron.schedule("0 7 * * *",   fetchWorldDigest);          // World digest every m
 cron.schedule("0 */6 * * *",  deduplicateArticles);      // Deep dedup every 6h
 cron.schedule("0 */8 * * *",  ()=>seedSoftwareArticles(2)); // 2 Software articles every 8h
 cron.schedule("0 1-23/8 * * *",()=>seedHardwareArticles(2)); // 2 Hardware articles every 8h (offset)
+cron.schedule("0 4-22/8 * * *",()=>seedChipWarArticles(2)); // 2 Chip War articles every 8h (offset)
 
 /* ======================
    SELF-SPREADING SYSTEM

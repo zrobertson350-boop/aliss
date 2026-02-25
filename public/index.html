@@ -579,7 +579,7 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-off
 <li><a href="#" data-nav="industry" onclick="navigate('industry');return false">Industry</a></li>
 <li><a href="#" data-nav="scale" onclick="filterCategory('Scale','scale');return false">Scale</a></li>
 <li><a href="#" data-nav="research" onclick="filterCategory('Research','research');return false">Papers</a></li>
-<li><a href="#" data-nav="world" onclick="filterCategory('World','world');return false">World</a></li>
+<li><a href="#" data-nav="chipwar" onclick="filterCategory('Chip War','chipwar');return false">Chip War</a></li>
 <li><a href="#" data-nav="aidle" onclick="navigate('aidle');return false">A·I·dle</a></li>
 <li><a href="#" data-nav="compute" onclick="navigate('compute');return false">Compute</a></li>
 <li><a href="#" data-nav="tldr" onclick="navigate('tldr');return false">TL;DR</a></li>
@@ -627,6 +627,10 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-off
 <div class="papers-grid" id="papersGrid"></div>
 </div>
 
+<div id="liveUpdatesSection" style="display:none;margin-top:48px">
+<div class="section-header"><h3>Daily Briefing <span id="liveUpdatesDate" style="font-weight:400;font-size:12px;opacity:0.5;margin-left:8px"></span></h3></div>
+<div class="live-grid" id="liveUpdatesGrid"></div>
+</div>
 
 </div></div>
 
@@ -1460,7 +1464,7 @@ function escapeHtml(value){
 let articlesShown=500;
 
 /* ---- Relevance sort ---- */
-const CATEGORY_WEIGHT={'Scale':8,'Analysis':7,'Research':7,'Industry':6,'Philosophy':5,'Opinion':5,'Profile':3,'Futures':4,'World':4,'Business':4,'Tech':4,'Words':4,'AI Outlook':4,'Culture':4,'Science':3,'Politics':3,'Health':3,'News':2};
+const CATEGORY_WEIGHT={'Scale':8,'Analysis':7,'Research':7,'Industry':6,'Chip War':7,'Philosophy':5,'Opinion':5,'Profile':3,'Futures':4,'Business':4,'Tech':4,'Words':4,'AI Outlook':4,'Culture':4,'Science':3,'Politics':3,'Health':3,'News':2};
 const FORMAT_WEIGHT={'flagship':3,'exclusive':2,'executive':1};
 
 function sortByRelevance(articles){
@@ -2032,10 +2036,15 @@ async function doSignUp(){
   if(!username||!password){msg.className='auth-msg error';msg.textContent='Username and password are required.';return;}
   if(username.length<3){msg.className='auth-msg error';msg.textContent='Username must be at least 3 characters.';return;}
   if(password.length<8){msg.className='auth-msg error';msg.textContent='Password must be at least 8 characters.';return;}
-  const email=username+'@aliss.app';
   btn.disabled=true;btn.textContent='Creating account…';msg.className='auth-msg';msg.textContent='';
   try{
-    const {data,error}=await _sb.auth.signUp({email,password,options:{data:{username}}});
+    // Step 1: server creates user via admin API (email_confirm:true — no confirmation email)
+    const r=await fetch('/api/auth/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username,password})});
+    const d=await r.json();
+    if(!r.ok) throw new Error(d.msg||'Registration failed.');
+    // Step 2: sign in directly now that user exists
+    const email=username+'@aliss.app';
+    const {error}=await _sb.auth.signInWithPassword({email,password});
     if(error) throw error;
     msg.className='auth-msg success';msg.textContent='Account created. Welcome to Aliss!';
     setTimeout(closeAuthModal,900);
@@ -2588,7 +2597,7 @@ if(typeof _origOpenDynamic==='function'){
      trick:'<strong>The softmax trick:</strong> subtract max(z) from all values before computing eᶻ. The result is identical but you avoid NaN from overflow when logits are large.'},
     {name:'Scaled Dot-Product Attention',
      formula:'Attention(Q,K,V) = softmax( QKᵀ / √dₖ ) · V',
-     desc:'The engine of every transformer. Q (query) asks a question; K (keys) describe what's available; V (values) hold the actual information. The division by √dₖ keeps gradients stable in high dimensions.',
+     desc:'The engine of every transformer. Q (query) asks a question; K (keys) describe what\u2019s available; V (values) hold the actual information. The division by \u221ad\u2096 keeps gradients stable in high dimensions.',
      trick:'<strong>Why √dₖ?</strong> In high-dimensional space, dot products grow proportional to dₖ, pushing softmax into saturation. Dividing by √dₖ keeps the variance at 1.'},
     {name:'Cross-Entropy Loss',
      formula:'L = −Σᵢ yᵢ log(ŷᵢ)',
