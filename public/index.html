@@ -1386,6 +1386,7 @@ function renderPage(pageId,{scroll=true}={}){
   if(n)n.classList.add('active');
   if(pageId.startsWith('article'))document.querySelector('.main-nav a[data-nav="profiles"]')?.classList.add('active');
   if(scroll) window.scrollTo({top:0,behavior:'smooth'});
+  if(pageId==='compute') window._computeRender?.();
 }
 
 function navigate(pageId,{replace=false,slug=''}={}){
@@ -2927,15 +2928,11 @@ if(typeof _origOpenDynamic==='function'){
     });
   }
 
-  // Init when page becomes active
-  const origNavigate=window.navigate;
-  window.navigate=function(pageId,opts){
-    origNavigate(pageId,opts);
-    if(pageId==='compute'){ render(); initMathLab(); }
-  };
+  // Expose render globally so renderPage can call it
+  window._computeRender=function(){ render(); initMathLab(); };
 
-  // Also render on load if on compute page
-  if(document.getElementById('page-compute')?.classList.contains('active')){ render(); initMathLab(); }
+  // Render immediately (called after DOM ready)
+  render();
 })();
 
 // ── MATH LAB ──────────────────────────────────────────────────────
