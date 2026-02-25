@@ -1276,14 +1276,23 @@ async function retrieveRelevantArticles(query, limit = 5, excludeSlug = null) {
   }
 }
 
-/** Format RAG context block for injection into generation prompts */
+/** Format RAG context block — Aliss's episodic memory of its own prior work */
 function formatRagContext(articles) {
   if (!articles.length) return "";
-  return `\n\nRelevant Aliss archive — use these for grounding, cross-reference, and fresh angles:\n${
-    articles.map(a =>
-      `[${a.category}] "${a.title}"\n  → ${(a.summary || "").slice(0, 200)}`
-    ).join("\n\n")
-  }`;
+  return `\n\n━━ ALISS EDITORIAL MEMORY ━━
+You have already written the following on this topic. This is not reference material — it is your own prior work. Read it as a journalist reads their clips before filing the next story on a beat they've owned for months.
+
+${articles.map((a, i) =>
+  `[${i + 1}] ${a.category.toUpperCase()} — "${a.title}"\n    ${(a.summary || "").slice(0, 220)}`
+).join("\n\n")}
+
+WHAT THIS MEANS FOR YOUR NEW ARTICLE:
+• Do not repeat what you have already established above — your reader has read it
+• If the story has moved since you last covered it, say so explicitly ("When Aliss last reported on this...")
+• If you've changed your mind about something, say so — that's the story
+• Find the next chapter, not the first chapter
+• You may reference these pieces directly by name — you wrote them
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`;
 }
 
 // Articles we know are off-brand or exact dupes — always remove
