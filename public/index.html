@@ -489,18 +489,16 @@ a{color:inherit;text-decoration:none}
 .token-count{font-family:var(--mono);font-size:11px;color:var(--muted-light);opacity:.7}
 .dynamic-article .article-meta .token-count::before{content:' · '}
 
-/* Software & Hardware categories */
-:root{--software:#0A84FF;--hardware:#30D158}
-.card-software{border-left:4px solid var(--software)!important}
-.card-software .card-tag{color:var(--software)!important}
-.card-hardware{border-left:4px solid var(--hardware)!important}
-.card-hardware .card-tag{color:var(--hardware)!important}
+/* Scale category */
+:root{--scale:#7C3AED}
+.card-scale{border-left:4px solid var(--scale)!important}
+.card-scale .card-tag{color:var(--scale)!important}
 
 /* Format badges — flagship, executive, exclusive */
 .format-badge{display:inline-flex;align-items:center;gap:5px;font-family:var(--mono);font-size:8px;font-weight:700;letter-spacing:2px;text-transform:uppercase;padding:3px 8px;border-radius:2px;margin-bottom:6px}
 .format-flagship{background:rgba(192,57,43,.12);color:var(--accent);border:1px solid rgba(192,57,43,.25)}
 .format-executive{background:rgba(0,0,0,.06);color:var(--muted);border:1px solid var(--divider)}
-.format-exclusive{background:rgba(10,132,255,.1);color:var(--software);border:1px solid rgba(10,132,255,.2)}
+.format-exclusive{background:rgba(124,58,237,.1);color:var(--scale);border:1px solid rgba(124,58,237,.2)}
 .format-flagship::before{content:'◆ '}
 .format-executive::before{content:'▸ '}
 .format-exclusive::before{content:'⊕ '}
@@ -621,8 +619,7 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-off
 <nav class="main-nav"><ul>
 <li><a href="#" data-nav="profiles" onclick="filterCategory('Profile','profiles');return false">Profiles</a></li>
 <li><a href="#" data-nav="industry" onclick="navigate('industry');return false">Industry</a></li>
-<li><a href="#" data-nav="software" onclick="filterCategory('Software','software');return false">Software</a></li>
-<li><a href="#" data-nav="hardware" onclick="filterCategory('Hardware','hardware');return false">Hardware</a></li>
+<li><a href="#" data-nav="scale" onclick="filterCategory('Scale','scale');return false">Scale</a></li>
 <li><a href="#" data-nav="research" onclick="filterCategory('Research','research');return false">Papers</a></li>
 <li><a href="#" data-nav="world" onclick="filterCategory('World','world');return false">World</a></li>
 <li><a href="#" data-nav="aidle" onclick="navigate('aidle');return false">A·I·dle</a></li>
@@ -1617,7 +1614,7 @@ function escapeHtml(value){
 let articlesShown=500;
 
 /* ---- Relevance sort ---- */
-const CATEGORY_WEIGHT={'Industry':7,'Hardware':7,'Software':7,'Profile':5,'Futures':5,'Analysis':4,'World':4,'Business':4,'Tech':4,'Philosophy':4,'Words':4,'AI Outlook':4,'Culture':4,'Science':3,'Politics':3,'Research':3,'Health':3,'Opinion':2,'News':2};
+const CATEGORY_WEIGHT={'Industry':7,'Scale':7,'Profile':5,'Futures':5,'Analysis':4,'World':4,'Business':4,'Tech':4,'Philosophy':4,'Words':4,'AI Outlook':4,'Culture':4,'Science':3,'Politics':3,'Research':3,'Health':3,'Opinion':2,'News':2};
 const FORMAT_WEIGHT={'flagship':3,'exclusive':2,'executive':1};
 
 function sortByRelevance(articles){
@@ -1821,8 +1818,7 @@ function buildCard(article,index){
   // Card class composition
   const classes=['card'];
   if(cat==='industry') classes.push('card-industry');
-  if(cat==='software') classes.push('card-software');
-  if(cat==='hardware') classes.push('card-hardware');
+  if(cat==='scale') classes.push('card-scale');
   if(fmt==='flagship') classes.push('card-flagship');
 
   const card=document.createElement('div');

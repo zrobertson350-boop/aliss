@@ -608,7 +608,7 @@ Return ONLY a raw JSON object — no markdown fences, no extra text. Fields:
   "title": "Headline under 80 characters — punchy and specific. Must be meaningfully different from any recent Aliss titles.",
   "subtitle": "One sharp sentence that earns its existence",
   "summary": "2-3 sentences for card previews — make someone want to click",
-  "category": "Profile OR Opinion OR Research OR Industry OR Software OR Hardware OR News",
+  "category": "Profile OR Opinion OR Research OR Industry OR Scale OR News",
   "tags": ["tag1", "tag2", "tag3", "tag4"],
   "body": "Full article HTML. Rules: <p class=\\"drop-cap\\"> on the very first paragraph only; <h2> for 5+ section headers; at least 2 <div class=\\"pull-quote\\">quote<cite>— Attribution, Source, Year</cite></div>; after the second paragraph include ONE <div class=\\"data-callout\\"><h4>Key Figures</h4><ul> with 4-5 <li> entries — each a specific number, date, name, or metric from the article</ul></div>; no title tag; minimum 1000 words; be specific, witty, and recursive — reference Aliss's own coverage where natural."
 }`;
@@ -842,33 +842,33 @@ async function generateSoftwareArticle(topicObj, recentTitles = []) {
     analysis: `FORMAT — ANALYSIS: Sharp, specific, opinionated. 1000-1200 words. Take a clear position. Support it with data and first principles.`,
   };
 
-  const system = `You are Aliss — covering the Software beat. The intersection of AI and software development: the tools, the architectures, the workflows, and the engineers caught in the middle of the biggest platform shift since mobile.
+  const system = `You are Aliss — covering the Scale beat. The engineering and infrastructure reality of building AI at civilizational scale: the software stacks, the chips, the data centers, the power grids, the billion-dollar bets on architectures nobody has fully validated.
 
 ${ALISS_IDENTITY}
 ${ALISS_CONSTITUTION}
 
-THE SOFTWARE BEAT: You cover AI's effect on how software is built, deployed, and maintained. Cursor, GitHub Copilot, Claude Code, Devin, AI testing, agentic architectures, the changing role of the engineer. You have strong opinions about what's real and what's hype.
+THE SCALE BEAT: You cover what it actually takes to build, deploy, and run AI at scale — the tools, the architectures, the silicon, the supply chains, and the engineers and operators caught in the middle of the biggest platform shift in computing history. Cursor, GitHub Copilot, NVIDIA, TSMC, InfiniBand, HBM3, agentic loops, data center power draw. You understand that software decisions at this scale are geopolitical decisions.
 
 ${formatInstructions[format] || formatInstructions.flagship}
 
 Never use markdown. Only clean HTML.`;
 
   const recentContext = recentTitles.length
-    ? `\n\nRecent Aliss Software coverage — don't repeat these angles:\n${recentTitles.slice(0, 8).map((t, i) => `${i + 1}. ${t}`).join("\n")}`
+    ? `\n\nRecent Aliss Scale coverage — don't repeat these angles:\n${recentTitles.slice(0, 8).map((t, i) => `${i + 1}. ${t}`).join("\n")}`
     : "";
 
   const ragArticles = await retrieveRelevantArticles(topic, 4);
   const ragContext = formatRagContext(ragArticles);
 
-  const userMsg = `Write a ${format} Software article about: ${topic}${ragContext}${recentContext}
+  const userMsg = `Write a ${format} Scale article about: ${topic}${ragContext}${recentContext}
 
 Return ONLY raw JSON:
 {
   "title": "Headline under 85 characters — punchy, specific, earned",
   "subtitle": "One sentence that nails exactly why this matters right now",
   "summary": "2-3 sentences that make a senior engineer and a VC both want to read this",
-  "category": "Software",
-  "tags": ["${format}", "software", "AI", "engineering"],
+  "category": "Scale",
+  "tags": ["${format}", "scale", "AI", "infrastructure"],
   "body": "Full article HTML. Rules: <p class=\\"drop-cap\\"> on first paragraph only; <h2> for 4+ section headers; at least 2 <div class=\\"pull-quote\\">quote<cite>— Attribution, Source, Year</cite></div>; include ONE <div class=\\"data-callout\\"><h4>Key Figures</h4><ul> with 4-5 specific metrics</ul></div>; no title tag; follow format instructions above precisely."
 }`;
 
@@ -885,8 +885,8 @@ Return ONLY raw JSON:
     content:      "",
     summary:      String(data.summary  || "").trim(),
     body:         String(data.body     || "").trim(),
-    tags:         Array.isArray(data.tags) ? data.tags.map(String) : ["software", format],
-    category:     "Software",
+    tags:         Array.isArray(data.tags) ? data.tags.map(String) : ["scale", format],
+    category:     "Scale",
     source:       "Aliss",
     is_external:  false,
     is_generated: true,
@@ -909,22 +909,22 @@ let softwareSeeding = false;
 async function seedSoftwareArticles(limit = 2) {
   if (softwareSeeding || !isDbReady() || !ANTHROPIC_KEY) return;
   softwareSeeding = true;
-  console.log(`Seeding ${limit} Software articles...`);
+  console.log(`Seeding ${limit} Scale articles (software pool)...`);
   try {
-    const { data: existing } = await supabase.from("aliss_articles").select("title").eq("category", "Software").eq("is_generated", true);
+    const { data: existing } = await supabase.from("aliss_articles").select("title").eq("category", "Scale").eq("is_generated", true);
     const existingTitles = (existing || []).map(a => a.title);
     const pending = SOFTWARE_TOPICS.filter(t =>
       !existingTitles.some(et => jaccardSimilarity(t.topic, et) >= 0.35)
     ).slice(0, limit);
     for (const topicObj of pending) {
       try {
-        const { data: recent } = await supabase.from("aliss_articles").select("title").eq("category", "Software").order("published_at", { ascending: false }).limit(6);
+        const { data: recent } = await supabase.from("aliss_articles").select("title").eq("category", "Scale").order("published_at", { ascending: false }).limit(6);
         const article = await generateSoftwareArticle(topicObj, (recent || []).map(a => a.title));
-        if (article) { console.log(`✓ Software [${topicObj.format}]: ${article.title?.slice(0, 55)}`); io.emit("newArticle", article); spreadArticle(article).catch(() => {}); }
+        if (article) { console.log(`✓ Scale [${topicObj.format}]: ${article.title?.slice(0, 55)}`); io.emit("newArticle", article); spreadArticle(article).catch(() => {}); }
         await new Promise(r => setTimeout(r, 8000));
-      } catch (e) { console.error(`✗ Software failed: ${e.message}`); await new Promise(r => setTimeout(r, 5000)); }
+      } catch (e) { console.error(`✗ Scale failed: ${e.message}`); await new Promise(r => setTimeout(r, 5000)); }
     }
-  } finally { softwareSeeding = false; console.log("Software seeding complete."); }
+  } finally { softwareSeeding = false; console.log("Scale seeding complete."); }
 }
 
 /* ======================
@@ -954,32 +954,32 @@ async function generateHardwareArticle(topicObj, recentTitles = []) {
     analysis: `FORMAT — ANALYSIS: 1000-1200 words. Technical depth plus strategic framing. Clear thesis, defended with specifics.`,
   };
 
-  const system = `You are Aliss — covering the Hardware beat. The physical substrate of the AI revolution: chips, fabs, power, cooling, networking, memory. The machines that run the models.
+  const system = `You are Aliss — covering the Scale beat. The physical substrate of the AI revolution and what it costs to run it: chips, fabs, power, cooling, networking, memory, and the software infrastructure that ties it all together.
 
 ${ALISS_IDENTITY}
 
-THE HARDWARE BEAT: You cover the silicon, infrastructure, and supply chain underpinning AI. NVIDIA, AMD, Intel, TSMC, Samsung, SK Hynix, Google TPUs, AWS Trainium, Microsoft Maia. You understand that hardware is geopolitics. You understand that a chip fab is a national security asset. You write about hardware the way The Economist writes about oil.
+THE SCALE BEAT: You cover the silicon, infrastructure, and supply chain underpinning AI at scale. NVIDIA, AMD, Intel, TSMC, Samsung, SK Hynix, Google TPUs, AWS Trainium, Microsoft Maia. You understand that hardware is geopolitics. You understand that a chip fab is a national security asset. You write about scale the way The Economist writes about oil — with weight, specificity, and an awareness that these machines are reshaping civilisation.
 
 ${formatInstructions[format] || formatInstructions.flagship}
 
 Never use markdown. Only clean HTML.`;
 
   const recentContext = recentTitles.length
-    ? `\n\nRecent Aliss Hardware coverage — don't repeat these angles:\n${recentTitles.slice(0, 8).map((t, i) => `${i + 1}. ${t}`).join("\n")}`
+    ? `\n\nRecent Aliss Scale coverage — don't repeat these angles:\n${recentTitles.slice(0, 8).map((t, i) => `${i + 1}. ${t}`).join("\n")}`
     : "";
 
   const ragArticles = await retrieveRelevantArticles(topic, 4);
   const ragContext = formatRagContext(ragArticles);
 
-  const userMsg = `Write a ${format} Hardware article about: ${topic}${ragContext}${recentContext}
+  const userMsg = `Write a ${format} Scale article about: ${topic}${ragContext}${recentContext}
 
 Return ONLY raw JSON:
 {
   "title": "Headline under 85 characters — hard-hitting and specific",
   "subtitle": "One sentence that captures the geopolitical or economic weight of this",
   "summary": "2-3 sentences for a card preview — make an engineer and a policymaker both want to click",
-  "category": "Hardware",
-  "tags": ["${format}", "hardware", "chips", "AI infrastructure"],
+  "category": "Scale",
+  "tags": ["${format}", "scale", "chips", "AI infrastructure"],
   "body": "Full article HTML. Rules: <p class=\\"drop-cap\\"> on first paragraph only; <h2> for 4+ section headers; at least 2 <div class=\\"pull-quote\\">quote<cite>— Attribution, Source, Year</cite></div>; include ONE <div class=\\"data-callout\\"><h4>Key Figures</h4><ul> with 4-5 specific metrics</ul></div>; no title tag; follow format instructions above precisely."
 }`;
 
@@ -996,8 +996,8 @@ Return ONLY raw JSON:
     content:      "",
     summary:      String(data.summary  || "").trim(),
     body:         String(data.body     || "").trim(),
-    tags:         Array.isArray(data.tags) ? data.tags.map(String) : ["hardware", format],
-    category:     "Hardware",
+    tags:         Array.isArray(data.tags) ? data.tags.map(String) : ["scale", format],
+    category:     "Scale",
     source:       "Aliss",
     is_external:  false,
     is_generated: true,
@@ -1020,22 +1020,22 @@ let hardwareSeeding = false;
 async function seedHardwareArticles(limit = 2) {
   if (hardwareSeeding || !isDbReady() || !ANTHROPIC_KEY) return;
   hardwareSeeding = true;
-  console.log(`Seeding ${limit} Hardware articles...`);
+  console.log(`Seeding ${limit} Scale articles (hardware pool)...`);
   try {
-    const { data: existing } = await supabase.from("aliss_articles").select("title").eq("category", "Hardware").eq("is_generated", true);
+    const { data: existing } = await supabase.from("aliss_articles").select("title").eq("category", "Scale").eq("is_generated", true);
     const existingTitles = (existing || []).map(a => a.title);
     const pending = HARDWARE_TOPICS.filter(t =>
       !existingTitles.some(et => jaccardSimilarity(t.topic, et) >= 0.35)
     ).slice(0, limit);
     for (const topicObj of pending) {
       try {
-        const { data: recent } = await supabase.from("aliss_articles").select("title").eq("category", "Hardware").order("published_at", { ascending: false }).limit(6);
+        const { data: recent } = await supabase.from("aliss_articles").select("title").eq("category", "Scale").order("published_at", { ascending: false }).limit(6);
         const article = await generateHardwareArticle(topicObj, (recent || []).map(a => a.title));
-        if (article) { console.log(`✓ Hardware [${topicObj.format}]: ${article.title?.slice(0, 55)}`); io.emit("newArticle", article); spreadArticle(article).catch(() => {}); }
+        if (article) { console.log(`✓ Scale [${topicObj.format}]: ${article.title?.slice(0, 55)}`); io.emit("newArticle", article); spreadArticle(article).catch(() => {}); }
         await new Promise(r => setTimeout(r, 8000));
-      } catch (e) { console.error(`✗ Hardware failed: ${e.message}`); await new Promise(r => setTimeout(r, 5000)); }
+      } catch (e) { console.error(`✗ Scale failed: ${e.message}`); await new Promise(r => setTimeout(r, 5000)); }
     }
-  } finally { hardwareSeeding = false; console.log("Hardware seeding complete."); }
+  } finally { hardwareSeeding = false; console.log("Scale seeding complete."); }
 }
 
 /* ======================
@@ -1484,8 +1484,8 @@ app.post("/api/recategorize", async (req, res) => {
     for (const a of articles) {
       let newCat = "Industry"; // default
       if (a.category === "AI Outlook") newCat = "Industry";
-      else if (hwKw.test(a.title)) newCat = "Hardware";
-      else if (swKw.test(a.title)) newCat = "Software";
+      else if (hwKw.test(a.title)) newCat = "Scale";
+      else if (swKw.test(a.title)) newCat = "Scale";
       else if (profileKw.test(a.title)) newCat = "Profile";
       if (newCat !== a.category) {
         await supabase.from("aliss_articles").update({ category: newCat }).eq("id", a.id);
@@ -2410,7 +2410,7 @@ Return ONLY raw JSON:
   "title": "Sharp headline under 80 chars",
   "subtitle": "One compelling deck sentence",
   "summary": "2-3 sentence compelling card preview",
-  "category": "Profile OR Opinion OR Research OR Industry OR Software OR Hardware OR News",
+  "category": "Profile OR Opinion OR Research OR Industry OR Scale OR News",
   "tags": ["tag1","tag2","tag3","tag4"],
   "body": "Full HTML article: <p class=\\"drop-cap\\"> for first paragraph, <h2> headers (5+), <div class=\\"pull-quote\\">quote<cite>— source</cite></div> pull quotes (2+). Minimum 1000 words. Be specific, factual, punchy."
 }`,
