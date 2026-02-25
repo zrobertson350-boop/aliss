@@ -176,46 +176,56 @@ function normalizeArticle(a) {
 
 async function callClaude(system, userMsg, maxTokens = 2000) {
   if (!ANTHROPIC_KEY) throw new Error("No Anthropic API key");
-  const res = await axios.post(
-    "https://api.anthropic.com/v1/messages",
-    {
-      model: "claude-sonnet-4-6",
-      max_tokens: maxTokens,
-      system,
-      messages: [{ role: "user", content: userMsg }]
-    },
-    {
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": ANTHROPIC_KEY,
-        "anthropic-version": "2023-06-01"
+  try {
+    const res = await axios.post(
+      "https://api.anthropic.com/v1/messages",
+      {
+        model: "claude-3-5-sonnet-latest",
+        max_tokens: maxTokens,
+        system,
+        messages: [{ role: "user", content: userMsg }]
       },
-      timeout: 90000
-    }
-  );
-  return res.data?.content?.[0]?.text || "";
+      {
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": ANTHROPIC_KEY,
+          "anthropic-version": "2023-06-01"
+        },
+        timeout: 90000
+      }
+    );
+    return res.data?.content?.[0]?.text || "";
+  } catch (e) {
+    const detail = e.response?.data ? JSON.stringify(e.response.data) : e.message;
+    throw new Error(`Anthropic API error: ${detail}`);
+  }
 }
 
 async function callClaudeOpus(system, userMsg, maxTokens = 8000) {
   if (!ANTHROPIC_KEY) throw new Error("No Anthropic API key");
-  const res = await axios.post(
-    "https://api.anthropic.com/v1/messages",
-    {
-      model: "claude-opus-4-6",
-      max_tokens: maxTokens,
-      system,
-      messages: [{ role: "user", content: userMsg }]
-    },
-    {
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": ANTHROPIC_KEY,
-        "anthropic-version": "2023-06-01"
+  try {
+    const res = await axios.post(
+      "https://api.anthropic.com/v1/messages",
+      {
+        model: "claude-3-5-sonnet-latest",
+        max_tokens: maxTokens,
+        system,
+        messages: [{ role: "user", content: userMsg }]
       },
-      timeout: 180000
-    }
-  );
-  return res.data?.content?.[0]?.text || "";
+      {
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": ANTHROPIC_KEY,
+          "anthropic-version": "2023-06-01"
+        },
+        timeout: 180000
+      }
+    );
+    return res.data?.content?.[0]?.text || "";
+  } catch (e) {
+    const detail = e.response?.data ? JSON.stringify(e.response.data) : e.message;
+    throw new Error(`Anthropic API error (opus): ${detail}`);
+  }
 }
 
 /* ======================
