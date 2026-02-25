@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630">
+  <!-- Background white -->
+  <rect width="1200" height="630" fill="#FFFFFF"/>
+
+  <!-- Navy circle (large, centered) -->
+  <circle cx="600" cy="295" r="220" fill="#1A2880"/>
+
+  <!-- ALISS text in circle -->
+  <text x="600" y="315" font-family="Arial,Helvetica,sans-serif" font-size="80" font-weight="400" fill="#FFFFFF" text-anchor="middle" letter-spacing="6">ALISS</text>
+
+  <!-- Tagline below circle -->
+  <text x="600" y="580" font-family="Arial,Helvetica,sans-serif" font-size="18" fill="#1A2880" text-anchor="middle" letter-spacing="3">INTELLIGENCE ON ARTIFICIAL INTELLIGENCE</text>
+</svg>
