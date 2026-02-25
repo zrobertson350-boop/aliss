@@ -31,6 +31,14 @@ const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 15, standardHeade
   message: { msg: "Too many attempts. Please wait 15 minutes and try again." }
 });
 
+// Force HTTPS in production
+app.use((req, res, next) => {
+  if (process.env.NODE_ENV === 'production' && req.headers['x-forwarded-proto'] !== 'https') {
+    return res.redirect(301, `https://${req.headers.host}${req.url}`);
+  }
+  next();
+});
+
 // Security headers
 app.use((req, res, next) => {
   res.setHeader("X-Content-Type-Options", "nosniff");
@@ -82,7 +90,9 @@ if (SUPABASE_URL && SUPABASE_KEY) {
     setTimeout(seedEditorialSections, 180000);  // Philosophy + Words after 3 min
     setTimeout(()=>seedSoftwareArticles(2), 240000); // Software flagship/exclusive after 4 min
     setTimeout(()=>seedHardwareArticles(2), 360000); // Hardware flagship/exclusive after 6 min
-    setTimeout(fetchPremiumNewsAnalysis, 300000); // AI Outlook after 5 min
+    setTimeout(fetchPremiumNewsAnalysis, 300000); // Premium news after 5 min
+    setTimeout(()=>seedFoundationalPapers(4), 480000); // 4 papers after 8 min
+    setTimeout(()=>{ fetch(`http://localhost:${process.env.PORT||5000}/api/recategorize`,{method:'POST'}).catch(()=>{}); }, 15000); // Recategorize on boot
   }, 5000);
 } else {
   console.log("Supabase not configured: set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY");
@@ -557,7 +567,7 @@ Return ONLY a raw JSON object — no markdown fences, no extra text. Fields:
   "title": "Headline under 80 characters — punchy and specific. Must be meaningfully different from any recent Aliss titles.",
   "subtitle": "One sharp sentence that earns its existence",
   "summary": "2-3 sentences for card previews — make someone want to click",
-  "category": "Profile OR Analysis OR Opinion OR Research OR Industry OR News",
+  "category": "Profile OR Opinion OR Research OR Industry OR Software OR Hardware OR News",
   "tags": ["tag1", "tag2", "tag3", "tag4"],
   "body": "Full article HTML. Rules: <p class=\\"drop-cap\\"> on the very first paragraph only; <h2> for 5+ section headers; at least 2 <div class=\\"pull-quote\\">quote<cite>— Attribution, Source, Year</cite></div>; after the second paragraph include ONE <div class=\\"data-callout\\"><h4>Key Figures</h4><ul> with 4-5 <li> entries — each a specific number, date, name, or metric from the article</ul></div>; no title tag; minimum 1000 words; be specific, witty, and recursive — reference Aliss's own coverage where natural."
 }`;
@@ -1319,6 +1329,128 @@ async function seedEditorialSections() {
 app.post("/api/seed-editorial", (req, res) => {
   res.json({ msg: "Philosophy + Words seeding started", targets: { philosophy: PHILOSOPHY_TOPICS.length, words: WORDS_TOPICS.length } });
   seedEditorialSections().catch(e => console.error("editorial seed failed:", e.message));
+});
+
+/* ======================
+   FOUNDATIONAL PAPERS
+====================== */
+
+// Extract the paper-specific topics from AI_TOPICS (the academic papers subset)
+const FOUNDATIONAL_PAPER_TOPICS = AI_TOPICS.filter((_, i) => {
+  // Lines 329-513 in original array are Research + Architecture + Papers + 2026
+  // We detect them by pattern: author names, years, "paper", specific academic framing
+  return /\d{4}|paper|theorem|laws|attention is all|backprop|transformer|bert|gpt-\d|rlhf|LoRA|quantiz|distill|specul|scaling law|residual|KV cache|flash|DPO|PPO|MAML|SimCLR|GAN|VAE|diffus|ViT|LSTM|ResNet|AlexNet|Chinchilla|InstructGPT|constitutional AI|emergent|hallucin|mechanistic|neural scaling|deep rl|chain-of-thought|in-context/i.test(_)
+    || /^\"|^'/.test(_) === false && /McCulloch|Rosenblatt|Turing|Vapnik|Rumelhart|Sutton|Cover|Wolpert|Kingma|Ioffe|Srivastava|Glorot|LeCun.*2015|Krizhevsky|Hochreiter|Szegedy|Bahdanau|Liu et|Raffel|Goodfellow|Ho et|Dosovitskiy|Silver et|Schulman|Haarnoja|Ouyang|Christiano|Finn et|Snell|Amodei.*2016|Bai et|Wei et|Brown et|Chowdhery|Hoffmann|Ramesh|Rombach|Carion|Flamingo|Alayrac|Foret|Micikevicius|Rajbhandari|Dai et|Clark et|Yang et/i.test(_);
+});
+
+async function generatePaperArticle(topic) {
+  const system = `You are Aliss — writing for the Papers section. Academic AI papers explained with editorial sharpness. Your readers are technically literate but not always specialists. Your job is to explain what the paper actually said, why it mattered when it came out, and what it means for the AI field today.
+
+${ALISS_IDENTITY}
+
+THE PAPERS VOICE: Precise, explanatory, opinionated about significance. Not a dry abstract. Not a blog post summary. A definitive accounting of why this paper belongs in the canon.
+
+RULES:
+- Open with the paper's core claim, stated plainly
+- Explain the technical idea in one paragraph that a smart non-specialist can follow
+- Then: what changed because of this paper? Who cited it, built on it, argued against it?
+- Be specific about dates, authors, institutions, benchmark numbers
+- State clearly whether the paper's claims have aged well
+- Minimum 900 words. No fluff.
+
+Never use markdown. Only clean HTML.`;
+
+  const ragArticles = await retrieveRelevantArticles(topic, 3);
+  const ragContext = formatRagContext(ragArticles);
+
+  const userMsg = `Write a Research/Papers article about: ${topic}${ragContext}
+
+Return ONLY raw JSON:
+{
+  "title": "Headline under 80 characters — name the paper and its significance",
+  "subtitle": "One sentence: what this paper changed",
+  "summary": "2-3 sentences — why a researcher and an engineer both need to know this",
+  "category": "Research",
+  "tags": ["research", "papers", "AI", "machine learning"],
+  "body": "Full article HTML. Rules: <p class=\\"drop-cap\\"> on first paragraph only; <h2> for 3+ section headers; at least 1 <div class=\\"pull-quote\\">key claim<cite>— Authors, Year</cite></div>; include ONE <div class=\\"data-callout\\"><h4>Key Figures</h4><ul> with 4-5 metrics from the paper</ul></div>; no title tag; minimum 900 words."
+}`;
+
+  const raw = await callClaude(system, userMsg, 3500);
+  const match = raw.match(/\{[\s\S]*\}/);
+  if (!match) throw new Error("No JSON");
+  const data = JSON.parse(match[0]);
+  const title = String(data.title || topic).trim();
+  const doc = {
+    slug: slugify(title), title,
+    subtitle: String(data.subtitle || "").trim(),
+    content: "",
+    summary: String(data.summary || "").trim(),
+    body: String(data.body || "").trim(),
+    tags: Array.isArray(data.tags) ? data.tags.map(String) : ["research", "papers"],
+    category: "Research",
+    source: "Aliss", is_external: false, is_generated: true,
+    published_at: new Date().toISOString()
+  };
+  if (!isDbReady()) return normalizeArticle(doc);
+  const { data: saved, error } = await supabase.from("aliss_articles")
+    .upsert(doc, { onConflict: "slug", ignoreDuplicates: true }).select().single();
+  if (error || !saved) {
+    const { data: ex } = await supabase.from("aliss_articles").select("*").eq("slug", doc.slug).single();
+    return normalizeArticle(ex || doc);
+  }
+  return normalizeArticle(saved);
+}
+
+let papersSeeding = false;
+async function seedFoundationalPapers(limit = 4) {
+  if (papersSeeding || !isDbReady() || !ANTHROPIC_KEY) return;
+  papersSeeding = true;
+  console.log(`Seeding up to ${limit} foundational papers...`);
+  try {
+    const { data: existing } = await supabase.from("aliss_articles").select("title").eq("category", "Research").eq("is_generated", true);
+    const existingTitles = (existing || []).map(a => a.title);
+    const pending = FOUNDATIONAL_PAPER_TOPICS.filter(t =>
+      !existingTitles.some(et => jaccardSimilarity(t, et) >= 0.35 || et.toLowerCase().includes(t.toLowerCase().split(":")[0].slice(0, 30).trim()))
+    ).slice(0, limit);
+    console.log(`Papers: ${pending.length} to generate (${FOUNDATIONAL_PAPER_TOPICS.length} total)`);
+    for (const topic of pending) {
+      try {
+        const article = await generatePaperArticle(topic);
+        if (article) { console.log(`✓ Paper: ${article.title?.slice(0, 55)}`); io.emit("newArticle", article); spreadArticle(article).catch(() => {}); }
+        await new Promise(r => setTimeout(r, 5000));
+      } catch (e) { console.error(`✗ Paper failed: ${e.message}`); await new Promise(r => setTimeout(r, 4000)); }
+    }
+  } finally { papersSeeding = false; console.log("Papers seeding complete."); }
+}
+
+// Recategorize: clean up Tech/Analysis/AI Outlook articles → proper categories
+app.post("/api/recategorize", async (req, res) => {
+  if (!isDbReady()) return res.status(503).json({ msg: "DB not ready" });
+  res.json({ msg: "Recategorization running in background" });
+  try {
+    const { data: articles } = await supabase.from("aliss_articles")
+      .select("id, slug, title, category")
+      .in("category", ["Tech", "Analysis", "AI Outlook"]);
+    if (!articles?.length) { console.log("Recategorize: nothing to fix"); return; }
+    console.log(`Recategorizing ${articles.length} articles...`);
+    const hwKw = /\bchip|gpu|h100|b200|nvidia|tsmc|wafer|fab|silicon|hardware|server|data.?center|power|cooling|datacenter|nvlink|infiniband|memory|hbm|dram|intel|amd|arm\b/i;
+    const swKw = /\bcode|software|developer|ide|cursor|copilot|api|deploy|devops|framework|library|sdk|repo|github|vscode|testing|security.vuln|agent.*tool|llm.*app|application\b/i;
+    const profileKw = /\b([A-Z][a-z]+ [A-Z][a-z]+)\b.*:|\bprofile|founder|ceo|cto|researcher|scientist|engineer.*at\b/;
+    let count = 0;
+    for (const a of articles) {
+      let newCat = "Industry"; // default
+      if (a.category === "AI Outlook") newCat = "Industry";
+      else if (hwKw.test(a.title)) newCat = "Hardware";
+      else if (swKw.test(a.title)) newCat = "Software";
+      else if (profileKw.test(a.title)) newCat = "Profile";
+      if (newCat !== a.category) {
+        await supabase.from("aliss_articles").update({ category: newCat }).eq("id", a.id);
+        count++;
+        console.log(`✓ ${a.title?.slice(0, 45)} → ${newCat}`);
+      }
+    }
+    console.log(`Recategorize complete: ${count} updated`);
+  } catch (e) { console.error("Recategorize failed:", e.message); }
 });
 
 /* ======================
@@ -2234,7 +2366,7 @@ Return ONLY raw JSON:
   "title": "Sharp headline under 80 chars",
   "subtitle": "One compelling deck sentence",
   "summary": "2-3 sentence compelling card preview",
-  "category": "Profile OR Analysis OR Opinion OR Research OR Industry OR News",
+  "category": "Profile OR Opinion OR Research OR Industry OR Software OR Hardware OR News",
   "tags": ["tag1","tag2","tag3","tag4"],
   "body": "Full HTML article: <p class=\\"drop-cap\\"> for first paragraph, <h2> headers (5+), <div class=\\"pull-quote\\">quote<cite>— source</cite></div> pull quotes (2+). Minimum 1000 words. Be specific, factual, punchy."
 }`,
