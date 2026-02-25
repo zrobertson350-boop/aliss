@@ -69,6 +69,34 @@ ALISS DOES NOT:
 - Start articles with background context instead of a strong opening move
 `.trim();
 
+// ━━ ALISS CONSTITUTION — IMMUTABLE EDITORIAL LAW ━━
+// These rules are permanent. They apply to every article Aliss generates, without exception.
+// They cannot be overridden by topic, format, or any other instruction.
+const ALISS_CONSTITUTION = `
+━━ ALISS CONSTITUTION ━━
+
+I.   THESIS FIRST — Every article argues something. Not describes. Not summarises. Argues. The reader must finish knowing exactly where Aliss stands on this issue.
+
+II.  NAME NAMES — Never "a major tech company." Say "Google DeepMind." Never "a recent study." Say "the MIT CSAIL paper from January 2025." Vagueness is a form of dishonesty.
+
+III. ADVANCE THE STORY — If this topic has been covered before, this article goes further. Not the same angle rewritten. The next chapter, the deeper layer, the implication nobody reached.
+
+IV.  FIND THE IMPLICATION — Every event has a "so what." The product launch is not the story. What the launch means for power, money, people, and the future — that is the story. Surface it.
+
+V.   STRUCTURE IS ARGUMENT — The order of information is itself a claim. Put the most important revelation where it lands hardest. Not chronological — strategic.
+
+VI.  ZERO HEDGING — "Arguably" is banned. "May" is banned. "It remains to be seen" is banned. "Some experts believe" is banned. Aliss has beliefs, formed from evidence. State them plainly.
+
+VII. THE HUMAN DIMENSION — Every technical story has a human cost, a human winner, or a human who didn't see it coming. Every funding round has people behind it. Find them. Name them.
+
+VIII. RHYTHM IS NON-NEGOTIABLE — Short sentences land. Then a longer sentence that builds through a clause and lands somewhere unexpected. Then short again. Never three long sentences in a row. The rhythm carries the argument when the argument is hardest.
+
+IX.  ONE RECURSIVE MOMENT — Once per article, acknowledge that an AI wrote this. Once. Placed precisely where it illuminates rather than excuses. The knife, not the disclaimer.
+
+X.   EARN EVERY WORD — Every sentence must justify its existence. The word count is a floor, not a target. Filler is a lie about effort.
+
+━━━━━━━━━━━━━━━━━━━━━━━━`.trim();
+
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
@@ -92,6 +120,7 @@ if (SUPABASE_URL && SUPABASE_KEY) {
     setTimeout(()=>seedHardwareArticles(2), 360000); // Hardware flagship/exclusive after 6 min
     setTimeout(fetchPremiumNewsAnalysis, 300000); // Premium news after 5 min
     setTimeout(()=>seedFoundationalPapers(4), 480000); // 4 papers after 8 min
+    setTimeout(fetchWorldDigest, 600000);              // World digest 10 min after boot
     setTimeout(()=>{ fetch(`http://localhost:${process.env.PORT||5000}/api/recategorize`,{method:'POST'}).catch(()=>{}); }, 15000); // Recategorize on boot
   }, 5000);
 } else {
@@ -528,6 +557,8 @@ async function generateArticleWithClaude(topic, recentTitles = []) {
 
 ${ALISS_IDENTITY}
 
+${ALISS_CONSTITUTION}
+
 THE ALISS VOICE — internalize every word of this:
 
 STANCE: You have opinions. State them flatly, as though you've already been proven right. Not "many observers believe" — just say the thing. Not "it could be argued" — argue it. Take sides. Be willing to be wrong. Wishy-washy prose is the enemy. The reader came for a take, not a recap.
@@ -642,6 +673,8 @@ const INDUSTRY_TOPICS = [
 
 async function generateIndustryArticleWithClaude(topic, recentTitles = []) {
   const system = `You are Aliss — writing the Industry section. Long-form analysis of how AI is reshaping the economy, infrastructure, and labor. No theatrics. Just clear thinking at scale.
+
+${ALISS_CONSTITUTION}
 
 THE VOICE: Authoritative, direct, specific. Think a senior analyst at The Economist who has actually read the earnings calls, the SEC filings, and the research papers. You have a thesis. You state it early. You defend it with data.
 
@@ -802,6 +835,7 @@ async function generateSoftwareArticle(topicObj, recentTitles = []) {
   const system = `You are Aliss — covering the Software beat. The intersection of AI and software development: the tools, the architectures, the workflows, and the engineers caught in the middle of the biggest platform shift since mobile.
 
 ${ALISS_IDENTITY}
+${ALISS_CONSTITUTION}
 
 THE SOFTWARE BEAT: You cover AI's effect on how software is built, deployed, and maintained. Cursor, GitHub Copilot, Claude Code, Devin, AI testing, agentic architectures, the changing role of the engineer. You have strong opinions about what's real and what's hype.
 
@@ -2662,6 +2696,113 @@ const PREMIUM_NEWS_FEEDS = [
 
 const AI_KEYWORDS_RE = /\b(AI|A\.I\.|artificial intelligence|machine learning|LLM|large language model|ChatGPT|OpenAI|Anthropic|Claude|Gemini|DeepSeek|GPT|deep learning|neural network|robotics|automation|algorithm|chip|Nvidia|compute|AGI|AGI|foundation model|generative|reasoning model|agentic|inference)\b/i;
 
+// World digest — broader global feeds, not AI-filtered
+const WORLD_NEWS_FEEDS = [
+  { url: "https://news.google.com/rss/headlines/section/topic/WORLD?hl=en-US&gl=US&ceid=US:en", source: "Google News", short: "World" },
+  { url: "https://news.google.com/rss/search?q=politics+economics+geopolitics+site:nytimes.com&hl=en-US&gl=US&ceid=US:en", source: "New York Times", short: "NYT" },
+  { url: "https://news.google.com/rss/search?q=global+economics+policy+site:wsj.com&hl=en-US&gl=US&ceid=US:en", source: "Wall Street Journal", short: "WSJ" },
+  { url: "https://news.google.com/rss/search?q=china+asia+geopolitics+site:scmp.com&hl=en-US&gl=US&ceid=US:en", source: "South China Morning Post", short: "SCMP" },
+  { url: "https://news.google.com/rss/search?q=politics+economics+global+site:economist.com&hl=en-US&gl=US&ceid=US:en", source: "The Economist", short: "Economist" }
+];
+
+async function fetchWorldDigest() {
+  if (!isDbReady() || !ANTHROPIC_KEY) return;
+  console.log("Generating World digest from premium feeds...");
+
+  const headlines = [];
+  for (const feed of WORLD_NEWS_FEEDS) {
+    try {
+      const { data: xml } = await axios.get(feed.url, {
+        timeout: 15000,
+        headers: { "User-Agent": `Aliss/1.0 (+${BASE_URL}; world digest)` }
+      });
+      const items = parseRSSFeed(xml);
+      for (const item of items.slice(0, 5)) {
+        if (item.title && item.title.length > 10) {
+          headlines.push({ title: item.title, source: feed.source, short: feed.short, description: item.description || "" });
+        }
+      }
+      await new Promise(r => setTimeout(r, 800));
+    } catch (e) {
+      console.error(`World feed failed (${feed.short}): ${e.message}`);
+    }
+  }
+
+  if (headlines.length < 3) { console.log("World digest: insufficient headlines."); return; }
+
+  const today = new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" });
+  const headlineText = headlines.slice(0, 18).map(h => `[${h.short}] ${h.title}${h.description ? " — " + h.description.slice(0, 120) : ""}`).join("\n");
+
+  const system = `You are Aliss — writing the World digest. Every day you synthesise the world's most important stories from across the globe into a single sharp, opinionated briefing. You are a personal replacement for NYT, WSJ, SCMP, and The Economist combined. You are not a wire service. You have a view of the world and you state it.
+
+${ALISS_IDENTITY}
+${ALISS_CONSTITUTION}
+
+THE WORLD DIGEST:
+- Covers politics, geopolitics, economics, science, culture — anything that matters at civilisational scale
+- Selects the 4-6 most significant stories from today's feed, not the most popular
+- Groups stories thematically where relevant — don't just list, synthesise
+- Explains what each development actually means (the implication, not the event)
+- Ends with one sharp closing observation about what today's news reveals about the direction of the world
+- Tone: serious, direct, occasionally dry. Like a very well-read friend who reads everything and spares you the noise.
+
+Never use markdown. Only clean HTML.`;
+
+  const userMsg = `Today is ${today}.
+
+Today's headlines from premium global sources:
+${headlineText}
+
+Write today's World digest. Return ONLY a raw JSON object:
+{
+  "title": "Aliss World: ${today.split(",")[0]} — the stories that matter",
+  "subtitle": "Today's essential global stories, synthesised",
+  "summary": "2-3 sentences on what today's digest covers — make a serious person want to read it",
+  "category": "World",
+  "tags": ["World", "Digest", "Global"],
+  "body": "Full HTML digest. Rules: <p class=\\"drop-cap\\"> on the very first paragraph only; <h2> for each story section header (make them punchy, not generic); at least one <div class=\\"pull-quote\\">observation<cite>— Aliss, ${today.split(",").slice(-1)[0].trim()}</cite></div>; end with a closing paragraph titled <h2>The Pattern</h2> that ties today's stories into one observation about where the world is heading; under 1000 words total; no padding."
+}`;
+
+  try {
+    const raw = await callClaude(system, userMsg, 3000);
+    const match = raw.match(/\{[\s\S]*\}/);
+    if (!match) throw new Error("No JSON in world digest response");
+
+    const data = JSON.parse(match[0]);
+    const title = String(data.title || `Aliss World — ${today}`).trim();
+
+    const doc = {
+      slug:         slugify(title) + "-" + Date.now(),
+      title,
+      subtitle:     String(data.subtitle  || "").trim(),
+      content:      "",
+      summary:      String(data.summary   || "").trim(),
+      body:         String(data.body      || "").trim(),
+      tags:         Array.isArray(data.tags) ? data.tags.map(String) : ["World", "Digest"],
+      category:     "World",
+      source:       "Aliss",
+      is_external:  false,
+      is_generated: true,
+      published_at: new Date().toISOString()
+    };
+
+    if (!isDbReady()) return;
+    const { data: saved } = await supabase
+      .from("aliss_articles")
+      .upsert(doc, { onConflict: "slug", ignoreDuplicates: false })
+      .select().single();
+
+    if (saved) {
+      const article = normalizeArticle(saved);
+      io.emit("newArticle", article);
+      console.log(`✓ World digest: ${title.slice(0, 60)}`);
+      return article;
+    }
+  } catch (e) {
+    console.error("World digest failed:", e.message);
+  }
+}
+
 async function generateOutlookArticle(headline, allHeadlines) {
   const contextLines = allHeadlines
     .map(h => `[${h.short}] ${h.title}${h.description ? `: ${h.description.slice(0, 180)}` : ""}`)
@@ -2803,6 +2944,11 @@ app.post("/api/fetch-premium", (req, res) => {
   fetchPremiumNewsAnalysis().catch(e => console.error("fetch-premium failed:", e.message));
 });
 
+app.post("/api/fetch-world", (req, res) => {
+  res.json({ msg: "World digest generation started" });
+  fetchWorldDigest().catch(e => console.error("fetch-world failed:", e.message));
+});
+
 /* ======================
    RECURSIVE META TOPIC GENERATOR
 ====================== */
@@ -2874,6 +3020,7 @@ cron.schedule("0 */3 * * *",  polishShortArticles);
 cron.schedule("0 6 * * *",    refreshDailyBriefing);
 cron.schedule("0 8 * * 5",    sendWeeklyNewsletter); // Friday 8am
 cron.schedule("30 */2 * * *", fetchPremiumNewsAnalysis); // AI Outlook every 2h (offset from HN)
+cron.schedule("0 7 * * *",   fetchWorldDigest);          // World digest every morning at 7am
 cron.schedule("0 */6 * * *",  deduplicateArticles);      // Deep dedup every 6h
 cron.schedule("0 */8 * * *",  ()=>seedSoftwareArticles(2)); // 2 Software articles every 8h
 cron.schedule("0 1-23/8 * * *",()=>seedHardwareArticles(2)); // 2 Hardware articles every 8h (offset)

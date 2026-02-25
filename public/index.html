@@ -531,6 +531,9 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-off
 .article-body p{margin-bottom:1.4em;color:#1c1c1c}
 /* Nav active underline animation */
 .main-nav li a.active::after{width:70%;transition:width .3s ease-out}
+/* Masthead fireworks canvas */
+#mastheadCanvas{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0}
+.masthead{position:relative;overflow:visible}
 
 /* ── COMPUTE ──────────────────────────────────────── */
 .compute-page{max-width:760px;margin:0 auto;padding:36px 20px 80px}
@@ -587,7 +590,7 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-off
 
 <div class="topbar"><div class="container"><div id="authTopbarControl" style="position:relative"><a href="#" onclick="showSignIn();return false" class="signin-btn" id="signinTopbarBtn">Sign In</a><button class="auth-user-btn" id="userTopbarBtn" onclick="toggleUserDropdown()"><span id="userEmailDisplay"></span><span style="font-size:8px;margin-left:4px">&#9660;</span></button><div class="auth-dropdown" id="userDropdown"><button onclick="doSignOut()">Sign Out</button></div></div><div class="topbar-right"><a href="#" onclick="navigate('about');return false">About</a><a href="#" onclick="navigate('newsletter');return false">Newsletter</a><a href="/rss.xml" target="_blank" rel="noopener">RSS</a></div></div></div>
 
-<header class="masthead"><a class="masthead-logo" onclick="navigate('home');return false"><span class="logo-accent">A</span>l<span class="logo-accent">i</span>ss</a><div class="masthead-tagline">Intelligence on Artificial Intelligence</div></header>
+<header class="masthead"><canvas id="mastheadCanvas" aria-hidden="true"></canvas><a class="masthead-logo" onclick="navigate('home');return false"><span class="logo-accent">A</span>l<span class="logo-accent">i</span>ss</a><div class="masthead-tagline">Intelligence on Artificial Intelligence</div></header>
 
 <nav class="main-nav"><ul>
 <li><a href="#" class="active" data-nav="home" onclick="filterCategory(null,'home');return false">Home</a></li>
@@ -596,6 +599,7 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-off
 <li><a href="#" data-nav="software" onclick="filterCategory('Software','software');return false">Software</a></li>
 <li><a href="#" data-nav="hardware" onclick="filterCategory('Hardware','hardware');return false">Hardware</a></li>
 <li><a href="#" data-nav="research" onclick="filterCategory('Research','research');return false">Papers</a></li>
+<li><a href="#" data-nav="world" onclick="filterCategory('World','world');return false">World</a></li>
 <li><a href="#" data-nav="aidle" onclick="navigate('aidle');return false">A·I·dle</a></li>
 <li><a href="#" data-nav="compute" onclick="navigate('compute');return false">Compute</a></li>
 <li><a href="#" data-nav="tldr" onclick="navigate('tldr');return false">TL;DR</a></li>
@@ -2880,6 +2884,88 @@ if(typeof _origOpenDynamic==='function'){
     `;
     deck.appendChild(card);
   });
+})();
+</script>
+
+<script>
+/* ====================================================
+   MASTHEAD FIREWORKS — fires once on first load
+==================================================== */
+(function(){
+  const canvas=document.getElementById('mastheadCanvas');
+  if(!canvas) return;
+
+  function resize(){
+    const mh=canvas.parentElement;
+    canvas.width=mh.offsetWidth||window.innerWidth;
+    canvas.height=mh.offsetHeight||120;
+  }
+  resize();
+  window.addEventListener('resize',resize);
+
+  const ctx=canvas.getContext('2d');
+  const COLORS=['#C0392B','#E74C3C','#E67E22','#F39C12','#F1C40F','#ECF0F1','#BDC3C7'];
+  let particles=[];
+  let animId=null;
+  let fired=false;
+
+  function burst(cx,cy,count){
+    for(let i=0;i<count;i++){
+      const angle=Math.random()*Math.PI*2;
+      const speed=Math.random()*5+2;
+      particles.push({
+        x:cx, y:cy,
+        vx:Math.cos(angle)*speed,
+        vy:Math.sin(angle)*speed - Math.random()*2,
+        alpha:1,
+        decay:Math.random()*0.018+0.012,
+        size:Math.random()*3+1,
+        color:COLORS[Math.floor(Math.random()*COLORS.length)],
+        gravity:0.12
+      });
+    }
+  }
+
+  function draw(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    particles.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy; p.vy+=p.gravity; p.alpha-=p.decay;
+      ctx.globalAlpha=Math.max(0,p.alpha);
+      ctx.fillStyle=p.color;
+      ctx.beginPath();
+      ctx.arc(p.x,p.y,p.size,0,Math.PI*2);
+      ctx.fill();
+    });
+    ctx.globalAlpha=1;
+    particles=particles.filter(p=>p.alpha>0);
+    if(particles.length>0) animId=requestAnimationFrame(draw);
+    else animId=null;
+  }
+
+  function fire(){
+    if(fired) return;
+    fired=true;
+    resize();
+    const cx=canvas.width/2;
+    const cy=canvas.height*0.45;
+    // Three staggered bursts
+    burst(cx,cy,90);
+    setTimeout(()=>{ burst(cx-60,cy+10,50); burst(cx+60,cy+10,50); },180);
+    setTimeout(()=>{ burst(cx,cy-10,60); },340);
+    if(!animId) animId=requestAnimationFrame(draw);
+  }
+
+  // Trigger after boot splash fades
+  const origDismiss=window.dismissBoot;
+  window.dismissBoot=function(){
+    if(origDismiss) origDismiss();
+    setTimeout(fire,700);
+  };
+
+  // Also fire if boot was already dismissed (return visits)
+  if(sessionStorage.getItem('aliss_booted')){
+    setTimeout(fire,400);
+  }
 })();
 </script>
 </body>
