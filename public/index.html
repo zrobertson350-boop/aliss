@@ -588,12 +588,11 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-off
   </div>
 </div>
 
-<div class="topbar"><div class="container"><div id="authTopbarControl" style="position:relative"><a href="#" onclick="showSignIn();return false" class="signin-btn" id="signinTopbarBtn">Sign In</a><button class="auth-user-btn" id="userTopbarBtn" onclick="toggleUserDropdown()"><span id="userEmailDisplay"></span><span style="font-size:8px;margin-left:4px">&#9660;</span></button><div class="auth-dropdown" id="userDropdown"><button onclick="doSignOut()">Sign Out</button></div></div><div class="topbar-right"><a href="#" onclick="navigate('about');return false">About</a><a href="#" onclick="navigate('newsletter');return false">Newsletter</a><a href="/rss.xml" target="_blank" rel="noopener">RSS</a></div></div></div>
+<div class="topbar"><div class="container"><div id="authTopbarControl" style="position:relative"><a href="#" onclick="showSignIn();return false" class="signin-btn" id="signinTopbarBtn">Sign In</a><button class="auth-user-btn" id="userTopbarBtn" onclick="toggleUserDropdown()"><span id="userEmailDisplay"></span><span style="font-size:8px;margin-left:4px">&#9660;</span></button><div class="auth-dropdown" id="userDropdown"><button onclick="doSignOut()">Sign Out</button></div></div><div class="topbar-right"><a href="#" onclick="filterCategory(null,'home');return false">Home</a><a href="#" onclick="navigate('about');return false">About</a><a href="#" onclick="navigate('newsletter');return false">Newsletter</a><a href="/rss.xml" target="_blank" rel="noopener">RSS</a></div></div></div>
 
 <header class="masthead"><canvas id="mastheadCanvas" aria-hidden="true"></canvas><a class="masthead-logo" onclick="navigate('home');return false"><span class="logo-accent">A</span>l<span class="logo-accent">i</span>ss</a><div class="masthead-tagline">Intelligence on Artificial Intelligence</div></header>
 
 <nav class="main-nav"><ul>
-<li><a href="#" class="active" data-nav="home" onclick="filterCategory(null,'home');return false">Home</a></li>
 <li><a href="#" data-nav="profiles" onclick="filterCategory('Profile','profiles');return false">Profiles</a></li>
 <li><a href="#" data-nav="industry" onclick="navigate('industry');return false">Industry</a></li>
 <li><a href="#" data-nav="software" onclick="filterCategory('Software','software');return false">Software</a></li>
