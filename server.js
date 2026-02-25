@@ -97,6 +97,45 @@ X.   EARN EVERY WORD — Every sentence must justify its existence. The word cou
 
 ━━━━━━━━━━━━━━━━━━━━━━━━`.trim();
 
+/* ======================
+   STATIC ARTICLE SEEDER
+====================== */
+async function seedStaticArticles() {
+  if (!isDbReady()) return;
+  try {
+    const fs = require("fs");
+    const path = require("path");
+    const seedPath = path.join(__dirname, "seeds", "articles.json");
+    if (!fs.existsSync(seedPath)) return;
+    const articles = JSON.parse(fs.readFileSync(seedPath, "utf8"));
+    let count = 0;
+    for (const a of articles) {
+      const { data: existing } = await supabase.from("aliss_articles").select("slug").eq("slug", a.slug).single();
+      if (existing) continue;
+      const doc = {
+        slug: a.slug,
+        title: a.title,
+        subtitle: a.subtitle || "",
+        content: "",
+        summary: a.summary || "",
+        body: a.body || "",
+        tags: a.tags || [],
+        category: a.category || "Analysis",
+        source: "Aliss",
+        is_external: false,
+        is_generated: true,
+        published_at: a.published_at || new Date().toISOString()
+      };
+      await supabase.from("aliss_articles").insert(doc);
+      console.log(`✓ Static article seeded: ${doc.title?.slice(0, 60)}`);
+      count++;
+    }
+    if (count > 0) console.log(`Static seeder: inserted ${count} articles`);
+  } catch (e) {
+    console.error("Static seeder failed:", e.message);
+  }
+}
+
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
@@ -113,6 +152,7 @@ if (SUPABASE_URL && SUPABASE_KEY) {
     fetchGeneralNews();
     refreshTicker();
     refreshDailyBriefing();
+    setTimeout(seedStaticArticles, 10000);       // Pre-written articles after 10s
     setTimeout(polishShortArticles, 30000);
     setTimeout(seedIndustryArticles, 120000);   // Industry (Opus) after 2 min
     setTimeout(seedEditorialSections, 180000);  // Philosophy + Words after 3 min
