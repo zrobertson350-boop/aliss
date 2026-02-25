@@ -1673,6 +1673,7 @@ const STATIC_CARDS=[
 let _featuredPool=[];
 let _featuredIdx=0;
 let _featuredInterval=null;
+let allArticlesCache=[];
 
 function startFeaturedRotation(){
   if(_featuredPool.length<2) return;
@@ -1795,7 +1796,6 @@ setInterval(loadLiveTicker,180000);
 /* ======================
    SEARCH
 ====================== */
-let allArticlesCache=[];
 
 async function ensureArticlesCache(){
   if(allArticlesCache.length) return;
