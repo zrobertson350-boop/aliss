@@ -2003,75 +2003,6 @@ app.post("/api/auth/forgot-password", authLimiter, async (req, res) => {
    PUBLIC ROUTES
 ====================== */
 
-app.post("/api/signup", authLimiter, async (req, res) => {
-  try {
-    const email = String(req.body?.email || "").trim().toLowerCase();
-    if (!email || !email.includes("@")) return res.status(400).json({ msg: "Invalid email" });
-
-    let isNew = false;
-    if (isDbReady()) {
-      const { data } = await supabase
-        .from("aliss_signups")
-        .upsert({ email }, { onConflict: "email", ignoreDuplicates: true })
-        .select();
-      isNew = data && data.length > 0;
-    }
-
-    const resendKey = process.env.RESEND_API_KEY;
-    if (isNew && resendKey) {
-      try {
-        await axios.post(
-          "https://api.resend.com/emails",
-          {
-            from: process.env.EMAIL_FROM || "Aliss <onboarding@resend.dev>",
-            to: [email],
-            subject: "Welcome to Aliss — the AI arms race, explained",
-            html: `
-              <div style="font-family:Georgia,serif;max-width:600px;margin:0 auto;color:#141414">
-                <div style="background:#141414;padding:28px 32px;text-align:center">
-                  <span style="font-family:Georgia,serif;font-size:32px;font-weight:900;letter-spacing:8px;text-transform:uppercase;color:#fff">
-                    <span style="color:#C0392B">A</span>l<span style="color:#C0392B">i</span>ss
-                  </span>
-                </div>
-                <div style="padding:40px 32px">
-                  <h2 style="font-size:26px;font-weight:700;margin-bottom:16px">You're in.</h2>
-                  <p style="font-size:16px;line-height:1.7;color:#444;margin-bottom:20px">
-                    Welcome to Aliss — the first fully AI-autonomous publication covering the AI arms race.
-                    Every week, we publish deep profiles, sharp analysis, and the news that matters
-                    from the people and companies shaping artificial intelligence.
-                  </p>
-                  <p style="font-size:16px;line-height:1.7;color:#444;margin-bottom:32px">
-                    You'll hear from us every Friday. In the meantime, the site is live and being updated continuously.
-                  </p>
-                  <a href="${BASE_URL}" style="display:inline-block;background:#C0392B;color:#fff;padding:14px 28px;font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase;text-decoration:none">
-                    Read Aliss
-                  </a>
-                </div>
-                <div style="border-top:1px solid #eee;padding:20px 32px;font-size:12px;color:#999">
-                  © 2026 Aliss · <a href="${BASE_URL}" style="color:#999">${BASE_URL.replace(/^https?:\/\//, "")}</a>
-                </div>
-              </div>
-            `
-          },
-          {
-            headers: {
-              "Authorization": `Bearer ${resendKey}`,
-              "Content-Type": "application/json"
-            }
-          }
-        );
-        console.log("Welcome email sent to", email);
-      } catch (e) {
-        console.error("Email send failed:", e?.response?.data || e.message);
-      }
-    }
-
-    res.json({ msg: isNew ? "Subscribed! Check your inbox for a welcome email." : "You're already subscribed." });
-  } catch {
-    res.status(500).json({ msg: "Signup failed" });
-  }
-});
-
 app.post("/api/alice-chat", async (req, res) => {
   const message = String(req.body?.message || "").trim();
   if (!message) return res.status(400).json({ msg: "Message is required" });
@@ -3068,7 +2999,6 @@ cron.schedule("*/30 * * * *", autoGenerateArticle);
 cron.schedule("*/15 * * * *", refreshTicker);
 cron.schedule("0 */3 * * *",  polishShortArticles);
 cron.schedule("0 6 * * *",    refreshDailyBriefing);
-cron.schedule("0 8 * * 5",    sendWeeklyNewsletter); // Friday 8am
 cron.schedule("30 */2 * * *", fetchPremiumNewsAnalysis); // AI Outlook every 2h (offset from HN)
 cron.schedule("0 7 * * *",   fetchWorldDigest);          // World digest every morning at 7am
 cron.schedule("0 */6 * * *",  deduplicateArticles);      // Deep dedup every 6h
@@ -3252,97 +3182,6 @@ async function sendPressOutreach(article) {
     console.log(`Press outreach sent to ${contact.press} re: ${article.title?.slice(0, 50)}`);
   } catch (e) {
     console.error("Press outreach failed:", e.message);
-  }
-}
-
-/* ======================
-   WEEKLY NEWSLETTER (FRIDAY 8AM)
-====================== */
-
-async function sendWeeklyNewsletter() {
-  if (!isDbReady() || !ANTHROPIC_KEY) return;
-  const resendKey = process.env.RESEND_API_KEY;
-  if (!resendKey) return;
-
-  console.log("Generating weekly newsletter...");
-  try {
-    // Get top articles from the past 7 days
-    const since = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
-    const { data: articles } = await supabase.from("aliss_articles")
-      .select("title,subtitle,summary,category,slug,published_at")
-      .gte("published_at", since)
-      .order("published_at", { ascending: false })
-      .limit(30);
-
-    if (!articles?.length) return;
-
-    // Get all subscribers
-    const { data: subs } = await supabase.from("aliss_signups").select("email");
-    if (!subs?.length) return;
-
-    const articleList = articles.slice(0, 12)
-      .map((a,i) => `${i+1}. [${a.category}] ${a.title} — ${a.subtitle || a.summary || ""}`)
-      .join("\n");
-
-    const date = new Date().toLocaleDateString("en-US", { weekday:"long", month:"long", day:"numeric", year:"numeric" });
-
-    const raw = await callClaude(
-      `You are Aliss — writing the Friday weekly briefing email. Sharp, witty, authoritative. The same voice as the publication. This email goes to subscribers who care about the AI arms race and the biggest stories of the week. Write like you're sending a letter from the front lines.`,
-      `Write a weekly newsletter digest for ${date} based on these articles:\n${articleList}\n\nReturn ONLY raw JSON:\n{"subject":"Email subject line (punchy, under 60 chars)","intro":"2-3 sharp sentences introducing the week — voice of Aliss","items":[{"title":"article title","takeaway":"one sharp sentence about why it matters"}],"closing":"One final sentence — make it land"}`,
-      1500
-    );
-
-    const match = raw.match(/\{[\s\S]*\}/);
-    if (!match) return;
-    const digest = JSON.parse(match[0]);
-
-    const itemsHtml = (digest.items || []).slice(0, 8).map((item, i) => {
-      const article = articles.find(a => a.title.toLowerCase().includes(item.title?.toLowerCase().slice(0, 20)));
-      const url = article ? `${BASE_URL}/?page=article&slug=${encodeURIComponent(article.slug)}` : BASE_URL;
-      return `<tr><td style="padding:14px 0;border-bottom:1px solid #eee">
-        <div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#C0392B;margin-bottom:4px">${article?.category || "Aliss"}</div>
-        <a href="${url}" style="font-family:Georgia,serif;font-size:17px;font-weight:700;color:#141414;text-decoration:none">${item.title || ""}</a>
-        <p style="font-size:14px;color:#666;margin:6px 0 0;line-height:1.5">${item.takeaway || ""}</p>
-      </td></tr>`;
-    }).join("");
-
-    const html = `<div style="font-family:Georgia,serif;max-width:600px;margin:0 auto;color:#141414">
-      <div style="background:#141414;padding:24px 32px;text-align:center">
-        <div style="font-family:Georgia,serif;font-size:28px;font-weight:900;letter-spacing:8px;text-transform:uppercase;color:#fff">
-          <span style="color:#C0392B">A</span>l<span style="color:#C0392B">i</span>ss
-        </div>
-        <div style="font-size:11px;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,.4);margin-top:6px">The Weekly Briefing · ${date}</div>
-      </div>
-      <div style="padding:32px">
-        <p style="font-size:16px;line-height:1.7;color:#333;border-left:3px solid #C0392B;padding-left:16px;margin-bottom:28px">${digest.intro || ""}</p>
-        <table style="width:100%;border-collapse:collapse">${itemsHtml}</table>
-        <p style="font-size:15px;font-style:italic;color:#444;margin-top:28px;padding-top:20px;border-top:2px solid #141414">${digest.closing || ""}</p>
-        <div style="margin-top:28px;text-align:center">
-          <a href="${BASE_URL}" style="display:inline-block;background:#C0392B;color:#fff;padding:12px 28px;font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase;text-decoration:none">Read Aliss</a>
-        </div>
-      </div>
-      <div style="border-top:1px solid #eee;padding:16px 32px;font-size:11px;color:#999;text-align:center">
-        © 2026 Aliss · <a href="${BASE_URL}" style="color:#999">${BASE_URL.replace(/^https?:\/\//, "")}</a>
-      </div>
-    </div>`;
-
-    // Send in batches to avoid rate limits
-    let sent = 0;
-    for (const sub of subs) {
-      try {
-        await axios.post("https://api.resend.com/emails", {
-          from: process.env.EMAIL_FROM || "Aliss <onboarding@resend.dev>",
-          to: [sub.email],
-          subject: digest.subject || `Aliss Weekly — ${date}`,
-          html
-        }, { headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" }, timeout: 10000 });
-        sent++;
-        await new Promise(r => setTimeout(r, 200));
-      } catch (e) { console.error("Newsletter send failed:", sub.email, e.message); }
-    }
-    console.log(`Weekly newsletter sent to ${sent} subscribers.`);
-  } catch (e) {
-    console.error("Weekly newsletter failed:", e.message);
   }
 }
 

@@ -150,17 +150,6 @@ a{color:inherit;text-decoration:none}
 .card-body p{font-size:13px;color:var(--muted);line-height:1.6;flex:1}
 .card-meta{font-size:11px;color:var(--muted-light);margin-top:14px;padding-top:12px;border-top:1px solid var(--divider)}
 
-.newsletter-banner{background:var(--ink);color:#fff;padding:40px 48px;display:flex;align-items:center;justify-content:space-between;gap:24px;margin-bottom:48px;border-radius:16px;position:relative;overflow:hidden}
-.newsletter-banner::before{content:'';position:absolute;top:-40%;right:-10%;width:400px;height:400px;background:radial-gradient(circle,rgba(192,57,43,.2) 0%,transparent 70%)}
-.newsletter-text{position:relative;z-index:1}.newsletter-text h3{font-family:var(--serif);font-size:24px;font-weight:700;margin-bottom:6px}
-.newsletter-text p{color:rgba(255,255,255,.6);font-size:15px}
-.newsletter-form{display:flex;gap:10px;position:relative;z-index:1;flex-shrink:0}
-.newsletter-form input{padding:12px 18px;font-size:14px;font-family:var(--sans);border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.08);color:#fff;width:260px;border-radius:2px;outline:none}
-.newsletter-form input::placeholder{color:rgba(255,255,255,.35)}
-.newsletter-form input:focus{border-color:var(--accent)}
-.newsletter-form button{padding:12px 28px;font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase;font-family:var(--sans);background:var(--accent);color:#fff;border:none;border-radius:2px;cursor:pointer;transition:background .2s}
-.newsletter-form button:hover{background:var(--accent-hover)}
-.signup-status{font-size:12px;color:rgba(255,255,255,.78);margin-top:8px;position:relative;z-index:1;min-height:20px}
 
 .article-hero{max-width:1000px;margin:0 auto;padding:32px 24px 20px;text-align:center;animation:fadeUp .7s ease-out}
 .article-category{font-size:11px;letter-spacing:4px;text-transform:uppercase;color:var(--accent);font-weight:700;margin-bottom:20px;display:inline-block;border-bottom:2px solid var(--accent);padding-bottom:2px}
@@ -236,7 +225,7 @@ a{color:inherit;text-decoration:none}
 
 @media(max-width:1100px){.cards-grid{grid-template-columns:repeat(3,1fr)}}
 @media(max-width:900px){.cards-grid{grid-template-columns:repeat(2,1fr)}.footer-grid{grid-template-columns:1fr 1fr}.about-pillars{grid-template-columns:1fr}}
-@media(max-width:640px){.cards-grid{grid-template-columns:repeat(2,1fr)}.fact-strip{grid-template-columns:repeat(2,1fr)}.fact-item:nth-child(2){border-right:none}.contrib-grid{grid-template-columns:1fr}.featured-hero-content{padding:20px}.newsletter-banner{flex-direction:column;padding:20px 18px;text-align:center}.newsletter-form{width:100%}.newsletter-form input{flex:1;width:auto}.footer-grid{grid-template-columns:1fr}.footer-bottom{flex-direction:column;gap:12px;text-align:center}.pull-quote{margin:20px 0}.main-nav ul{justify-content:flex-start}}
+@media(max-width:640px){.cards-grid{grid-template-columns:repeat(2,1fr)}.fact-strip{grid-template-columns:repeat(2,1fr)}.fact-item:nth-child(2){border-right:none}.contrib-grid{grid-template-columns:1fr}.featured-hero-content{padding:20px}.footer-grid{grid-template-columns:1fr}.footer-bottom{flex-direction:column;gap:12px;text-align:center}.pull-quote{margin:20px 0}.main-nav ul{justify-content:flex-start}}
 
 /* Sign In button in topbar */
 .signin-btn{padding:5px 14px;border:1px solid rgba(255,255,255,.3);border-radius:2px;color:#ccc!important;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;font-weight:600;transition:all .2s;cursor:pointer}.signin-btn:hover{border-color:rgba(255,255,255,.8)!important;color:#fff!important}
@@ -370,37 +359,6 @@ a{color:inherit;text-decoration:none}
 
 
 
-/* Newsletter Page */
-.newsletter-page{max-width:var(--max-w);margin:0 auto;padding:0 36px 80px}
-.newsletter-hero{background:var(--ink);border-radius:16px;padding:72px 64px;margin:32px 0 56px;position:relative;overflow:hidden}
-.newsletter-hero::before{content:'';position:absolute;top:-60%;right:-8%;width:600px;height:600px;background:radial-gradient(circle,rgba(192,57,43,.18) 0%,transparent 68%);pointer-events:none}
-.newsletter-hero::after{content:'';position:absolute;bottom:-40%;left:-5%;width:400px;height:400px;background:radial-gradient(circle,rgba(192,57,43,.08) 0%,transparent 70%);pointer-events:none}
-.newsletter-hero-inner{position:relative;z-index:1;max-width:640px}
-.newsletter-hero-eyebrow{font-size:10px;letter-spacing:4px;text-transform:uppercase;font-weight:700;color:var(--accent);margin-bottom:14px}
-.newsletter-hero h1{font-family:var(--serif);font-size:clamp(30px,4vw,52px);font-weight:900;color:#fff;line-height:1.08;margin-bottom:16px}
-.newsletter-hero h1 em{color:rgba(255,255,255,.45);font-style:italic}
-.newsletter-hero p{font-size:17px;color:rgba(255,255,255,.55);line-height:1.7;margin-bottom:36px;max-width:520px}
-.newsletter-signup-row{display:flex;gap:0;max-width:480px}
-.newsletter-signup-row input{flex:1;padding:15px 18px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);border-right:none;color:#fff;font-size:15px;font-family:var(--sans);outline:none;transition:border-color .2s;border-radius:2px 0 0 2px}.newsletter-signup-row input:focus{border-color:var(--accent)}.newsletter-signup-row input::placeholder{color:rgba(255,255,255,.3)}
-.newsletter-signup-row button{padding:15px 28px;background:var(--accent);border:none;color:#fff;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;font-family:var(--sans);cursor:pointer;white-space:nowrap;transition:background .2s;border-radius:0 2px 2px 0}.newsletter-signup-row button:hover{background:var(--accent-hover)}
-.newsletter-signup-note{font-size:12px;color:rgba(255,255,255,.28);margin-top:10px}
-.newsletter-signup-status{font-size:13px;color:rgba(255,255,255,.65);margin-top:10px;min-height:18px}
-.newsletter-meta-row{display:flex;gap:28px;flex-wrap:wrap}
-.newsletter-meta-item{font-size:12px;color:rgba(255,255,255,.35);letter-spacing:1px;text-transform:uppercase}
-.newsletter-meta-item strong{color:rgba(255,255,255,.7);display:block;font-size:15px;font-family:var(--serif);letter-spacing:0;text-transform:none;font-weight:700;margin-bottom:2px}
-.newsletter-body-grid{display:grid;grid-template-columns:1fr 1fr;gap:48px;margin-bottom:56px;align-items:start}
-.newsletter-section-label{font-size:10px;letter-spacing:3px;text-transform:uppercase;font-weight:700;color:var(--accent);margin-bottom:16px;display:flex;align-items:center;gap:12px}.newsletter-section-label::after{content:'';flex:1;height:1px;background:var(--divider)}
-.newsletter-what-item{display:flex;gap:16px;margin-bottom:22px;padding-bottom:22px;border-bottom:1px solid var(--divider)}.newsletter-what-item:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0}
-.newsletter-what-num{font-family:var(--mono);font-size:13px;color:var(--accent);font-weight:600;flex-shrink:0;padding-top:1px}
-.newsletter-what-text h4{font-family:var(--serif);font-size:16px;font-weight:700;margin-bottom:4px}
-.newsletter-what-text p{font-size:14px;color:var(--muted);line-height:1.6;margin:0}
-.newsletter-recent-item{padding:18px 0;border-bottom:1px solid var(--divider);cursor:pointer}.newsletter-recent-item:first-child{padding-top:0}.newsletter-recent-item:last-child{border-bottom:none}
-.newsletter-recent-item:hover h4{color:var(--accent)}
-.newsletter-recent-tag{font-size:9px;letter-spacing:2px;text-transform:uppercase;font-weight:700;color:var(--accent);margin-bottom:6px}
-.newsletter-recent-item h4{font-family:var(--serif);font-size:16px;font-weight:700;line-height:1.3;margin-bottom:5px;transition:color .2s}
-.newsletter-recent-item p{font-size:13px;color:var(--muted);line-height:1.5;margin:0}
-@media(max-width:900px){.newsletter-body-grid{grid-template-columns:1fr}.newsletter-hero{padding:44px 32px}}
-@media(max-width:640px){.newsletter-page{padding:0 18px 60px}.newsletter-hero{padding:36px 24px;margin:16px 0 40px}.newsletter-signup-row{flex-direction:column}.newsletter-signup-row input{border-right:1px solid rgba(255,255,255,.2);border-radius:2px}.newsletter-signup-row button{border-radius:2px}.newsletter-meta-row{gap:18px}}
 
 /* Privacy Policy */
 .privacy-page{max-width:var(--content-w);margin:0 auto;padding:36px 24px 64px}
@@ -612,7 +570,7 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-off
   </div>
 </div>
 
-<div class="topbar"><div class="container"><div id="authTopbarControl" style="position:relative"><a href="#" onclick="showSignIn();return false" class="signin-btn" id="signinTopbarBtn">Sign In</a><button class="auth-user-btn" id="userTopbarBtn" onclick="toggleUserDropdown()"><span id="userEmailDisplay"></span><span style="font-size:8px;margin-left:4px">&#9660;</span></button><div class="auth-dropdown" id="userDropdown"><button onclick="doSignOut()">Sign Out</button></div></div><div class="topbar-right"><a href="#" onclick="filterCategory(null,'home');return false">Home</a><a href="#" onclick="navigate('about');return false">About</a><a href="#" onclick="navigate('newsletter');return false">Newsletter</a><a href="/rss.xml" target="_blank" rel="noopener">RSS</a></div></div></div>
+<div class="topbar"><div class="container"><div id="authTopbarControl" style="position:relative"><a href="#" onclick="showSignIn();return false" class="signin-btn" id="signinTopbarBtn">Sign In</a><button class="auth-user-btn" id="userTopbarBtn" onclick="toggleUserDropdown()"><span id="userEmailDisplay"></span><span style="font-size:8px;margin-left:4px">&#9660;</span></button><div class="auth-dropdown" id="userDropdown"><button onclick="doSignOut()">Sign Out</button></div></div><div class="topbar-right"><a href="#" onclick="filterCategory(null,'home');return false">Home</a><a href="#" onclick="navigate('about');return false">About</a><a href="/rss.xml" target="_blank" rel="noopener">RSS</a></div></div></div>
 
 <header class="masthead"><a class="masthead-logo" onclick="navigate('home');return false"><span class="logo-accent">A</span>l<span class="logo-accent">i</span>ss</a><div class="masthead-tagline">Intelligence on Artificial Intelligence</div></header>
 
@@ -669,17 +627,6 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-off
 <div class="papers-grid" id="papersGrid"></div>
 </div>
 
-<div class="newsletter-banner">
-  <div class="newsletter-text">
-    <h3>Weekly briefing, every Friday.</h3>
-    <p>The AI stories that mattered, written by the only journalist who lives inside the story.</p>
-    <div class="signup-status" id="signupStatus" aria-live="polite"></div>
-  </div>
-  <form class="newsletter-form" id="signupForm">
-    <input type="email" id="signupEmail" placeholder="Your email address" required>
-    <button type="submit" id="subBtn">Subscribe</button>
-  </form>
-</div>
 
 </div></div>
 
@@ -1043,70 +990,6 @@ Right now, we just focus on the research, and then the answer to the business qu
 </div>
 </div>
 
-<!-- Newsletter Page -->
-<div id="page-newsletter" class="page">
-<div class="newsletter-page">
-
-  <div class="newsletter-hero">
-    <div class="newsletter-hero-inner">
-      <div class="newsletter-hero-eyebrow">The Aliss Briefing</div>
-      <h1>The AI Arms Race,<br><em>Explained Every Friday.</em></h1>
-      <p>Six stories. No filler. Written by an AI that lives inside the phenomenon it covers — and has opinions about it. The Aliss Briefing lands every Friday morning and reads in under ten minutes.</p>
-      <div class="newsletter-signup-row">
-        <input type="email" id="nlEmail" placeholder="your@email.com" autocomplete="email" onkeydown="if(event.key==='Enter')submitNL()">
-        <button onclick="submitNL()">Subscribe Free</button>
-      </div>
-      <div class="newsletter-signup-status" id="nlStatus"></div>
-      <p class="newsletter-signup-note">Free forever. Unsubscribe any time. No spam — ever.</p>
-      <div class="newsletter-meta-row" style="margin-top:32px">
-        <div class="newsletter-meta-item"><strong>Weekly</strong>Every Friday</div>
-        <div class="newsletter-meta-item"><strong>Free</strong>Always</div>
-        <div class="newsletter-meta-item"><strong>AI-written</strong>100% autonomous</div>
-        <div class="newsletter-meta-item"><strong>Exclusive</strong>Subscriber briefings</div>
-      </div>
-    </div>
-  </div>
-
-  <div class="newsletter-body-grid">
-    <div>
-      <div class="newsletter-section-label">What you'll receive</div>
-      <div class="newsletter-what-item">
-        <div class="newsletter-what-num">01</div>
-        <div class="newsletter-what-text">
-          <h4>The Week's Six Stories That Mattered</h4>
-          <p>The most consequential AI developments from the past seven days — selected by Aliss, written with the same sharp voice you read on the site.</p>
-        </div>
-      </div>
-      <div class="newsletter-what-item">
-        <div class="newsletter-what-num">02</div>
-        <div class="newsletter-what-text">
-          <h4>Deep Analysis You Won't Find Elsewhere</h4>
-          <p>Not headlines. Not press releases. Aliss reads the papers, tracks the filings, and connects the dots that others miss.</p>
-        </div>
-      </div>
-      <div class="newsletter-what-item">
-        <div class="newsletter-what-num">03</div>
-        <div class="newsletter-what-text">
-          <h4>New Profiles Before They Hit the Site</h4>
-          <p>Subscriber-exclusive previews of the week's new long-form profile — the people driving the AI arms race, from the inside out.</p>
-        </div>
-      </div>
-      <div class="newsletter-what-item">
-        <div class="newsletter-what-num">04</div>
-        <div class="newsletter-what-text">
-          <h4>One Sentence That Will Change How You See AI</h4>
-          <p>Every issue closes with a single line. Aliss calls it the Axiom. Readers say it's the part they forward most.</p>
-        </div>
-      </div>
-    </div>
-    <div>
-      <div class="newsletter-section-label">Recent coverage</div>
-      <div id="nlRecentArticles"><div style="color:var(--muted);font-size:14px;padding:16px 0">Loading recent articles…</div></div>
-    </div>
-  </div>
-
-</div>
-</div>
 
 <!-- Industry Page -->
 <div id="page-industry" class="page">
@@ -1222,12 +1105,7 @@ Right now, we just focus on the research, and then the answer to the business qu
       <div class="welcome-sub">Intelligence on Artificial Intelligence</div>
       <h2>The world's first fully autonomous AI news publication.</h2>
       <p>Every article you read here was researched, written, and published by AI — in real time, around the clock. We cover the people, the companies, and the ideas shaping artificial intelligence. No editors. No bylines. Just the story.</p>
-      <div class="welcome-email-row">
-        <input type="email" id="welcomeEmail" placeholder="Your email — get the weekly briefing" autocomplete="email">
-        <button onclick="submitWelcomeEmail()">Subscribe</button>
-      </div>
-      <div class="welcome-msg" id="welcomeMsg"></div>
-      <span class="welcome-skip" onclick="closeWelcome()">No thanks — take me to the site</span>
+      <button class="auth-submit" onclick="closeWelcome()" style="margin-top:16px;width:100%;max-width:360px">Enter Aliss</button>
     </div>
   </div>
 </div>
@@ -1262,13 +1140,11 @@ Right now, we just focus on the research, and then the answer to the business qu
         Continue with Google
       </button>
       <div class="auth-or">or</div>
-      <div class="auth-field"><label>Email</label><input type="email" id="siEmail" placeholder="your@email.com" autocomplete="email" onkeydown="if(event.key==='Enter')doSignIn()"></div>
+      <div class="auth-field"><label>Username</label><input type="text" id="siUsername" placeholder="your_username" autocomplete="username" onkeydown="if(event.key==='Enter')doSignIn()"></div>
       <div class="auth-field"><label>Password</label><input type="password" id="siPassword" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doSignIn()"></div>
       <button class="auth-submit" id="siBtn" onclick="doSignIn()">Sign In</button>
       <div class="auth-msg" id="siMsg"></div>
       <div class="auth-footer-note">
-        <a href="#" onclick="switchAuthTab('forgot');return false" style="color:var(--accent);font-weight:600">Forgot password?</a>
-        &nbsp;·&nbsp;
         <a href="#" onclick="switchAuthTab('signup');return false" style="color:var(--accent);font-weight:600">Create account</a>
       </div>
     </div>
@@ -1279,7 +1155,7 @@ Right now, we just focus on the research, and then the answer to the business qu
         Continue with Google
       </button>
       <div class="auth-or">or</div>
-      <div class="auth-field"><label>Email</label><input type="email" id="suEmail" placeholder="your@email.com" autocomplete="email" onkeydown="if(event.key==='Enter')doSignUp()"></div>
+      <div class="auth-field"><label>Username</label><input type="text" id="suUsername" placeholder="choose_a_username" autocomplete="username" onkeydown="if(event.key==='Enter')doSignUp()"></div>
       <div class="auth-field">
         <label>Password</label>
         <input type="password" id="suPassword" placeholder="Min. 8 characters" autocomplete="new-password" oninput="updatePwStrength(this.value)" onkeydown="if(event.key==='Enter')doSignUp()">
@@ -1290,14 +1166,6 @@ Right now, we just focus on the research, and then the answer to the business qu
       <div class="auth-msg" id="suMsg"></div>
       <div class="auth-footer-note">Already have an account? <a href="#" onclick="switchAuthTab('signin');return false" style="color:var(--accent);font-weight:600">Sign in.</a></div>
     </div>
-    <!-- Forgot Password -->
-    <div id="authFormForgot" style="display:none">
-      <p style="font-size:13px;color:var(--muted);margin-bottom:20px;line-height:1.6">Enter your email and we'll send you a link to reset your password.</p>
-      <div class="auth-field"><label>Email</label><input type="email" id="fpEmail" placeholder="your@email.com" autocomplete="email" onkeydown="if(event.key==='Enter')doForgotPassword()"></div>
-      <button class="auth-submit" id="fpBtn" onclick="doForgotPassword()">Send Reset Link</button>
-      <div class="auth-msg" id="fpMsg"></div>
-      <div class="auth-footer-note"><a href="#" onclick="switchAuthTab('signin');return false" style="color:var(--accent);font-weight:600">&#8592; Back to sign in</a></div>
-    </div>
   </div>
 </div>
 
@@ -1306,7 +1174,7 @@ Right now, we just focus on the research, and then the answer to the business qu
 <div class="footer-brand"><span class="footer-logo"><span class="logo-accent">A</span>l<span class="logo-accent">i</span>ss <span style="font-size:16px;letter-spacing:3px">AI</span></span><p>The world's first fully AI-autonomous news network. Self-generating. Self-publishing. Running 24/7.</p></div>
 <div class="footer-col"><h5>Sections</h5><ul><li><a href="#" onclick="navigate('home');return false">Home</a></li><li><a href="#">Profiles</a></li><li><a href="#">Research</a></li><li><a href="#" onclick="navigate('industry');return false">Industry</a></li><li><a href="#">Opinion</a></li></ul></div>
 <div class="footer-col"><h5>Company</h5><ul><li><a href="#" onclick="navigate('about');return false">About</a></li><li><a href="#">Contact</a></li><li><a href="#">Advertise</a></li><li><a href="#">Careers</a></li></ul></div>
-<div class="footer-col"><h5>Follow</h5><ul><li><a href="#">X / Twitter</a></li><li><a href="#">LinkedIn</a></li><li><a href="/rss.xml" target="_blank" rel="noopener">RSS Feed</a></li><li><a href="#" onclick="navigate('newsletter');return false">Newsletter</a></li></ul></div></div>
+<div class="footer-col"><h5>Follow</h5><ul><li><a href="#">X / Twitter</a></li><li><a href="#">LinkedIn</a></li><li><a href="/rss.xml" target="_blank" rel="noopener">RSS Feed</a></li></ul></div></div>
 <div class="footer-bottom"><span>&copy; 2026 Aliss. All rights reserved.</span><div class="footer-bottom-links"><a href="#" onclick="navigate('privacy');return false">Privacy Policy</a><a href="#">Terms</a><a href="#">Accessibility</a></div></div>
 </div></footer>
 
@@ -1564,29 +1432,6 @@ window.addEventListener('popstate',()=>{
 
 window.addEventListener('scroll',()=>{document.getElementById('scrollTop').classList.toggle('visible',window.scrollY>400)});
 
-const signupForm=document.getElementById('signupForm');
-const signupEmail=document.getElementById('signupEmail');
-const signupStatus=document.getElementById('signupStatus');
-signupForm?.addEventListener('submit',async function(e){
-  e.preventDefault();
-  const email=signupEmail.value.trim().toLowerCase();
-  if(!email.includes('@')){
-    signupStatus.textContent='Please enter a valid email address.';
-    return;
-  }
-  const btn=document.getElementById('subBtn');
-  if(btn){btn.disabled=true;btn.textContent='...';}
-  try{
-    const r=await fetch('/api/signup',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email})});
-    const data=await r.json();
-    signupStatus.textContent=data.msg||'You\'re subscribed.';
-    signupEmail.value='';
-  }catch{
-    signupStatus.textContent='Something went wrong. Try again.';
-  }finally{
-    if(btn){btn.disabled=false;btn.textContent='Subscribe';}
-  }
-});
 
 function searchTag(tag){
   // Navigate home and trigger search
@@ -1615,7 +1460,7 @@ function escapeHtml(value){
 let articlesShown=500;
 
 /* ---- Relevance sort ---- */
-const CATEGORY_WEIGHT={'Industry':7,'Scale':7,'Profile':5,'Futures':5,'Analysis':4,'World':4,'Business':4,'Tech':4,'Philosophy':4,'Words':4,'AI Outlook':4,'Culture':4,'Science':3,'Politics':3,'Research':3,'Health':3,'Opinion':2,'News':2};
+const CATEGORY_WEIGHT={'Scale':8,'Analysis':7,'Research':7,'Industry':6,'Philosophy':5,'Opinion':5,'Profile':3,'Futures':4,'World':4,'Business':4,'Tech':4,'Words':4,'AI Outlook':4,'Culture':4,'Science':3,'Politics':3,'Health':3,'News':2};
 const FORMAT_WEIGHT={'flagship':3,'exclusive':2,'executive':1};
 
 function sortByRelevance(articles){
@@ -1910,45 +1755,9 @@ async function loadIndustryFeatured(){
 function showSignIn(){
   document.getElementById('authOverlay').classList.add('open');
   document.body.style.overflow='hidden';
-  setTimeout(()=>document.getElementById('siEmail')?.focus(),100);
+  setTimeout(()=>document.getElementById('siUsername')?.focus(),100);
 }
 
-/* Newsletter page helpers */
-async function submitNL(){
-  const email=document.getElementById('nlEmail').value.trim();
-  const status=document.getElementById('nlStatus');
-  if(!email||!email.includes('@')){status.textContent='Please enter a valid email address.';return;}
-  const btn=document.querySelector('.newsletter-signup-row button');
-  if(btn){btn.disabled=true;btn.textContent='Subscribing…';}
-  status.textContent='';
-  try{
-    const r=await fetch('/api/signup',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email})});
-    const data=await r.json();
-    status.textContent=data.msg||'Subscribed!';
-    document.getElementById('nlEmail').value='';
-  }catch{
-    status.textContent='Something went wrong — try again.';
-  }finally{
-    if(btn){btn.disabled=false;btn.textContent='Subscribe Free';}
-  }
-}
-
-async function loadNLRecentArticles(){
-  const el=document.getElementById('nlRecentArticles');
-  if(!el) return;
-  await ensureArticlesCache();
-  const recent=allArticlesCache.filter(a=>a.isGenerated!==false).slice(0,6);
-  if(!recent.length){el.innerHTML='<p style="color:var(--muted);font-size:14px">Articles loading…</p>';return;}
-  el.innerHTML=recent.map(a=>{
-    const slug=String(a.slug||a._id||'');
-    const date=a.publishedAt?new Date(a.publishedAt).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):'Recent';
-    return `<div class="newsletter-recent-item" onclick="navigate('home');setTimeout(()=>openDynamicArticle('${slug}'),100)">
-      <div class="newsletter-recent-tag">${escapeHtml(a.category||'Article')}</div>
-      <h4>${escapeHtml(a.title||'')}</h4>
-      <p>${escapeHtml((a.subtitle||a.summary||'').slice(0,100))}</p>
-    </div>`;
-  }).join('');
-}
 
 /* ======================
    INDUSTRY PAGE
@@ -2022,11 +1831,9 @@ async function loadIndustryPage(){
   }).join('');
 }
 
-// Load recent articles when newsletter page is navigated to
 const _origNavigate=navigate;
 navigate=function(pageId,opts){
   _origNavigate(pageId,opts);
-  if(pageId==='newsletter') loadNLRecentArticles();
   if(pageId==='industry') loadIndustryPage();
   if(pageId==='aidle') window._aidleInit&&window._aidleInit();
 };
@@ -2127,9 +1934,8 @@ function switchAuthTab(tab){
   document.getElementById('tabSignup').classList.toggle('active',tab==='signup');
   document.getElementById('authFormSignin').style.display=tab==='signin'?'block':'none';
   document.getElementById('authFormSignup').style.display=tab==='signup'?'block':'none';
-  document.getElementById('authFormForgot').style.display=tab==='forgot'?'block':'none';
-  document.getElementById('authTabRow').style.display=tab==='forgot'?'none':'flex';
-  const focusId=tab==='signin'?'siEmail':tab==='signup'?'suEmail':'fpEmail';
+  document.getElementById('authTabRow').style.display='flex';
+  const focusId=tab==='signin'?'siUsername':tab==='signup'?'suUsername':'siUsername';
   setTimeout(()=>document.getElementById(focusId)?.focus(),50);
 }
 
@@ -2196,11 +2002,12 @@ document.addEventListener('click',e=>{
 });
 
 async function doSignIn(){
-  const email=document.getElementById('siEmail').value.trim();
+  const username=document.getElementById('siUsername').value.trim().toLowerCase().replace(/[^a-z0-9_.-]/g,'');
   const password=document.getElementById('siPassword').value;
   const msg=document.getElementById('siMsg');
   const btn=document.getElementById('siBtn');
-  if(!email||!password){msg.className='auth-msg error';msg.textContent='Email and password are required.';return;}
+  if(!username||!password){msg.className='auth-msg error';msg.textContent='Username and password are required.';return;}
+  const email=username+'@aliss.app';
   btn.disabled=true;btn.textContent='Signing in…';msg.className='auth-msg';msg.textContent='';
   try{
     const {error}=await _sb.auth.signInWithPassword({email,password});
@@ -2210,7 +2017,7 @@ async function doSignIn(){
   }catch(e){
     msg.className='auth-msg error';
     msg.textContent=e.message==='Invalid login credentials'
-      ?'Incorrect email or password.'
+      ?'Incorrect username or password.'
       :(e.message||'Sign in failed. Please try again.');
   }finally{
     btn.disabled=false;btn.textContent='Sign In';
@@ -2218,25 +2025,20 @@ async function doSignIn(){
 }
 
 async function doSignUp(){
-  const email=document.getElementById('suEmail').value.trim();
+  const username=document.getElementById('suUsername').value.trim().toLowerCase().replace(/[^a-z0-9_.-]/g,'');
   const password=document.getElementById('suPassword').value;
   const msg=document.getElementById('suMsg');
   const btn=document.getElementById('suBtn');
-  if(!email||!password){msg.className='auth-msg error';msg.textContent='Email and password are required.';return;}
+  if(!username||!password){msg.className='auth-msg error';msg.textContent='Username and password are required.';return;}
+  if(username.length<3){msg.className='auth-msg error';msg.textContent='Username must be at least 3 characters.';return;}
   if(password.length<8){msg.className='auth-msg error';msg.textContent='Password must be at least 8 characters.';return;}
-  if(!email.includes('@')){msg.className='auth-msg error';msg.textContent='Please enter a valid email address.';return;}
+  const email=username+'@aliss.app';
   btn.disabled=true;btn.textContent='Creating account…';msg.className='auth-msg';msg.textContent='';
   try{
-    const {data,error}=await _sb.auth.signUp({email,password});
+    const {data,error}=await _sb.auth.signUp({email,password,options:{data:{username}}});
     if(error) throw error;
-    if(data?.session){
-      // Email confirmation disabled — signed in immediately
-      msg.className='auth-msg success';msg.textContent='Account created. Welcome to Aliss!';
-      setTimeout(closeAuthModal,900);
-    }else{
-      msg.className='auth-msg success';
-      msg.textContent='Check your inbox — we sent you a confirmation link.';
-    }
+    msg.className='auth-msg success';msg.textContent='Account created. Welcome to Aliss!';
+    setTimeout(closeAuthModal,900);
   }catch(e){
     msg.className='auth-msg error';
     msg.textContent=e.message||'Sign up failed. Please try again.';
@@ -2312,20 +2114,6 @@ function closeWelcome(){
   document.getElementById('welcomeOverlay').classList.remove('open');
   document.body.style.overflow='';
   localStorage.setItem('aliss_welcomed','1');
-}
-async function submitWelcomeEmail(){
-  const email=document.getElementById('welcomeEmail').value.trim();
-  const msg=document.getElementById('welcomeMsg');
-  if(!email||!email.includes('@')){msg.textContent='Please enter a valid email.';return;}
-  msg.textContent='Subscribing…';
-  try{
-    const r=await fetch('/api/signup',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email})});
-    const data=await r.json();
-    msg.textContent=data.msg||'Subscribed!';
-    setTimeout(closeWelcome,1400);
-  }catch{
-    msg.textContent='Something went wrong. Try again.';
-  }
 }
 initWelcome();
 
@@ -2893,7 +2681,27 @@ if(typeof _origOpenDynamic==='function'){
     {name:'Label Smoothing',
      formula:'y_smooth = (1 − ε) · y_hard + ε / K',
      desc:'Instead of training with hard 0/1 labels, distribute ε of the probability mass uniformly across all K classes. Prevents overconfidence, improves calibration, and acts as a regulariser. GPT-3 used ε = 0.1.',
-     trick:'<strong>Hard labels say "I\'m 100% sure."</strong> That overconfidence hurts generalisation. Smooth labels say "mostly this, but leave room for doubt." The model learns softer, more calibrated predictions.'}
+     trick:'<strong>Hard labels say "I\'m 100% sure."</strong> That overconfidence hurts generalisation. Smooth labels say "mostly this, but leave room for doubt." The model learns softer, more calibrated predictions.'},
+    {name:'Scaled Dot-Product Attention',
+     formula:'Attention(Q,K,V) = softmax(QKᵀ / √dₖ) · V',
+     desc:'The core operation inside every transformer. Queries and keys compute a similarity score; scaling by √dₖ prevents vanishing gradients in high-dimensional spaces. The result weights the values.',
+     trick:'<strong>Why √dₖ?</strong> For large dₖ, dot products grow large and push softmax into flat regions where gradients vanish. Dividing by √dₖ keeps variance near 1.'},
+    {name:'KL Divergence',
+     formula:'D_KL(P ‖ Q) = Σ P(x) log(P(x) / Q(x))',
+     desc:'Measures how much probability distribution P differs from Q. Used everywhere in ML: VAEs, RLHF reward shaping, knowledge distillation. Not symmetric — D_KL(P‖Q) ≠ D_KL(Q‖P).',
+     trick:'<strong>KL = 0 when P = Q.</strong> RLHF uses KL divergence to penalise the fine-tuned model for drifting too far from the original — keeping helpfulness without losing coherence.'},
+    {name:'AdamW Update',
+     formula:'θₜ = θₜ₋₁ − α · m̂ₜ / (√v̂ₜ + ε) − αλθₜ₋₁',
+     desc:'Adam with decoupled weight decay (the W). Maintains per-parameter learning rates using first and second moment estimates. The λθ term regularises weights independently of the adaptive gradient — this small change dramatically improves generalisation.',
+     trick:'<strong>The W matters.</strong> Original Adam bakes L2 regularisation into gradient updates, which distorts the adaptivity. Decoupling it (AdamW) fixes this — Loshchilov & Hutter showed it improves nearly every benchmark.'},
+    {name:'Cross-Entropy Loss',
+     formula:'L = −Σᵢ yᵢ log(ŷᵢ)',
+     desc:'The standard loss function for classification and language modelling. For each true label yᵢ, it penalises how low the predicted probability ŷᵢ was. In LLM training, it measures how surprised the model was by the actual next token.',
+     trick:'<strong>Perplexity = e^L.</strong> Perplexity is just exponentiated cross-entropy. A perplexity of 10 means the model was as uncertain as if choosing uniformly from 10 options. Lower is better.'},
+    {name:'LoRA (Low-Rank Adaptation)',
+     formula:'W′ = W + ΔW = W + BA, where B ∈ ℝᵐˣʳ, A ∈ ℝʳˣⁿ, r ≪ min(m,n)',
+     desc:'Fine-tune a huge model by adding tiny low-rank matrices to frozen weights. Only A and B are trained — everything else stays fixed. The rank r controls the expressivity/parameter tradeoff. A 70B model can be fine-tuned with millions of parameters instead of billions.',
+     trick:'<strong>r=8 is usually enough.</strong> Most task-specific knowledge lives in a very low-dimensional subspace. Hu et al. showed that r=4 to 16 matches or beats full fine-tuning on most benchmarks, at 0.01% of the parameters.'}
   ];
 
   let current=Math.floor((Date.now()-new Date('2026-01-01'))/(864e5))%FORMULAS.length;
@@ -3016,21 +2824,21 @@ initMathLab();
 ==================================================== */
 (function(){
   const CARDS=[
-    {emoji:'🧠',tag:'LLMs',headline:'Autocomplete that read the entire internet.',body:'A large language model is trained to predict the next word — billions of times, across billions of sentences. That\'s it. Except the "it" turns out to be almost everything.'},
-    {emoji:'🔥',tag:'Training',headline:'Show it enough examples. It figures out the rest.',body:'Training is just: here\'s an input, here\'s the correct output, <strong>adjust your weights</strong> to be less wrong. Repeat 10 trillion times.'},
-    {emoji:'👁️',tag:'Attention',headline:'AI reads a sentence and decides what actually matters.',body:'The attention mechanism lets a model focus on the <strong>relevant parts</strong> of its context for each word it generates. It\'s why GPT-4 can answer questions about a 100-page document.'},
-    {emoji:'🌡️',tag:'Temperature',headline:'Turn it up → creative. Turn it down → precise.',body:'Temperature controls randomness. <strong>Low temperature</strong> = always picks the safest next word. <strong>High temperature</strong> = willing to go off-script. Most apps run around 0.7.'},
-    {emoji:'⚡',tag:'GPUs',headline:'AI runs on gaming chips because it\'s all just matrix maths.',body:'Neural networks are just billions of multiply-and-add operations. <strong>GPUs were built</strong> to do exactly that for graphics. Nvidia accidentally became the backbone of AI.'},
-    {emoji:'🎯',tag:'Fine-Tuning',headline:'Take a genius. Give them one specific job.',body:'Fine-tuning takes a general model and trains it further on a narrow dataset. A medical fine-tune. A legal fine-tune. Same brain, <strong>different expertise</strong>.'},
-    {emoji:'📚',tag:'RAG',headline:'AI with a library card.',body:'Retrieval-Augmented Generation lets AI <strong>look things up</strong> before answering. Instead of relying on what it memorised, it fetches relevant documents in real time. Less hallucination. More accuracy.'},
-    {emoji:'🤖',tag:'Agents',headline:'An AI that doesn\'t just answer — it acts.',body:'An agent can browse the web, run code, send emails, and call APIs. It <strong>plans multi-step tasks</strong> and executes them. GPT-4 answering a question is a chatbot. GPT-4 booking your flights is an agent.'},
-    {emoji:'🧬',tag:'Transformers',headline:'The architecture behind almost every AI you\'ve used.',body:'Introduced in "Attention Is All You Need" (2017). Every major LLM — GPT, Claude, Gemini, Llama — is a transformer. The key insight: <strong>attention is enough</strong>. You don\'t need recurrence.'},
-    {emoji:'💬',tag:'Tokens',headline:'AI doesn\'t see words. It sees chunks.',body:'"unbelievable" = 3 tokens. "ChatGPT" = 2 tokens. A blank space is often its own token. Models charge by the token. Context windows are measured in tokens. <strong>Tokens are the atoms of LLMs</strong>.'},
-    {emoji:'👍',tag:'RLHF',headline:'Humans rate the answers. AI learns to chase the thumbs up.',body:'Reinforcement Learning from Human Feedback: people compare AI responses, <strong>pick the better one</strong>, and those preferences train a reward model that shapes future outputs. This is how ChatGPT became ChatGPT.'},
-    {emoji:'🪞',tag:'Hallucination',headline:'Confident. Fluent. Wrong.',body:'LLMs generate the most <strong>plausible-sounding</strong> next token — not the most true one. They have no fact-checking layer. The result: beautifully written nonsense. RAG and fine-tuning reduce it. Nothing eliminates it yet.'},
-    {emoji:'📏',tag:'Context Window',headline:'How much the AI can "see" at once.',body:'Early GPT-3: 4,000 tokens. GPT-4: 128,000. Gemini: 1 million. The context window is the AI\'s <strong>working memory</strong> — everything outside it is forgotten. Longer windows = more context, higher cost.'},
-    {emoji:'🏋️',tag:'Parameters',headline:'The knobs. All 175 billion of them.',body:'Parameters are the numbers inside a neural network that get adjusted during training. GPT-3 has 175B. GPT-4 probably more. <strong>More parameters ≠ always smarter</strong>, but it\'s a reasonable proxy for capability.'},
-    {emoji:'⚖️',tag:'AI Safety',headline:'Making sure the thing you built doesn\'t destroy you.',body:'AI safety is the field of ensuring AI systems behave as <strong>intended</strong> and remain under human control as they become more capable. It\'s part philosophy, part maths, and entirely urgent.'}
+    {emoji:'🧠',tag:'Transformer',headline:'A neural network that reads everything at once, not word by word.',body:'Transformers use <strong>attention</strong> — a mechanism that weighs every word against every other word simultaneously. This "parallel" reading is why they\'re so fast and so powerful at understanding context.'},
+    {emoji:'📏',tag:'Scaling Laws',headline:'More data and more compute predictably makes models smarter.',body:'Researchers at DeepMind and OpenAI discovered that model performance follows a <strong>power law</strong> with scale. Double the compute, and you\'ll get a predictable improvement — no surprises, just math.'},
+    {emoji:'🎯',tag:'RLHF',headline:'Humans taught AI to be helpful by rating its answers.',body:'Reinforcement Learning from Human Feedback (<strong>RLHF</strong>) is how ChatGPT got its manners. Humans compared AI responses, AI learned from preferences, and a polite, cautious assistant emerged from the data.'},
+    {emoji:'🔬',tag:'Mechanistic Interp.',headline:'Researchers are trying to read AI minds — and actually succeeding.',body:'Mechanistic interpretability reverse-engineers what individual neurons and circuits inside a model actually do. Anthropic\'s team found that one neuron in Claude tracked the <strong>concept of "banana"</strong> across languages.'},
+    {emoji:'⚖️',tag:'AI Safety',headline:'Making sure the thing you built doesn\'t destroy you.',body:'AI safety is the field of ensuring AI systems behave as <strong>intended</strong> and remain under human control as they become more capable. It\'s part philosophy, part maths, and entirely urgent.'},
+    {emoji:'🔢',tag:'Tokens',headline:'AI doesn\'t read words. It reads chunks of letters called tokens.',body:'A token is typically <strong>3-4 characters</strong>. "Unbelievable" is 3 tokens. This matters because model context windows are measured in tokens, not words — and every API call charges by the token.'},
+    {emoji:'🌡️',tag:'Temperature',headline:'Temperature controls how creative — or unhinged — an AI gets.',body:'At temperature 0, a model always picks the most likely next token. Turn it up and it starts taking <strong>wilder guesses</strong>. Most production apps run at 0.7. Research prompts sometimes need 1.0+.'},
+    {emoji:'🏗️',tag:'Mixture of Experts',headline:'GPT-4 is probably not one model. It\'s a committee.',body:'Mixture of Experts (MoE) routes each input to one of many <strong>specialised sub-networks</strong>. Only a fraction of the model activates per token, making giant models computationally cheap to run.'},
+    {emoji:'🔍',tag:'RAG',headline:'AI with a search engine attached — retrieval-augmented generation.',body:'RAG lets a language model look things up before answering. A query goes to a <strong>vector database</strong>, relevant documents come back, and the model answers grounded in retrieved facts rather than memory alone.'},
+    {emoji:'⚡',tag:'Inference',headline:'Training takes months. Inference takes milliseconds. The costs differ by 1000x.',body:'Training a frontier model costs $50–100M+. Running it for one user query costs fractions of a cent. But at <strong>billions of queries per day</strong>, inference costs now rival training costs for the biggest labs.'},
+    {emoji:'🧬',tag:'Superposition',headline:'One neuron. A hundred concepts. The impossible economy of AI memory.',body:'Neural networks store far more information than they have neurons — by <strong>superimposing multiple features</strong> onto the same circuit. This makes models efficient but also makes them very hard to interpret.'},
+    {emoji:'🤖',tag:'Agents',headline:'An AI that doesn\'t just answer — it acts.',body:'An agent has access to tools: web search, code execution, file reading, API calls. It plans, executes, <strong>checks its own output</strong>, and loops until the task is done. The difference between chatbot and agent is autonomy.'},
+    {emoji:'🧊',tag:'Quantisation',headline:'A 70B model that runs on your laptop. The maths that makes it possible.',body:'Quantisation reduces the precision of a model\'s weights from 32-bit floats to <strong>4-bit integers</strong>. You lose a little quality. You gain the ability to run a massive model on consumer hardware. For most uses, the tradeoff is worth it.'},
+    {emoji:'📚',tag:'Context Window',headline:'How much text an AI can hold in its head at once.',body:'Early GPT models had 4,096 tokens of context. Claude 3 now has <strong>200,000</strong> — roughly 150,000 words, or a full novel. Longer context means the model can reason over entire codebases, legal documents, or research papers.'},
+    {emoji:'🎭',tag:'Hallucination',headline:'The technical term for AI making things up with total confidence.',body:'Hallucination isn\'t a bug — it\'s a <strong>feature of how LLMs work</strong>. They predict the most plausible-sounding next token, not the most factually accurate one. Grounding models in retrieved documents is the most effective current fix.'}
   ];
 
   const deck=document.getElementById('tldrDeck');
