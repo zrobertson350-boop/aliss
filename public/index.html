@@ -1558,6 +1558,9 @@ window.addEventListener('popstate',()=>{
     openDynamicArticle(slug,{replace:true});
   }else{
     renderPage(page,{scroll:false});
+    if(page==='aidle') window._aidleInit&&window._aidleInit();
+    if(page==='chess') window._chessInit&&window._chessInit();
+    if(page==='compute') window._computeRender&&window._computeRender();
   }
 });
 
@@ -3289,6 +3292,15 @@ initMathLab();
   if(document.getElementById('page-chess')?.classList.contains('active')){
     draw();
   }
+})();
+</script>
+<script>
+/* ── DEFERRED PAGE INIT — ensures all pages init after all scripts loaded ── */
+(function(){
+  const page=new URLSearchParams(window.location.search).get('page');
+  if(page==='aidle') window._aidleInit&&window._aidleInit();
+  if(page==='chess') window._chessInit&&window._chessInit();
+  if(page==='compute') window._computeRender&&window._computeRender();
 })();
 </script>
 </body>
