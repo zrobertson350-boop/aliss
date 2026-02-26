@@ -3203,7 +3203,49 @@ initMathLab();
     return moves;
   }
 
+  let turn='w'; // 'w' = white (human), 'b' = black (AI)
+  let aiThinking=false;
+
+  // piece values for AI evaluation
+  const PIECE_VAL={P:1,N:3,B:3,R:5,Q:9,K:99,p:1,n:3,b:3,r:5,q:9,k:99};
+
+  function aiMove(){
+    if(aiThinking) return;
+    aiThinking=true;
+    // collect all black pieces and their moves
+    let allMoves=[];
+    for(let r=0;r<8;r++){
+      for(let c=0;c<8;c++){
+        if(isBlack(board[r][c])){
+          const moves=getMoves(r,c);
+          moves.forEach(([mr,mc])=>{
+            let score=0;
+            // prefer captures (by value)
+            if(board[mr][mc]!==' ') score+=PIECE_VAL[board[mr][mc]]||0;
+            // slight center preference
+            score+=((3.5-Math.abs(mc-3.5))+(3.5-Math.abs(mr-3.5)))*0.05;
+            // random factor
+            score+=Math.random()*0.5;
+            allMoves.push({fr:r,fc:c,tr:mr,tc:mc,score});
+          });
+        }
+      }
+    }
+    if(allMoves.length===0){aiThinking=false;return;}
+    // sort by score descending, pick best
+    allMoves.sort((a,b)=>b.score-a.score);
+    const best=allMoves[0];
+    setTimeout(()=>{
+      board[best.tr][best.tc]=board[best.fr][best.fc];
+      board[best.fr][best.fc]=' ';
+      turn='w';
+      aiThinking=false;
+      draw();
+    },350);
+  }
+
   canvas.addEventListener('click',e=>{
+    if(turn!=='w'||aiThinking) return;
     const rect=canvas.getBoundingClientRect();
     const x=e.clientX-rect.left;
     const y=e.clientY-rect.top;
@@ -3214,17 +3256,21 @@ initMathLab();
     if(selected){
       const moves=getMoves(selected[0],selected[1]);
       const isValid=moves.some(([mr,mc])=>mr===r&&mc===c);
-      if(isValid){
+      if(isValid&&isWhite(board[selected[0]][selected[1]])){
         board[r][c]=board[selected[0]][selected[1]];
         board[selected[0]][selected[1]]=' ';
         selected=null;
-      }else if(board[r][c]!==' '){
+        turn='b';
+        draw();
+        aiMove();
+        return;
+      }else if(board[r][c]!==' '&&isWhite(board[r][c])){
         selected=[r,c];
       }else{
         selected=null;
       }
     }else{
-      if(board[r][c]!==' ') selected=[r,c];
+      if(board[r][c]!==' '&&isWhite(board[r][c])) selected=[r,c];
     }
     draw();
   });
