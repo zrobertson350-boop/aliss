@@ -584,6 +584,61 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-off
 .chess-pull{margin:36px 0;padding:22px 28px;border-left:3px solid var(--accent);background:var(--highlight);font-family:var(--serif);font-size:19px;font-style:italic;line-height:1.55;color:#333}
 .chess-pull cite{display:block;font-family:var(--sans);font-size:10px;font-style:normal;font-weight:600;color:var(--muted);margin-top:10px;letter-spacing:1.5px;text-transform:uppercase}
 @media(max-width:640px){.chess-minds{grid-template-columns:1fr}.chess-mind{border-right:none}}
+
+/* ── TRACKER ─────────────────────────────────────── */
+.tracker-page{max-width:960px;margin:0 auto;padding:36px 20px 80px}
+.tracker-header{text-align:center;margin-bottom:48px}
+.tracker-title{font-family:var(--serif);font-size:clamp(28px,4.5vw,46px);font-weight:900;letter-spacing:2px;color:var(--ink);margin-bottom:8px}
+.tracker-title .tracker-accent{color:var(--accent)}
+.tracker-sub{font-size:12px;letter-spacing:3px;text-transform:uppercase;color:var(--muted);margin-top:6px}
+.tracker-section-label{font-size:9px;letter-spacing:4px;text-transform:uppercase;color:#D4AF37;font-weight:700;margin-bottom:20px;border-bottom:1px solid var(--divider);padding-bottom:10px}
+
+/* Scoreboard */
+.tracker-scoreboard{margin-bottom:56px}
+.tracker-scoreboard-header{display:grid;grid-template-columns:1fr auto 1fr;gap:0;margin-bottom:0}
+.tracker-country-label{font-family:var(--serif);font-size:18px;font-weight:900;letter-spacing:3px;text-transform:uppercase;padding:16px 24px;text-align:center}
+.tracker-country-label.usa{background:#3B82F6;color:#fff;border-radius:4px 0 0 0}
+.tracker-country-label.china{background:#EF4444;color:#fff;border-radius:0 4px 0 0}
+.tracker-vs{background:var(--ink);color:#D4AF37;font-family:var(--serif);font-size:14px;font-weight:900;display:flex;align-items:center;justify-content:center;padding:0 18px;letter-spacing:3px}
+.tracker-grid{display:grid;grid-template-columns:1fr 1fr;gap:0;border:1px solid rgba(255,255,255,.08)}
+.tracker-row{display:contents}
+.tracker-row-label{grid-column:1/-1;font-family:var(--mono);font-size:10px;letter-spacing:2.5px;text-transform:uppercase;color:#D4AF37;font-weight:600;padding:14px 24px 8px;background:rgba(20,20,20,.95);border-bottom:1px solid rgba(255,255,255,.06)}
+.tracker-cell{background:var(--ink);padding:16px 24px;border-bottom:1px solid rgba(255,255,255,.06);position:relative}
+.tracker-cell.usa{border-right:1px solid rgba(255,255,255,.06)}
+.tracker-cell-flag{font-size:10px;letter-spacing:2px;text-transform:uppercase;font-weight:700;margin-bottom:8px}
+.tracker-cell.usa .tracker-cell-flag{color:#3B82F6}
+.tracker-cell.china .tracker-cell-flag{color:#EF4444}
+.tracker-cell-items{list-style:none;padding:0;margin:0}
+.tracker-cell-items li{font-size:13px;color:rgba(255,255,255,.7);line-height:1.7;padding-left:14px;position:relative}
+.tracker-cell-items li::before{content:'\203A';position:absolute;left:0;color:rgba(255,255,255,.25);font-weight:700}
+.tracker-cell p{font-size:13px;color:rgba(255,255,255,.7);line-height:1.7}
+
+/* Timeline */
+.tracker-timeline-section{margin-bottom:56px}
+.tracker-timeline{margin:0;padding:0;list-style:none;border-left:2px solid var(--divider);margin-left:8px}
+.tracker-timeline li{padding:0 0 20px 28px;position:relative}
+.tracker-timeline li::before{content:'';position:absolute;left:-7px;top:6px;width:12px;height:12px;border-radius:50%;border:2px solid var(--paper);box-shadow:0 0 0 1px var(--divider)}
+.tracker-timeline li.evt-us::before{background:#3B82F6}
+.tracker-timeline li.evt-cn::before{background:#EF4444}
+.tracker-timeline li.evt-global::before{background:#D4AF37}
+.tracker-timeline-date{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:1.5px;color:var(--muted);display:block;margin-bottom:2px}
+.tracker-timeline-text{font-size:15px;color:var(--ink);line-height:1.55}
+.tracker-timeline-text strong{font-weight:700}
+.tracker-timeline-tag{display:inline-block;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;padding:2px 8px;border-radius:2px;margin-left:8px;vertical-align:middle}
+.tracker-timeline-tag.tag-us{background:rgba(59,130,246,.1);color:#3B82F6}
+.tracker-timeline-tag.tag-cn{background:rgba(239,68,68,.1);color:#EF4444}
+.tracker-timeline-tag.tag-global{background:rgba(212,175,55,.1);color:#D4AF37}
+
+/* Flashpoints */
+.tracker-flashpoints{margin-bottom:48px}
+.tracker-flash-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:0;border:1px solid var(--divider)}
+.tracker-flash-card{padding:28px 28px 24px;border-right:1px solid var(--divider);border-bottom:1px solid var(--divider);background:var(--card-bg);transition:background .2s}
+.tracker-flash-card:hover{background:var(--cream)}
+.tracker-flash-card:nth-child(2n){border-right:none}
+.tracker-flash-icon{font-size:24px;margin-bottom:12px;display:block}
+.tracker-flash-title{font-family:var(--serif);font-size:17px;font-weight:700;color:var(--ink);margin-bottom:8px}
+.tracker-flash-desc{font-size:13px;color:var(--muted);line-height:1.65}
+@media(max-width:640px){.tracker-flash-grid{grid-template-columns:1fr}.tracker-flash-card{border-right:none!important}.tracker-scoreboard-header{grid-template-columns:1fr 40px 1fr}.tracker-country-label{font-size:14px;padding:12px 10px}.tracker-vs{padding:0 8px;font-size:12px}}
 </style>
 </head>
 <body>
@@ -609,6 +664,7 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-off
 <li><a href="#" data-nav="scale" onclick="filterCategory('Scale','scale');return false">Scale</a></li>
 <li><a href="#" data-nav="research" onclick="filterCategory('Research','research');return false">Research</a></li>
 <li><a href="#" data-nav="chipwar" onclick="filterCategory('Chip War','chipwar');return false">Chip War</a></li>
+<li><a href="#" data-nav="tracker" onclick="navigate('tracker');return false">Tracker</a></li>
 <li><a href="#" data-nav="chess" onclick="navigate('chess');return false">Chess</a></li>
 <li><a href="#" data-nav="aidle" onclick="navigate('aidle');return false">A·I·dle</a></li>
 <li><a href="#" data-nav="compute" onclick="navigate('compute');return false">Compute</a></li>
@@ -1046,6 +1102,203 @@ Right now, we just focus on the research, and then the answer to the business qu
       <p>The most ambitious pieces on the platform — deep-dives into the AI industrial revolution. Check back shortly.</p>
     </div>
   </div>
+</div>
+
+<!-- Tracker Page -->
+<div id="page-tracker" class="page">
+<div class="tracker-page">
+
+  <div class="tracker-header">
+    <div class="tracker-title">AI Arms <span class="tracker-accent">Race</span></div>
+    <div class="tracker-sub">Real-time tracker of the global AI competition</div>
+  </div>
+
+  <!-- Scoreboard -->
+  <div class="tracker-scoreboard">
+    <div class="tracker-section-label">Scoreboard</div>
+    <div class="tracker-scoreboard-header">
+      <div class="tracker-country-label usa">United States</div>
+      <div class="tracker-vs">VS</div>
+      <div class="tracker-country-label china">China</div>
+    </div>
+    <div class="tracker-grid">
+
+      <div class="tracker-row-label">Leading Models</div>
+      <div class="tracker-cell usa">
+        <ul class="tracker-cell-items">
+          <li>GPT-5</li>
+          <li>Claude Opus</li>
+          <li>Gemini 3</li>
+        </ul>
+      </div>
+      <div class="tracker-cell china">
+        <ul class="tracker-cell-items">
+          <li>DeepSeek-V3</li>
+          <li>Doubao 2.0</li>
+          <li>Qwen 2.5</li>
+        </ul>
+      </div>
+
+      <div class="tracker-row-label">Top Labs</div>
+      <div class="tracker-cell usa">
+        <ul class="tracker-cell-items">
+          <li>OpenAI</li>
+          <li>Anthropic</li>
+          <li>Google DeepMind</li>
+          <li>Meta AI</li>
+        </ul>
+      </div>
+      <div class="tracker-cell china">
+        <ul class="tracker-cell-items">
+          <li>DeepSeek</li>
+          <li>ByteDance</li>
+          <li>Alibaba</li>
+          <li>Baidu</li>
+        </ul>
+      </div>
+
+      <div class="tracker-row-label">Compute</div>
+      <div class="tracker-cell usa">
+        <p>Nvidia H100 / H200 / B200 &mdash; restricted export to China since Oct 2022</p>
+      </div>
+      <div class="tracker-cell china">
+        <p>Huawei Ascend 910C, smuggled chips. Est. ~10K&ndash;100K smuggled GPUs in 2024</p>
+      </div>
+
+      <div class="tracker-row-label">Talent</div>
+      <div class="tracker-cell usa">
+        <p>Retains ~80% of foreign-born AI PhDs who study in the US</p>
+      </div>
+      <div class="tracker-cell china">
+        <p>47% of top global AI researchers are Chinese-origin</p>
+      </div>
+
+      <div class="tracker-row-label">Funding 2024</div>
+      <div class="tracker-cell usa">
+        <p>$67B+ in private AI investment</p>
+      </div>
+      <div class="tracker-cell china">
+        <p>$10B+ disclosed &mdash; state funding opaque</p>
+      </div>
+
+      <div class="tracker-row-label">Key Policy</div>
+      <div class="tracker-cell usa">
+        <ul class="tracker-cell-items">
+          <li>CHIPS Act</li>
+          <li>Export controls</li>
+          <li>Entity List</li>
+        </ul>
+      </div>
+      <div class="tracker-cell china">
+        <ul class="tracker-cell-items">
+          <li>New Generation AI Plan</li>
+          <li>National champions</li>
+          <li>Military-civil fusion</li>
+        </ul>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Timeline -->
+  <div class="tracker-timeline-section">
+    <div class="tracker-section-label">Key Moves</div>
+    <ul class="tracker-timeline">
+      <li class="evt-cn">
+        <span class="tracker-timeline-date">Feb 2026</span>
+        <span class="tracker-timeline-text"><strong>ByteDance launches Doubao 2.0</strong>, hires 100 US AI roles <span class="tracker-timeline-tag tag-cn">China</span></span>
+      </li>
+      <li class="evt-us">
+        <span class="tracker-timeline-date">Jan 2026</span>
+        <span class="tracker-timeline-text"><strong>Linwei Ding convicted</strong> &mdash; first AI espionage case <span class="tracker-timeline-tag tag-us">US</span></span>
+      </li>
+      <li class="evt-cn">
+        <span class="tracker-timeline-date">Jan 2026</span>
+        <span class="tracker-timeline-text"><strong>DeepSeek-R1</strong> shocks with open-weight reasoning model <span class="tracker-timeline-tag tag-cn">China</span></span>
+      </li>
+      <li class="evt-us">
+        <span class="tracker-timeline-date">Dec 2025</span>
+        <span class="tracker-timeline-text"><strong>US adds 140 companies</strong> to Entity List <span class="tracker-timeline-tag tag-us">US</span></span>
+      </li>
+      <li class="evt-us">
+        <span class="tracker-timeline-date">Oct 2025</span>
+        <span class="tracker-timeline-text"><strong>$160M Nvidia chip smuggling ring</strong> busted <span class="tracker-timeline-tag tag-us">US</span></span>
+      </li>
+      <li class="evt-us">
+        <span class="tracker-timeline-date">Sep 2025</span>
+        <span class="tracker-timeline-text"><strong>Trump approves TikTok deal</strong> <span class="tracker-timeline-tag tag-us">US</span></span>
+      </li>
+      <li class="evt-us">
+        <span class="tracker-timeline-date">Jan 2025</span>
+        <span class="tracker-timeline-text"><strong>Supreme Court upholds TikTok ban</strong> unanimously <span class="tracker-timeline-tag tag-us">US</span></span>
+      </li>
+      <li class="evt-us">
+        <span class="tracker-timeline-date">Aug 2024</span>
+        <span class="tracker-timeline-text"><strong>OpenAI launches GPT-5</strong> <span class="tracker-timeline-tag tag-us">US</span></span>
+      </li>
+      <li class="evt-us">
+        <span class="tracker-timeline-date">Mar 2024</span>
+        <span class="tracker-timeline-text"><strong>House passes TikTok ban</strong> 352&ndash;65 <span class="tracker-timeline-tag tag-us">US</span></span>
+      </li>
+      <li class="evt-global">
+        <span class="tracker-timeline-date">Dec 2023</span>
+        <span class="tracker-timeline-text"><strong>EU AI Act passed</strong> <span class="tracker-timeline-tag tag-global">Global</span></span>
+      </li>
+      <li class="evt-global">
+        <span class="tracker-timeline-date">Nov 2023</span>
+        <span class="tracker-timeline-text"><strong>UK AI Safety Summit</strong>, Bletchley Park <span class="tracker-timeline-tag tag-global">Global</span></span>
+      </li>
+      <li class="evt-us">
+        <span class="tracker-timeline-date">Oct 2023</span>
+        <span class="tracker-timeline-text"><strong>Biden chip export controls expanded</strong> <span class="tracker-timeline-tag tag-us">US</span></span>
+      </li>
+      <li class="evt-us">
+        <span class="tracker-timeline-date">Mar 2023</span>
+        <span class="tracker-timeline-text"><strong>GPT-4 launches</strong> <span class="tracker-timeline-tag tag-us">US</span></span>
+      </li>
+      <li class="evt-global">
+        <span class="tracker-timeline-date">Nov 2022</span>
+        <span class="tracker-timeline-text"><strong>ChatGPT launches</strong> &mdash; the starting gun <span class="tracker-timeline-tag tag-global">Global</span></span>
+      </li>
+      <li class="evt-us">
+        <span class="tracker-timeline-date">Oct 2022</span>
+        <span class="tracker-timeline-text"><strong>Biden first chip export controls</strong> <span class="tracker-timeline-tag tag-us">US</span></span>
+      </li>
+      <li class="evt-cn">
+        <span class="tracker-timeline-date">2017</span>
+        <span class="tracker-timeline-text"><strong>China's New Generation AI Development Plan</strong> <span class="tracker-timeline-tag tag-cn">China</span></span>
+      </li>
+    </ul>
+  </div>
+
+  <!-- Flashpoints -->
+  <div class="tracker-flashpoints">
+    <div class="tracker-section-label">Active Flashpoints</div>
+    <div class="tracker-flash-grid">
+      <div class="tracker-flash-card">
+        <span class="tracker-flash-icon">&#9881;</span>
+        <div class="tracker-flash-title">The Chip War</div>
+        <div class="tracker-flash-desc">The US restricts exports, China smuggles chips across borders, and Huawei races to build domestic alternatives. The most consequential supply-chain battle in technology history.</div>
+      </div>
+      <div class="tracker-flash-card">
+        <span class="tracker-flash-icon">&#127891;</span>
+        <div class="tracker-flash-title">The Talent Drain</div>
+        <div class="tracker-flash-desc">Zhu Songchun's return to China, the Thousand Talents Program, and the rise of mirror labs. Both nations compete to attract and retain the researchers who will build AGI.</div>
+      </div>
+      <div class="tracker-flash-card">
+        <span class="tracker-flash-icon">&#128242;</span>
+        <div class="tracker-flash-title">The TikTok Question</div>
+        <div class="tracker-flash-desc">Surveillance, recommendation algorithms, and the USDS deal. The most downloaded app in America is owned by a Chinese company&mdash;and Congress wants it gone or sold.</div>
+      </div>
+      <div class="tracker-flash-card">
+        <span class="tracker-flash-icon">&#128275;</span>
+        <div class="tracker-flash-title">The Open Source Gambit</div>
+        <div class="tracker-flash-desc">DeepSeek and Qwen release open-weight models rivaling GPT-4. Is open source a gift to innovation&mdash;or a national security risk that hands adversaries frontier capability?</div>
+      </div>
+    </div>
+  </div>
+
+</div>
 </div>
 
 <!-- Chess Page -->
@@ -1994,6 +2247,7 @@ navigate=function(pageId,opts){
   if(pageId==='industry') loadIndustryPage();
   if(pageId==='chess') window._chessInit&&window._chessInit();
   if(pageId==='aidle') window._aidleInit&&window._aidleInit();
+  if(pageId==='tracker') window._trackerInit&&window._trackerInit();
 };
 
 /* ======================
