@@ -1312,7 +1312,7 @@ Right now, we just focus on the research, and then the answer to the business qu
 
   <div class="chess-board-wrap">
     <canvas id="chessBoard"></canvas>
-    <div class="chess-board-label">Click to move &middot; drag pieces &middot; interactive board</div>
+    <div class="chess-board-label">Click to move &middot; drag pieces &middot; You vs AlphaAliss</div>
   </div>
 
   <div class="chess-pull">
@@ -1639,6 +1639,9 @@ function renderPage(pageId,{scroll=true}={}){
   if(pageId.startsWith('article'))document.querySelector('.main-nav a[data-nav="profiles"]')?.classList.add('active');
   if(scroll) window.scrollTo({top:0,behavior:'smooth'});
   if(pageId==='compute') window._computeRender?.();
+  if(pageId==='aidle') window._aidleInit?.();
+  if(pageId==='chess') window._chessInit?.();
+  if(pageId==='tracker') window._trackerInit?.();
 }
 
 function navigate(pageId,{replace=false,slug=''}={}){
@@ -2574,6 +2577,10 @@ function submitAlissPlusCode(){}
 
   function initGame(){
     TARGET=WORDS[getDayIndex()];
+    currentGuess='';
+    guesses=[];
+    gameOver=false;
+    keyState={};
     const saved=JSON.parse(localStorage.getItem(getTodayKey())||'null');
     if(saved){
       guesses=saved.guesses||[];
@@ -3460,7 +3467,7 @@ initMathLab();
     return moves;
   }
 
-  let turn='w'; // 'w' = white (human), 'b' = black (AI)
+  let turn='w'; // 'w' = white (human), 'b' = black (AlphaAliss)
   let aiThinking=false;
 
   // piece values for AI evaluation
