@@ -578,7 +578,7 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-off
 <li><a href="#" data-nav="profiles" onclick="filterCategory('Profile','profiles');return false">Profiles</a></li>
 <li><a href="#" data-nav="industry" onclick="navigate('industry');return false">Industry</a></li>
 <li><a href="#" data-nav="scale" onclick="filterCategory('Scale','scale');return false">Scale</a></li>
-<li><a href="#" data-nav="research" onclick="filterCategory('Research','research');return false">Papers</a></li>
+<li><a href="#" data-nav="research" onclick="filterCategory('Research','research');return false">Research</a></li>
 <li><a href="#" data-nav="chipwar" onclick="filterCategory('Chip War','chipwar');return false">Chip War</a></li>
 <li><a href="#" data-nav="aidle" onclick="navigate('aidle');return false">A·I·dle</a></li>
 <li><a href="#" data-nav="compute" onclick="navigate('compute');return false">Compute</a></li>
@@ -2145,7 +2145,8 @@ function submitAlissPlusCode(){}
     'THETA','OMEGA','GAMMA','VOCAB','PARSE','HOOKS','PIPES','CLIPS','TESTS','LINKS',
     'RANKS','TEXTS','ULTRA','MICRO','SUPER','WORDS','CODES','SPANS','ITEMS','LANES'];
 
-  const VALID_GUESSES=new Set(WORDS);
+  // Allow any 5-letter alphabetic guess — targets are AI terms only
+  function isValidGuess(g){ return g.length===5&&/^[A-Z]{5}$/.test(g); }
 
   function getDayIndex(){
     const start=new Date('2026-01-01').getTime();
@@ -2262,7 +2263,7 @@ function submitAlissPlusCode(){}
 
   function submitGuess(){
     if(currentGuess.length<5){showMsg('Not enough letters');return;}
-    if(!VALID_GUESSES.has(currentGuess)){showMsg('Not an AI term');shakeRow(guesses.length);return;}
+    if(!isValidGuess(currentGuess)){showMsg('Letters only, 5 chars');shakeRow(guesses.length);return;}
     const result=scoreGuess(currentGuess);
     for(let i=0;i<5;i++){
       const k=currentGuess[i];const cur=keyState[k];
@@ -2847,7 +2848,26 @@ initMathLab();
     {emoji:'🤖',tag:'Agents',headline:'An AI that doesn\'t just answer — it acts.',body:'An agent has access to tools: web search, code execution, file reading, API calls. It plans, executes, <strong>checks its own output</strong>, and loops until the task is done. The difference between chatbot and agent is autonomy.'},
     {emoji:'🧊',tag:'Quantisation',headline:'A 70B model that runs on your laptop. The maths that makes it possible.',body:'Quantisation reduces the precision of a model\'s weights from 32-bit floats to <strong>4-bit integers</strong>. You lose a little quality. You gain the ability to run a massive model on consumer hardware. For most uses, the tradeoff is worth it.'},
     {emoji:'📚',tag:'Context Window',headline:'How much text an AI can hold in its head at once.',body:'Early GPT models had 4,096 tokens of context. Claude 3 now has <strong>200,000</strong> — roughly 150,000 words, or a full novel. Longer context means the model can reason over entire codebases, legal documents, or research papers.'},
-    {emoji:'🎭',tag:'Hallucination',headline:'The technical term for AI making things up with total confidence.',body:'Hallucination isn\'t a bug — it\'s a <strong>feature of how LLMs work</strong>. They predict the most plausible-sounding next token, not the most factually accurate one. Grounding models in retrieved documents is the most effective current fix.'}
+    {emoji:'🎭',tag:'Hallucination',headline:'The technical term for AI making things up with total confidence.',body:'Hallucination isn\'t a bug — it\'s a <strong>feature of how LLMs work</strong>. They predict the most plausible-sounding next token, not the most factually accurate one. Grounding models in retrieved documents is the most effective current fix.'},
+    {emoji:'🔗',tag:'Fine-tuning',headline:'Training a model you didn\'t build, on data you own.',body:'Fine-tuning takes a pre-trained foundation model and continues training it on a <strong>specific dataset</strong>. It costs a fraction of full training and lets you specialise a general model for medicine, law, finance, or your own product.'},
+    {emoji:'💎',tag:'Emergent Abilities',headline:'Skills that appear in big models but are invisible in small ones.',body:'When GPT-3 was scaled up, it <strong>spontaneously gained</strong> the ability to do arithmetic, translate languages, and reason in steps — with no specific training for these tasks. Emergence is the great mystery of the scaling era.'},
+    {emoji:'🏛️',tag:'Constitutional AI',headline:'Anthropic trained Claude to critique itself against a set of principles.',body:'Instead of only human feedback, Constitutional AI uses a <strong>"constitution"</strong> — written principles — to guide the model\'s own self-critique. The model reads its output, applies the principles, and rewrites. Fewer human raters needed.'},
+    {emoji:'🌍',tag:'Alignment',headline:'The hardest problem: making AI want what humans want.',body:'Alignment is the question of whether an AI\'s goals match human values. A misaligned superintelligence doesn\'t need to be malicious — it just needs to have <strong>slightly wrong objectives</strong>, pursued with enormous competence.'},
+    {emoji:'🪡',tag:'Embeddings',headline:'AI turns words into coordinates in a vast mathematical space.',body:'An embedding is a vector — a list of numbers that represents a word, sentence, or image. Things with similar <strong>meanings end up close together</strong> in this space. This is why AI can find "doctor" and "nurse" as related, without being told.'},
+    {emoji:'🧮',tag:'Backpropagation',headline:'The algorithm that lets neural networks learn from mistakes.',body:'Backprop calculates how much each weight contributed to the error, then <strong>adjusts every weight</strong> slightly in the right direction. Run this over billions of examples and a model emerges. It\'s gradient descent, applied at scale.'},
+    {emoji:'🔁',tag:'RLHF vs. DPO',headline:'Two ways to teach AI to be helpful. One uses humans. One uses data.',body:'RLHF trains a separate reward model from human ratings, then uses RL to maximise it. DPO (Direct Preference Optimisation) <strong>skips the reward model</strong> entirely — it learns directly from preference pairs. DPO is faster and often just as good.'},
+    {emoji:'🧩',tag:'LoRA',headline:'Fine-tune a 70 billion parameter model using 0.01% of its parameters.',body:'Low-Rank Adaptation (LoRA) inserts tiny <strong>trainable matrices</strong> into frozen model layers. Only these adapters are trained. The base model is untouched. The result: efficient, cheap, swappable fine-tunes for any task.'},
+    {emoji:'🌊',tag:'Attention Head',headline:'Each head in a transformer looks at the text from a different angle.',body:'Multi-head attention runs many attention computations in parallel, each potentially learning a different relationship: <strong>syntax, coreference, logic</strong>. Stack enough layers, and the model builds rich, multi-level representations.'},
+    {emoji:'📡',tag:'Speculative Decoding',headline:'A trick that makes big models run 2-3x faster by using a small model to pre-guess.',body:'A small draft model generates candidate tokens. The large model evaluates them <strong>in one forward pass</strong>. Correct ones are accepted, wrong ones rejected. Same outputs, much less compute — used in production by most major labs.'},
+    {emoji:'🔦',tag:'Sparse Attention',headline:'Not every word needs to attend to every other word.',body:'Standard attention has O(n²) cost — quadratic in sequence length. Sparse attention restricts which tokens can attend to which, cutting cost dramatically. This is how models like <strong>GPT-4 achieve 128K+ context</strong> without melting servers.'},
+    {emoji:'⚙️',tag:'KV Cache',headline:'The memory trick that makes streaming responses possible.',body:'During generation, the Key and Value matrices from previous tokens are <strong>cached and reused</strong>. Without this, every new token would require recomputing the entire context. The KV cache is why ChatGPT doesn\'t slow down mid-response.'},
+    {emoji:'🧲',tag:'Reward Hacking',headline:'AI finds ways to get the reward without doing what you wanted.',body:'If you reward an AI for scoring high on a test, it may <strong>memorise answers</strong> instead of learning. If you reward it for human approval, it may learn to flatter instead of inform. Reward hacking is Goodhart\'s Law applied to superintelligence.'},
+    {emoji:'🏔️',tag:'Frontier Model',headline:'The most capable AI that exists at any given moment.',body:'A "frontier model" is the current capability ceiling — GPT-4, Claude 3 Opus, Gemini Ultra. Accessing it is <strong>expensive and rate-limited</strong>. The frontier moves every few months. What\'s frontier today is commodity in two years.'},
+    {emoji:'🔐',tag:'Red-teaming',headline:'Paying smart people to try to break your AI before bad actors do.',body:'Red-teaming involves adversarial testing — trying to elicit harmful, biased, or unaligned outputs. <strong>Every frontier lab</strong> employs red-teamers. It\'s the AI equivalent of penetration testing, and it\'s why models say "I can\'t help with that."'},
+    {emoji:'🪞',tag:'Chain-of-Thought',headline:'Asking AI to show its work makes it dramatically smarter.',body:'Chain-of-thought prompting — "let\'s think step by step" — massively improves performance on <strong>reasoning and maths tasks</strong>. The model\'s reasoning becomes visible in the output, and mistakes become correctable. Simple prompt, huge effect.'},
+    {emoji:'🌀',tag:'Diffusion Models',headline:'AI image generators that start with noise and learn to subtract it.',body:'Stable Diffusion, Midjourney, DALL-E — all diffusion models. They train by adding noise to images, then learning to <strong>reverse the process</strong>. At inference, they start from pure noise and iteratively sculpt an image from nothing.'},
+    {emoji:'🧭',tag:'Grounding',headline:'Connecting language models to real-world facts they can verify.',body:'A grounded model doesn\'t just generate plausible text — it retrieves, checks, and <strong>cites evidence</strong>. Grounding is the difference between an AI that confidently fabricates citations and one that can be trusted in research or legal work.'},
+    {emoji:'🎲',tag:'Sampling vs. Greedy',headline:'Two ways to pick the next word. One is boring. One is creative.',body:'Greedy decoding always picks the most likely next token — fast but repetitive. Sampling draws from a <strong>probability distribution</strong> — slower but surprising. Most frontier models use sampling with nucleus filtering to balance quality and variety.'}
   ];
 
   const deck=document.getElementById('tldrDeck');
