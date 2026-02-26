@@ -558,6 +558,32 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-off
 .tldr-body{font-size:16px;color:var(--muted);line-height:1.65;max-width:400px;margin:0 auto}
 .tldr-body strong{color:var(--ink)}
 .tldr-card-num{position:absolute;bottom:20px;right:20px;font-family:var(--mono);font-size:10px;color:var(--muted-light);letter-spacing:1px}
+
+/* ── CHESS ────────────────────────────────────────── */
+.chess-page{max-width:820px;margin:0 auto;padding:36px 20px 80px}
+.chess-hero{text-align:center;margin-bottom:48px}
+.chess-title{font-family:var(--serif);font-size:clamp(32px,5vw,52px);font-weight:900;letter-spacing:2px;color:var(--ink);margin-bottom:8px}
+.chess-title .chess-accent{color:var(--accent)}
+.chess-sub{font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--muted);margin-top:6px}
+.chess-board-wrap{max-width:440px;margin:0 auto 48px;position:relative}
+#chessBoard{width:100%;aspect-ratio:1/1;display:block;cursor:pointer;border:2px solid rgba(200,169,110,.25)}
+.chess-board-label{font-family:var(--mono,monospace);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted-light);text-align:center;margin-top:10px}
+.chess-section-label{font-size:9px;letter-spacing:4px;text-transform:uppercase;color:var(--accent);font-weight:700;margin-bottom:20px;border-bottom:1px solid var(--divider);padding-bottom:10px}
+.chess-minds{display:grid;grid-template-columns:repeat(2,1fr);gap:0;border:1px solid var(--divider);margin-bottom:48px}
+.chess-mind{padding:24px;border-right:1px solid var(--divider);border-bottom:1px solid var(--divider);transition:background .2s}
+.chess-mind:hover{background:var(--cream)}
+.chess-mind-name{font-family:var(--serif);font-size:18px;font-weight:700;margin-bottom:4px;color:var(--ink)}
+.chess-mind-years{font-family:var(--mono,monospace);font-size:10px;color:var(--muted-light);margin-bottom:10px;letter-spacing:1px}
+.chess-mind-desc{font-size:13px;color:var(--muted);line-height:1.65;margin-bottom:10px}
+.chess-mind-ai{font-size:12px;color:var(--accent);line-height:1.55;font-style:italic}
+.chess-ai-section{margin-bottom:48px}
+.chess-ai-card{background:var(--ink);padding:28px 32px;border-radius:0;margin-bottom:16px}
+.chess-ai-card h4{font-family:var(--serif);font-size:18px;font-weight:700;color:#fff;margin-bottom:8px}
+.chess-ai-card .chess-ai-year{font-family:var(--mono,monospace);font-size:10px;color:var(--accent);letter-spacing:2px;margin-bottom:10px}
+.chess-ai-card p{font-size:14px;color:rgba(255,255,255,.65);line-height:1.7}
+.chess-pull{margin:36px 0;padding:22px 28px;border-left:3px solid var(--accent);background:var(--highlight);font-family:var(--serif);font-size:19px;font-style:italic;line-height:1.55;color:#333}
+.chess-pull cite{display:block;font-family:var(--sans);font-size:10px;font-style:normal;font-weight:600;color:var(--muted);margin-top:10px;letter-spacing:1.5px;text-transform:uppercase}
+@media(max-width:640px){.chess-minds{grid-template-columns:1fr}.chess-mind{border-right:none}}
 </style>
 </head>
 <body>
@@ -583,6 +609,7 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-off
 <li><a href="#" data-nav="scale" onclick="filterCategory('Scale','scale');return false">Scale</a></li>
 <li><a href="#" data-nav="research" onclick="filterCategory('Research','research');return false">Research</a></li>
 <li><a href="#" data-nav="chipwar" onclick="filterCategory('Chip War','chipwar');return false">Chip War</a></li>
+<li><a href="#" data-nav="chess" onclick="navigate('chess');return false">Chess</a></li>
 <li><a href="#" data-nav="aidle" onclick="navigate('aidle');return false">A·I·dle</a></li>
 <li><a href="#" data-nav="compute" onclick="navigate('compute');return false">Compute</a></li>
 <li><a href="#" data-nav="tldr" onclick="navigate('tldr');return false">TL;DR</a></li>
@@ -1019,6 +1046,103 @@ Right now, we just focus on the research, and then the answer to the business qu
       <p>The most ambitious pieces on the platform — deep-dives into the AI industrial revolution. Check back shortly.</p>
     </div>
   </div>
+</div>
+
+<!-- Chess Page -->
+<div id="page-chess" class="page">
+<div class="chess-page">
+
+  <div class="chess-hero">
+    <div class="chess-title">Ch<span class="chess-accent">e</span>ss</div>
+    <div class="chess-sub">Great minds &middot; pattern recognition &middot; the oldest AI problem</div>
+  </div>
+
+  <div class="chess-board-wrap">
+    <canvas id="chessBoard"></canvas>
+    <div class="chess-board-label">Click to move &middot; drag pieces &middot; interactive board</div>
+  </div>
+
+  <div class="chess-pull">
+    &ldquo;Chess is the gymnasium of the mind.&rdquo;
+    <cite>Blaise Pascal</cite>
+  </div>
+
+  <div class="chess-section-label">Great Minds</div>
+  <div class="chess-minds">
+
+    <div class="chess-mind">
+      <div class="chess-mind-name">Garry Kasparov</div>
+      <div class="chess-mind-years">1963 &ndash; present &middot; Baku, Azerbaijan</div>
+      <div class="chess-mind-desc">World champion for 15 years. Played the most famous human-vs-machine match in history against Deep Blue. Later became AI's most articulate advocate.</div>
+      <div class="chess-mind-ai">AI parallel: The first to lose to a machine &mdash; and the first to understand what that loss actually meant. Kasparov didn't mourn; he theorized.</div>
+    </div>
+
+    <div class="chess-mind">
+      <div class="chess-mind-name">Bobby Fischer</div>
+      <div class="chess-mind-years">1943 &ndash; 2008 &middot; Chicago, USA</div>
+      <div class="chess-mind-desc">The most naturally gifted chess player who ever lived. Won the 1972 World Championship against Spassky in a match that doubled as Cold War theater.</div>
+      <div class="chess-mind-ai">AI parallel: Fischer played like a search algorithm with perfect pruning &mdash; seeing only the moves that mattered, discarding everything else.</div>
+    </div>
+
+    <div class="chess-mind">
+      <div class="chess-mind-name">Magnus Carlsen</div>
+      <div class="chess-mind-years">1990 &ndash; present &middot; T&oslash;nsberg, Norway</div>
+      <div class="chess-mind-desc">Highest-rated player in history. Held the world title from 2013 to 2023. Known for grinding wins from drawn positions through sheer precision.</div>
+      <div class="chess-mind-ai">AI parallel: Carlsen plays like a neural network &mdash; his advantage isn't calculation depth but positional intuition trained on tens of thousands of games.</div>
+    </div>
+
+    <div class="chess-mind">
+      <div class="chess-mind-name">Mikhail Tal</div>
+      <div class="chess-mind-years">1936 &ndash; 1992 &middot; Riga, Latvia</div>
+      <div class="chess-mind-desc">The Magician from Riga. World champion at 23. Famous for sacrifices so deep that opponents couldn't calculate whether they were sound.</div>
+      <div class="chess-mind-ai">AI parallel: Tal exploited the limits of his opponents' compute &mdash; offering sacrifices that were correct but unverifiable in real time. Adversarial prompting, 1960.</div>
+    </div>
+
+    <div class="chess-mind">
+      <div class="chess-mind-name">Jos&eacute; Ra&uacute;l Capablanca</div>
+      <div class="chess-mind-years">1888 &ndash; 1942 &middot; Havana, Cuba</div>
+      <div class="chess-mind-desc">World champion 1921&ndash;1927. Learned chess at four by watching his father. Played with an effortless clarity that made complex positions look simple.</div>
+      <div class="chess-mind-ai">AI parallel: Capablanca's style was pure compression &mdash; reducing noise to signal, the way a well-trained model generalizes from data.</div>
+    </div>
+
+    <div class="chess-mind">
+      <div class="chess-mind-name">Emanuel Lasker</div>
+      <div class="chess-mind-years">1868 &ndash; 1941 &middot; Berlinchen, Prussia</div>
+      <div class="chess-mind-desc">World champion for 27 years &mdash; the longest reign in history. Also held a PhD in mathematics. Played the opponent, not just the board.</div>
+      <div class="chess-mind-ai">AI parallel: Lasker was a game theorist before game theory existed &mdash; modeling his opponent's psychology the way RLHF models human preferences.</div>
+    </div>
+
+  </div>
+
+  <div class="chess-section-label">When Machines Learned to Play</div>
+  <div class="chess-ai-section">
+
+    <div class="chess-ai-card">
+      <div class="chess-ai-year">1997</div>
+      <h4>Deep Blue vs. Kasparov</h4>
+      <p>IBM's Deep Blue defeated the reigning world champion in a six-game match. It evaluated 200 million positions per second &mdash; brute force at industrial scale. Kasparov accused IBM of cheating. The machine was dismantled. The tapes were never released. Chess was the first domain where raw compute beat human intuition, and nobody knew what to do with that information for twenty years.</p>
+    </div>
+
+    <div class="chess-ai-card">
+      <div class="chess-ai-year">2017</div>
+      <h4>AlphaZero</h4>
+      <p>DeepMind's AlphaZero taught itself chess from scratch in four hours &mdash; no opening books, no endgame tables, no human games. It then destroyed Stockfish, the strongest traditional engine, 28&ndash;0 with 72 draws. It played like no human and no machine before it: sacrificing material for long-term positional pressure, preferring beauty to brute force. The chess world called its style &ldquo;alien.&rdquo; It was the first hint of what neural networks could do to a solved domain.</p>
+    </div>
+
+    <div class="chess-ai-card">
+      <div class="chess-ai-year">2024 &ndash;</div>
+      <h4>The Centaur Era</h4>
+      <p>Today the strongest chess entity on Earth is neither human nor machine alone &mdash; it's a human guided by an engine. Kasparov called this &ldquo;Advanced Chess&rdquo; and predicted it in 1998. A mediocre player with a good engine beats a grandmaster; a grandmaster with an engine beats the engine alone. The lesson for AI: augmentation outperforms replacement. Every time.</p>
+    </div>
+
+  </div>
+
+  <div class="chess-pull">
+    &ldquo;The point of chess was never chess. It was the question: can a machine think? We answered it. Now we're dealing with the consequences.&rdquo;
+    <cite>Garry Kasparov, Deep Thinking (2017)</cite>
+  </div>
+
+</div>
 </div>
 
 <!-- A·I·dle Word Game Page -->
@@ -1865,6 +1989,7 @@ const _origNavigate=navigate;
 navigate=function(pageId,opts){
   _origNavigate(pageId,opts);
   if(pageId==='industry') loadIndustryPage();
+  if(pageId==='chess') window._chessInit&&window._chessInit();
   if(pageId==='aidle') window._aidleInit&&window._aidleInit();
 };
 
@@ -2917,6 +3042,208 @@ initMathLab();
 </script>
 
 <script>
+/* ── CHESS BOARD ───────────────────────────────────────── */
+(function(){
+  const canvas=document.getElementById('chessBoard');
+  if(!canvas) return;
+  const ctx=canvas.getContext('2d');
+  let W,sz,dpr=1;
+  let selected=null;
+  let board=null;
+
+  const LIGHT='#f0d9b5';
+  const DARK='#b58863';
+  const HIGHLIGHT='rgba(200,169,110,0.45)';
+  const DOT='rgba(0,0,0,0.18)';
+
+  const PIECES={
+    K:'♔',Q:'♕',R:'♖',B:'♗',N:'♘',P:'♙',
+    k:'♚',q:'♛',r:'♜',b:'♝',n:'♞',p:'♟'
+  };
+
+  function initBoard(){
+    board=[
+      ['r','n','b','q','k','b','n','r'],
+      ['p','p','p','p','p','p','p','p'],
+      [' ',' ',' ',' ',' ',' ',' ',' '],
+      [' ',' ',' ',' ',' ',' ',' ',' '],
+      [' ',' ',' ',' ',' ',' ',' ',' '],
+      [' ',' ',' ',' ',' ',' ',' ',' '],
+      ['P','P','P','P','P','P','P','P'],
+      ['R','N','B','Q','K','B','N','R']
+    ];
+  }
+
+  function resize(){
+    dpr=window.devicePixelRatio||1;
+    const displayW=canvas.offsetWidth;
+    W=canvas.width=displayW*dpr;
+    canvas.height=W;
+    sz=displayW/8;
+  }
+
+  function draw(){
+    ctx.save();
+    ctx.scale(dpr,dpr);
+    const displayW=W/dpr;
+    for(let r=0;r<8;r++){
+      for(let c=0;c<8;c++){
+        const light=(r+c)%2===0;
+        ctx.fillStyle=light?LIGHT:DARK;
+        ctx.fillRect(c*sz,r*sz,sz,sz);
+
+        if(selected&&selected[0]===r&&selected[1]===c){
+          ctx.fillStyle=HIGHLIGHT;
+          ctx.fillRect(c*sz,r*sz,sz,sz);
+        }
+
+        const piece=board[r][c];
+        if(piece!==' '){
+          ctx.font=`${sz*0.75}px serif`;
+          ctx.textAlign='center';
+          ctx.textBaseline='middle';
+          ctx.fillStyle=piece===piece.toUpperCase()?'#fff':'#1a1a1a';
+          ctx.shadowColor='rgba(0,0,0,0.35)';
+          ctx.shadowBlur=3;
+          ctx.shadowOffsetY=1;
+          ctx.fillText(PIECES[piece],c*sz+sz/2,r*sz+sz/2+2);
+          ctx.shadowColor='transparent';
+          ctx.shadowBlur=0;
+          ctx.shadowOffsetY=0;
+        }
+      }
+    }
+
+    // show possible move dots when piece selected
+    if(selected){
+      const moves=getMoves(selected[0],selected[1]);
+      moves.forEach(([mr,mc])=>{
+        ctx.beginPath();
+        if(board[mr][mc]!==' '){
+          ctx.arc(mc*sz+sz/2,mr*sz+sz/2,sz*0.45,0,Math.PI*2);
+          ctx.strokeStyle=DOT;
+          ctx.lineWidth=3;
+          ctx.stroke();
+        }else{
+          ctx.arc(mc*sz+sz/2,mr*sz+sz/2,sz*0.15,0,Math.PI*2);
+          ctx.fillStyle=DOT;
+          ctx.fill();
+        }
+      });
+    }
+
+    // rank/file labels
+    ctx.font=`${9*dpr/dpr}px Inter,system-ui,sans-serif`;
+    ctx.textAlign='left';ctx.textBaseline='bottom';
+    for(let r=0;r<8;r++){
+      ctx.fillStyle=(r%2===0)?DARK:LIGHT;
+      ctx.fillText(String(8-r),2,r*sz+sz-2);
+    }
+    ctx.textAlign='right';ctx.textBaseline='top';
+    for(let c=0;c<8;c++){
+      ctx.fillStyle=((7+c)%2===0)?DARK:LIGHT;
+      ctx.fillText('abcdefgh'[c],c*sz+sz-2,7*sz+2);
+    }
+
+    ctx.restore();
+  }
+
+  function isWhite(p){return p!==' '&&p===p.toUpperCase();}
+  function isBlack(p){return p!==' '&&p===p.toLowerCase();}
+
+  function getMoves(r,c){
+    const p=board[r][c];if(p===' ')return[];
+    const white=isWhite(p);
+    const moves=[];
+    const inBounds=(r,c)=>r>=0&&r<8&&c>=0&&c<8;
+    const canMove=(r,c)=>{
+      if(!inBounds(r,c))return false;
+      const t=board[r][c];
+      if(t===' ')return true;
+      return white?isBlack(t):isWhite(t);
+    };
+    const isEmpty=(r,c)=>inBounds(r,c)&&board[r][c]===' ';
+    const isEnemy=(r,c)=>{
+      if(!inBounds(r,c))return false;
+      const t=board[r][c];
+      return white?isBlack(t):isWhite(t);
+    };
+
+    const type=p.toUpperCase();
+    if(type==='P'){
+      const dir=white?-1:1;
+      const start=white?6:1;
+      if(isEmpty(r+dir,c))moves.push([r+dir,c]);
+      if(r===start&&isEmpty(r+dir,c)&&isEmpty(r+2*dir,c))moves.push([r+2*dir,c]);
+      if(isEnemy(r+dir,c-1))moves.push([r+dir,c-1]);
+      if(isEnemy(r+dir,c+1))moves.push([r+dir,c+1]);
+    }
+    if(type==='N'){
+      [[-2,-1],[-2,1],[-1,-2],[-1,2],[1,-2],[1,2],[2,-1],[2,1]].forEach(([dr,dc])=>{
+        if(canMove(r+dr,c+dc))moves.push([r+dr,c+dc]);
+      });
+    }
+    if(type==='K'){
+      [[-1,-1],[-1,0],[-1,1],[0,-1],[0,1],[1,-1],[1,0],[1,1]].forEach(([dr,dc])=>{
+        if(canMove(r+dr,c+dc))moves.push([r+dr,c+dc]);
+      });
+    }
+    const slide=(dirs)=>{
+      dirs.forEach(([dr,dc])=>{
+        let nr=r+dr,nc=c+dc;
+        while(inBounds(nr,nc)){
+          if(board[nr][nc]===' '){moves.push([nr,nc]);}
+          else{if(white?isBlack(board[nr][nc]):isWhite(board[nr][nc]))moves.push([nr,nc]);break;}
+          nr+=dr;nc+=dc;
+        }
+      });
+    };
+    if(type==='R'||type==='Q') slide([[-1,0],[1,0],[0,-1],[0,1]]);
+    if(type==='B'||type==='Q') slide([[-1,-1],[-1,1],[1,-1],[1,1]]);
+    return moves;
+  }
+
+  canvas.addEventListener('click',e=>{
+    const rect=canvas.getBoundingClientRect();
+    const x=e.clientX-rect.left;
+    const y=e.clientY-rect.top;
+    const c=Math.floor(x/sz);
+    const r=Math.floor(y/sz);
+    if(r<0||r>7||c<0||c>7)return;
+
+    if(selected){
+      const moves=getMoves(selected[0],selected[1]);
+      const isValid=moves.some(([mr,mc])=>mr===r&&mc===c);
+      if(isValid){
+        board[r][c]=board[selected[0]][selected[1]];
+        board[selected[0]][selected[1]]=' ';
+        selected=null;
+      }else if(board[r][c]!==' '){
+        selected=[r,c];
+      }else{
+        selected=null;
+      }
+    }else{
+      if(board[r][c]!==' ') selected=[r,c];
+    }
+    draw();
+  });
+
+  window._chessInit=function(){
+    if(!board) initBoard();
+    resize();
+    draw();
+  };
+
+  initBoard();
+  resize();
+  window.addEventListener('resize',()=>{resize();draw();});
+
+  // Auto-init if chess page is already active
+  if(document.getElementById('page-chess')?.classList.contains('active')){
+    draw();
+  }
+})();
 </script>
 </body>
 </html>
