@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Painter of Surfaces — Maryam Mirzakhani</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/Z.jpg">
+<meta name="theme-color" content="#0e0e0e">
+<meta name="description" content="A tribute to Maryam Mirzakhani, 1977–2017 — the first woman to win the Fields Medal, who drew mathematics on giant sheets of paper.">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg: #0e0e0e;
+  --ink: #efefec;
+  --muted: #666;
+  --accent: #c8a96e;
+  --divider: rgba(255,255,255,.07);
+  --serif: 'EB Garamond', Georgia, serif;
+  --sans: 'Inter', system-ui, sans-serif;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 18px;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+}
+
+a { color: inherit; text-decoration: none; }
+
+/* ── BACK LINK ─────────────────────────────────────────── */
+.back-link {
+  position: fixed;
+  top: 24px;
+  left: 28px;
+  font-family: var(--sans);
+  font-size: 10px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: rgba(200,169,110,.4);
+  z-index: 10;
+  transition: color .2s;
+}
+.back-link:hover { color: var(--accent); }
+
+/* ── HERO ──────────────────────────────────────────────── */
+.mirza-hero {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 60px 28px 40px;
+  position: relative;
+}
+
+.mirza-hero-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0.5;
+}
+
+.mirza-hero-content {
+  position: relative;
+  z-index: 1;
+  max-width: 640px;
+}
+
+.mirza-kicker {
+  font-family: var(--sans);
+  font-size: 9px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 20px;
+}
+
+.mirza-title {
+  font-family: var(--serif);
+  font-size: clamp(36px, 6vw, 64px);
+  font-weight: 400;
+  letter-spacing: .5px;
+  color: var(--ink);
+  line-height: 1.08;
+  margin-bottom: 16px;
+}
+
+.mirza-title em {
+  font-style: italic;
+  color: var(--accent);
+}
+
+.mirza-years {
+  font-family: var(--sans);
+  font-size: 12px;
+  letter-spacing: 4px;
+  color: rgba(200,169,110,.4);
+  margin-bottom: 24px;
+}
+
+.mirza-dek {
+  font-family: var(--serif);
+  font-size: clamp(15px, 2vw, 19px);
+  font-style: italic;
+  color: rgba(239,239,236,.45);
+  line-height: 1.6;
+  max-width: 520px;
+  margin: 0 auto;
+}
+
+.scroll-cue {
+  position: absolute;
+  bottom: 32px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 1px;
+  height: 48px;
+  background: linear-gradient(to bottom, var(--accent), transparent);
+  opacity: .3;
+  animation: scrollPulse 2s ease-in-out infinite;
+}
+@keyframes scrollPulse {
+  0%, 100% { opacity: .15; }
+  50% { opacity: .4; }
+}
+
+/* ── CANVAS SECTION ────────────────────────────────────── */
+.mirza-disk-section {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 0 28px 60px;
+  text-align: center;
+}
+
+.mirza-disk-label {
+  font-family: var(--sans);
+  font-size: 9px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: rgba(200,169,110,.35);
+  margin-bottom: 24px;
+}
+
+.mirza-canvas-wrap {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  max-width: 520px;
+  margin: 0 auto 12px;
+}
+
+#mirzaCanvas {
+  width: 100%;
+  height: 100%;
+  cursor: crosshair;
+  display: block;
+}
+
+.mirza-canvas-hint {
+  font-family: var(--sans);
+  font-size: 9px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: rgba(200,169,110,.25);
+  text-align: center;
+  margin-top: 14px;
+}
+
+/* ── BODY ──────────────────────────────────────────────── */
+.mirza-body {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 60px 28px 80px;
+  font-family: var(--serif);
+  font-size: clamp(15px, 1.9vw, 18px);
+  line-height: 1.9;
+  color: rgba(239,239,236,.78);
+}
+
+.mirza-body p { margin-bottom: 22px; }
+
+.mirza-body p.drop::first-letter {
+  font-size: 4.2em;
+  font-weight: 400;
+  float: left;
+  line-height: .82;
+  margin: 4px 10px 0 0;
+  color: var(--accent);
+  font-family: var(--serif);
+}
+
+.mirza-pull {
+  margin: 36px 0;
+  padding: 28px 32px;
+  border-left: 2px solid var(--accent);
+  font-family: var(--serif);
+  font-size: clamp(17px, 2.4vw, 22px);
+  font-style: italic;
+  color: rgba(239,239,236,.88);
+  line-height: 1.65;
+}
+
+.mirza-rule {
+  border: none;
+  border-top: 1px solid var(--divider);
+  margin: 36px 0;
+}
+
+/* ── DATELINE ──────────────────────────────────────────── */
+.mirza-dateline {
+  font-family: var(--sans);
+  font-size: 9px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: rgba(200,169,110,.35);
+  margin-top: 48px;
+  text-align: center;
+  font-style: italic;
+}
+
+/* ── FOOTER ────────────────────────────────────────────── */
+.mirza-footer {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 0 28px 60px;
+  text-align: center;
+}
+
+.mirza-footer a {
+  font-family: var(--sans);
+  font-size: 10px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: rgba(200,169,110,.3);
+  transition: color .2s;
+}
+.mirza-footer a:hover { color: var(--accent); }
+
+@media (max-width: 640px) {
+  .back-link { top: 16px; left: 16px; }
+  .mirza-hero { padding: 48px 20px 40px; }
+  .mirza-body { padding: 40px 20px 60px; }
+  .mirza-pull { padding: 20px 24px; }
+}
+</style>
+</head>
+<body>
+
+<a class="back-link" href="/">&larr; Zacharia.ai</a>
+
+<div class="mirza-hero">
+  <canvas class="mirza-hero-canvas" id="heroCanvas"></canvas>
+  <div class="mirza-hero-content">
+    <div class="mirza-kicker">Tribute</div>
+    <h1 class="mirza-title">The Painter of <em>Surfaces</em></h1>
+    <div class="mirza-years">1977 &ndash; 2017</div>
+    <p class="mirza-dek">Who drew mathematics on giant sheets of paper, and whose daughter thought she was painting.</p>
+  </div>
+  <div class="scroll-cue"></div>
+</div>
+
+<div class="mirza-disk-section">
+  <div class="mirza-disk-label">Poincar&eacute; Disk &mdash; Hyperbolic Space</div>
+  <div class="mirza-canvas-wrap">
+    <canvas id="mirzaCanvas"></canvas>
+  </div>
+  <p class="mirza-canvas-hint">Click inside the disk to place points &middot; geodesics connect them &middot; click outside to clear</p>
+</div>
+
+<div class="mirza-body">
+
+  <p class="drop">She worked on the floor. Giant sheets of paper, unrolled across the room like bolts of fabric, and she would kneel over them and draw &mdash; curves, arcs, surfaces folding into themselves. Her daughter Anahita would watch from the doorway of the Stanford office and later tell people that her mother was a painter. She was not wrong.</p>
+
+  <div class="mirza-pull">
+    &ldquo;The beauty of mathematics only shows itself to more patient followers.&rdquo;
+    <span style="display:block;font-size:10px;letter-spacing:2px;text-transform:uppercase;font-style:normal;color:rgba(200,169,110,.4);margin-top:10px;">&mdash; Maryam Mirzakhani</span>
+  </div>
+
+  <p>What she drew were the shortest paths across impossible surfaces &mdash; Riemann surfaces, hyperbolic planes, the moduli spaces that parameterize every possible geometry a surface can carry. The disk above is her territory: the Poincar&eacute; disk model, where straight lines become arcs, where infinity curves inward, where parallel lines diverge forever. She moved through this space the way a composer moves through sound &mdash; by feel, by structure, by an intuition that took years to earn and could not be taught.</p>
+
+  <hr class="mirza-rule">
+
+  <p>In 2014, she became the first woman to win the Fields Medal in its 78-year history. Iranian-born, trained at Tehran&rsquo;s Farzanegan school for gifted students, then Sharif University, then Harvard under Curtis McMullen. She moved through institutions the way geodesics move through hyperbolic space &mdash; along paths that appear curved from outside but are the straightest possible lines from within.</p>
+
+  <p>Breast cancer. Forty years old. July 14, 2017. Iran broke protocol and published photographs of her without hijab. The International Mathematical Union declared her birthday &mdash; May 12 &mdash; the International Day of Women in Mathematics. The surfaces she studied are still being explored. The drawings remain.</p>
+
+  <div class="mirza-dateline">For Maryam &mdash; who saw what the rest of us could not.</div>
+</div>
+
+<div class="mirza-footer">
+  <a href="/">&larr; Zacharia.ai</a>
+</div>
+
+<script>
+/* ── HERO PARTICLES ────────────────────────────────────── */
+(function(){
+  const canvas=document.getElementById('heroCanvas');
+  if(!canvas) return;
+  const ctx=canvas.getContext('2d');
+  const particles=[];
+  const COUNT=40;
+
+  function resize(){
+    canvas.width=canvas.offsetWidth*(window.devicePixelRatio||1);
+    canvas.height=canvas.offsetHeight*(window.devicePixelRatio||1);
+  }
+
+  function init(){
+    resize();
+    for(let i=0;i<COUNT;i++){
+      particles.push({
+        x:Math.random()*canvas.width,
+        y:Math.random()*canvas.height,
+        vx:(Math.random()-.5)*.28,
+        vy:(Math.random()-.5)*.28,
+        r:.5+Math.random()*1.5,
+        a:.1+Math.random()*.35
+      });
+    }
+  }
+
+  function draw(){
+    const dpr=window.devicePixelRatio||1;
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    ctx.save();
+    ctx.scale(dpr,dpr);
+    const w=canvas.width/dpr,h=canvas.height/dpr;
+    particles.forEach(p=>{
+      p.x+=p.vx;p.y+=p.vy;
+      if(p.x<0||p.x>w*dpr)p.vx*=-1;
+      if(p.y<0||p.y>h*dpr)p.vy*=-1;
+      ctx.beginPath();
+      ctx.arc(p.x/dpr,p.y/dpr,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(200,169,110,${p.a})`;
+      ctx.fill();
+    });
+    for(let i=0;i<particles.length;i++){
+      for(let j=i+1;j<particles.length;j++){
+        const dx=(particles[i].x-particles[j].x)/dpr;
+        const dy=(particles[i].y-particles[j].y)/dpr;
+        const dist=Math.sqrt(dx*dx+dy*dy);
+        if(dist<130){
+          ctx.beginPath();
+          ctx.moveTo(particles[i].x/dpr,particles[i].y/dpr);
+          ctx.lineTo(particles[j].x/dpr,particles[j].y/dpr);
+          ctx.strokeStyle=`rgba(200,169,110,${.12*(1-dist/130)})`;
+          ctx.lineWidth=.5;
+          ctx.stroke();
+        }
+      }
+    }
+    ctx.restore();
+    requestAnimationFrame(draw);
+  }
+
+  init();
+  draw();
+  window.addEventListener('resize',resize);
+})();
+
+/* ── POINCARE DISK ─────────────────────────────────────── */
+(function(){
+  const canvas=document.getElementById('mirzaCanvas');
+  if(!canvas) return;
+  const ctx=canvas.getContext('2d');
+
+  const GOLD=[200,169,110];
+  const NUM_AMBIENT=14;
+  const AMBIENT_SPEED=0.0003;
+  const POINT_RADIUS=4;
+
+  let W,H,centerX,centerY,diskR;
+  let ambientGeodesics=[];
+  let userPoints=[];
+  let mousePos=null;
+  let isVisible=false;
+  let dpr=1;
+
+  function canvasToDisk(px,py){
+    return {x:(px-centerX)/diskR, y:(py-centerY)/diskR};
+  }
+  function diskToCanvas(dx,dy){
+    return {x:centerX+dx*diskR, y:centerY+dy*diskR};
+  }
+  function insideDisk(dx,dy){
+    return dx*dx+dy*dy<1;
+  }
+
+  function computeGeodesic(p1,p2){
+    const cross=p1.x*p2.y-p2.x*p1.y;
+    if(Math.abs(cross)<1e-6) return {isLine:true,p1,p2};
+    const det=4*cross;
+    const a1=p1.x*p1.x+p1.y*p1.y+1;
+    const a2=p2.x*p2.x+p2.y*p2.y-p1.x*p1.x-p1.y*p1.y;
+    const gcx=(a1*2*(p2.y-p1.y)-2*p1.y*a2)/det;
+    const gcy=(2*p1.x*a2-a1*2*(p2.x-p1.x))/det;
+    const gr=Math.sqrt(Math.max(0,gcx*gcx+gcy*gcy-1));
+    const sa=Math.atan2(p1.y-gcy,p1.x-gcx);
+    const ea=Math.atan2(p2.y-gcy,p2.x-gcx);
+
+    const midCW=arcMid(sa,ea,false,gcx,gcy,gr);
+    const midCCW=arcMid(sa,ea,true,gcx,gcy,gr);
+    const useCCW=insideDisk(midCCW.x,midCCW.y);
+
+    return {isLine:false,cx:gcx,cy:gcy,r:gr,sa,ea,ccw:useCCW};
+  }
+
+  function arcMid(sa,ea,ccw,cx,cy,r){
+    let diff=ea-sa;
+    if(ccw){while(diff>0)diff-=Math.PI*2;}
+    else{while(diff<0)diff+=Math.PI*2;}
+    const mid=sa+diff/2;
+    return {x:cx+r*Math.cos(mid),y:cy+r*Math.sin(mid)};
+  }
+
+  function drawGeodesic(p1,p2,alpha,lw){
+    const g=computeGeodesic(p1,p2);
+    ctx.strokeStyle=`rgba(${GOLD[0]},${GOLD[1]},${GOLD[2]},${alpha})`;
+    ctx.lineWidth=lw||1;
+    ctx.beginPath();
+    if(g.isLine){
+      const dx=p2.x-p1.x,dy=p2.y-p1.y;
+      const len=Math.sqrt(dx*dx+dy*dy);
+      if(len<1e-8) return;
+      const nx=dx/len,ny=dy/len;
+      const a=1,b=2*(p1.x*nx+p1.y*ny),c=p1.x*p1.x+p1.y*p1.y-1;
+      const disc=b*b-4*a*c;
+      if(disc<0) return;
+      const sq=Math.sqrt(disc);
+      const t1=(-b-sq)/2,t2=(-b+sq)/2;
+      const e1=diskToCanvas(p1.x+t1*nx,p1.y+t1*ny);
+      const e2=diskToCanvas(p1.x+t2*nx,p1.y+t2*ny);
+      ctx.moveTo(e1.x,e1.y);
+      ctx.lineTo(e2.x,e2.y);
+    } else {
+      const acx=centerX+g.cx*diskR;
+      const acy=centerY+g.cy*diskR;
+      const ar=g.r*diskR;
+      ctx.arc(acx,acy,ar,g.sa,g.ea,g.ccw);
+    }
+    ctx.stroke();
+  }
+
+  function drawFrame(){
+    if(!isVisible){requestAnimationFrame(drawFrame);return;}
+    ctx.save();
+    ctx.scale(dpr,dpr);
+    ctx.clearRect(0,0,W/dpr,H/dpr);
+
+    ctx.beginPath();
+    ctx.arc(centerX,centerY,diskR,0,Math.PI*2);
+    ctx.strokeStyle=`rgba(${GOLD[0]},${GOLD[1]},${GOLD[2]},0.2)`;
+    ctx.lineWidth=1;
+    ctx.stroke();
+
+    ambientGeodesics.forEach(g=>{
+      g.t1+=g.d1;
+      g.t2+=g.d2;
+      const r=0.97;
+      const p1={x:r*Math.cos(g.t1),y:r*Math.sin(g.t1)};
+      const p2={x:r*Math.cos(g.t2),y:r*Math.sin(g.t2)};
+      drawGeodesic(p1,p2,g.alpha);
+    });
+
+    for(let i=0;i<userPoints.length;i++){
+      const cp=diskToCanvas(userPoints[i].x,userPoints[i].y);
+      ctx.beginPath();
+      ctx.arc(cp.x,cp.y,POINT_RADIUS,0,Math.PI*2);
+      ctx.fillStyle=`rgba(${GOLD[0]},${GOLD[1]},${GOLD[2]},0.8)`;
+      ctx.fill();
+      if(i>0) drawGeodesic(userPoints[i-1],userPoints[i],0.55,1.5);
+    }
+
+    if(mousePos&&userPoints.length>0&&insideDisk(mousePos.x,mousePos.y)){
+      drawGeodesic(userPoints[userPoints.length-1],mousePos,0.2);
+    }
+
+    ctx.restore();
+    requestAnimationFrame(drawFrame);
+  }
+
+  function resize(){
+    dpr=window.devicePixelRatio||1;
+    const displayW=canvas.offsetWidth;
+    const displayH=canvas.offsetHeight;
+    W=canvas.width=displayW*dpr;
+    H=canvas.height=displayH*dpr;
+    centerX=displayW/2;
+    centerY=displayH/2;
+    diskR=Math.min(displayW,displayH)/2-20;
+  }
+
+  function initAmbient(){
+    ambientGeodesics=[];
+    for(let i=0;i<NUM_AMBIENT;i++){
+      ambientGeodesics.push({
+        t1:Math.random()*Math.PI*2,
+        t2:Math.random()*Math.PI*2,
+        d1:(Math.random()-0.5)*AMBIENT_SPEED*2,
+        d2:(Math.random()-0.5)*AMBIENT_SPEED*2,
+        alpha:0.04+Math.random()*0.09
+      });
+    }
+  }
+
+  function getPos(e){
+    const rect=canvas.getBoundingClientRect();
+    const x=(e.touches?e.touches[0].clientX:e.clientX)-rect.left;
+    const y=(e.touches?e.touches[0].clientY:e.clientY)-rect.top;
+    return canvasToDisk(x,y);
+  }
+
+  canvas.addEventListener('mousemove',e=>{mousePos=getPos(e);});
+  canvas.addEventListener('mouseleave',()=>{mousePos=null;});
+  canvas.addEventListener('click',e=>{
+    const dp=getPos(e);
+    if(insideDisk(dp.x,dp.y)) userPoints.push(dp);
+    else userPoints=[];
+  });
+  canvas.addEventListener('touchstart',e=>{
+    e.preventDefault();
+    const dp=getPos(e);
+    if(insideDisk(dp.x,dp.y)) userPoints.push(dp);
+    else userPoints=[];
+  },{passive:false});
+  canvas.addEventListener('touchmove',e=>{
+    e.preventDefault();
+    mousePos=getPos(e);
+  },{passive:false});
+
+  const observer=new IntersectionObserver(entries=>{
+    isVisible=entries[0].isIntersecting;
+  },{threshold:0.1});
+  observer.observe(canvas.parentElement||canvas);
+
+  resize();
+  initAmbient();
+  window.addEventListener('resize',resize);
+  drawFrame();
+})();
+</script>
+</body>
+</html>
