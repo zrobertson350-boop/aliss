@@ -2464,6 +2464,8 @@ function submitAlissPlusCode(){}
   }
 
   window._aidleInit=initGame;
+  // Auto-init if aidle page is already active (e.g. direct URL load)
+  if(document.getElementById('page-aidle')?.classList.contains('active')) initGame();
 })();
 </script>
 
