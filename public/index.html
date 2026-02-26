@@ -145,7 +145,10 @@ a{color:inherit;text-decoration:none}
 .card:hover{background:var(--cream)}
 .card-img{display:none}
 .card-body{padding:22px 24px 20px;flex:1;display:flex;flex-direction:column}
-.card-tag{font-size:9px;letter-spacing:2.5px;text-transform:uppercase;font-weight:700;color:var(--accent);margin-bottom:10px}
+.card-tag{font-size:9px;letter-spacing:2.5px;text-transform:uppercase;font-weight:700;color:var(--accent);margin-bottom:6px}
+.card-emoji{font-size:18px;display:block;margin-bottom:8px;line-height:1;opacity:.85}
+.cat-chipwar{border-left:3px solid #E67E22!important}.cat-compute{border-left:3px solid #1ABC9C!important}.cat-research{border-left:3px solid #2980B9!important}.cat-policy{border-left:3px solid #8E44AD!important}.cat-finance{border-left:3px solid #D4AF37!important}.cat-models{border-left:3px solid #27AE60!important}.cat-profiles{border-left:3px solid #16A085!important}.cat-safety{border-left:3px solid #E74C3C!important}.cat-industry{border-left:3px solid #D4AF37!important}.cat-chipwar .card-tag{color:#E67E22!important}.cat-compute .card-tag{color:#1ABC9C!important}.cat-research .card-tag{color:#2980B9!important}.cat-policy .card-tag{color:#8E44AD!important}.cat-finance .card-tag,.cat-industry .card-tag{color:#C9A227!important}.cat-models .card-tag{color:#27AE60!important}.cat-profiles .card-tag{color:#16A085!important}.cat-safety .card-tag{color:#E74C3C!important}
+.hero-emoji{font-size:28px;display:block;margin-bottom:12px;opacity:.9}
 .card-body h4{font-family:var(--serif);font-size:16px;font-weight:700;line-height:1.35;margin-bottom:10px;color:var(--ink)}
 .card-body p{font-size:13px;color:var(--muted);line-height:1.6;flex:1}
 .card-meta{font-size:11px;color:var(--muted-light);margin-top:14px;padding-top:12px;border-top:1px solid var(--divider)}
@@ -1600,12 +1603,18 @@ function updateFeaturedHero(article){
   if(!hero) return;
   const slug=String(article.slug||article._id||'');
   hero.onclick=()=>openDynamicArticle(slug);
+  const cat=(article.category||'').toLowerCase();
+  const catMeta=CATEGORY_META[cat]||{emoji:'◉',cls:''};
+  const catColor=CAT_COLORS[cat]||'#C0392B';
+  // Dynamic glow based on category
+  hero.style.background=`linear-gradient(135deg,#141414 60%,${catColor}18 100%)`;
+  hero.style.borderLeft=`4px solid ${catColor}`;
   const tag=hero.querySelector('.tag-label');
   const h2=hero.querySelector('h2');
   const p=hero.querySelector('p');
   const meta=hero.querySelector('.hero-meta-home');
-  if(tag) tag.textContent=article.category||'Analysis';
-  if(h2) h2.innerHTML=escapeHtml(article.title||'');
+  if(tag){ tag.textContent=article.category||'Analysis'; tag.style.color=catColor; tag.style.borderBottomColor=catColor; }
+  if(h2) h2.innerHTML=`<span style="font-size:22px;margin-right:10px;opacity:.8">${catMeta.emoji}</span>${escapeHtml(article.title||'')}`;
   if(p) p.textContent=article.subtitle||article.summary||'';
   if(meta) meta.innerHTML=`By <strong>Aliss</strong> · ${article.publishedAt?new Date(article.publishedAt).toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}):'Recent'}`;
   hero.style.display='';
@@ -1652,6 +1661,20 @@ async function ensureArticlesCache(){
   }catch{}
 }
 
+const CATEGORY_META={
+  'chip war':{emoji:'◈',cls:'cat-chipwar'},
+  'compute':{emoji:'∑',cls:'cat-compute'},
+  'research':{emoji:'◎',cls:'cat-research'},
+  'policy':{emoji:'⚖',cls:'cat-policy'},
+  'finance':{emoji:'◆',cls:'cat-finance'},
+  'models':{emoji:'◉',cls:'cat-models'},
+  'profiles':{emoji:'◐',cls:'cat-profiles'},
+  'safety':{emoji:'⚠',cls:'cat-safety'},
+  'industry':{emoji:'▲',cls:'cat-industry'},
+  'scale':{emoji:'∞',cls:'cat-compute'},
+};
+const CAT_COLORS={'chip war':'#E67E22','compute':'#1ABC9C','research':'#2980B9','policy':'#8E44AD','finance':'#D4AF37','models':'#27AE60','profiles':'#16A085','safety':'#E74C3C','industry':'#D4AF37','scale':'#1ABC9C'};
+
 function buildCard(article,index){
   const title=escapeHtml(article.title||'Untitled');
   const summary=escapeHtml(article.summary||article.content||'');
@@ -1660,6 +1683,7 @@ function buildCard(article,index){
   const tag=escapeHtml(article.category||(article.tags&&article.tags[0])||'News');
   const dateText=article.publishedAt?new Date(article.publishedAt).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):'Recent';
   const tags=article.tags||[];
+  const meta=CATEGORY_META[cat]||{emoji:'·',cls:''};
 
   // Detect format from tags
   const fmt=tags.find(t=>['flagship','executive','exclusive'].includes(t));
@@ -1670,10 +1694,12 @@ function buildCard(article,index){
   if(cat==='industry') classes.push('card-industry');
   if(cat==='scale') classes.push('card-scale');
   if(fmt==='flagship') classes.push('card-flagship');
+  if(meta.cls) classes.push(meta.cls);
 
   const card=document.createElement('div');
   card.className=classes.join(' ');
-  card.innerHTML=`<div class="card-body">${fmtBadge}<div class="card-tag">${tag}</div><h4>${title}</h4><p>${summary}</p><div class="card-meta">${dateText} · ${source}</div></div>`;
+  const emojiHtml=meta.emoji!=='·'?`<span class="card-emoji">${meta.emoji}</span>`:'';
+  card.innerHTML=`<div class="card-body">${fmtBadge}${emojiHtml}<div class="card-tag">${tag}</div><h4>${title}</h4><p>${summary}</p><div class="card-meta">${dateText} · ${source}</div></div>`;
   const slug=String(article?.slug||article?._id||'').trim();
   if(article.isStatic){
     card.addEventListener('click',()=>navigate(slug));
