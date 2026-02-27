@@ -261,7 +261,7 @@ a{color:inherit;text-decoration:none}
 
 /* Industry — The Most Ambitious Category */
 :root{--industry:#B8860B;--industry-bright:#F5A623;--industry-bg:#1C1608;--industry-paper:#FDF8EC;--industry-divider:#D4AF37}
-.card-industry{grid-column:span 2;border-left:4px solid var(--industry)!important}
+.card-industry{border-left:4px solid var(--industry)!important}
 .card-industry .card-tag{color:var(--industry)!important;font-weight:700}
 .card-industry .card-body h4{font-size:20px;font-weight:900;line-height:1.3}
 #industryFeaturedSection{background:var(--industry-bg);padding:32px 40px;margin-bottom:36px;border-radius:12px;display:none}
@@ -280,8 +280,7 @@ a{color:inherit;text-decoration:none}
 .industry-sec-card:hover h4{color:var(--industry-bright)}
 .industry-sec-card h4{font-family:var(--serif);font-size:15px;font-weight:700;color:#fff;line-height:1.3;margin-bottom:5px;transition:color .2s}
 .industry-sec-card p{font-size:12px;color:rgba(255,255,255,.38);line-height:1.5}
-@media(max-width:900px){.industry-feat-grid{grid-template-columns:1fr}.industry-lead{border-right:none;padding-right:0;border-bottom:1px solid rgba(212,175,55,.2);padding-bottom:20px;margin-bottom:16px}.industry-secondary{padding-left:0}.card-industry{grid-column:span 1}}
-@media(max-width:640px){.card-industry{grid-column:span 1}}
+@media(max-width:900px){.industry-feat-grid{grid-template-columns:1fr}.industry-lead{border-right:none;padding-right:0;border-bottom:1px solid rgba(212,175,55,.2);padding-bottom:20px;margin-bottom:16px}.industry-secondary{padding-left:0}}
 
 /* Industry Dedicated Page */
 .industry-page-hero{background:var(--industry-bg);padding:60px 0 52px;text-align:center;position:relative;overflow:hidden}
@@ -467,10 +466,8 @@ a{color:inherit;text-decoration:none}
 .format-executive::before{content:'▸ '}
 .format-exclusive::before{content:'⊕ '}
 
-/* Flagship card variant — spans 2 cols, larger title */
-.card-flagship{grid-column:span 2}
+/* Flagship card variant — larger title */
 .card-flagship .card-body h4{font-size:20px;line-height:1.25}
-@media(max-width:900px){.card-flagship{grid-column:span 1}}
 
 /* Polish — refined interactions and visual hierarchy */
 .card{transition:background .2s,box-shadow .2s,transform .15s}
