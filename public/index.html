@@ -143,8 +143,8 @@ a{color:inherit;text-decoration:none}
 @media(max-width:640px){.live-updates-grid{grid-template-columns:1fr}.live-item{border-right:none!important}}
 
 /* Text-only grid — no images, pure editorial */
-.cards-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:0;margin-bottom:40px;border:1px solid var(--divider)}
-.card{background:var(--card-bg);border:0;border-right:1px solid var(--divider);border-bottom:1px solid var(--divider);cursor:pointer;transition:background .2s;display:flex;flex-direction:column}
+.cards-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;margin-bottom:40px;background:var(--divider)}
+.card{background:var(--card-bg);border:0;cursor:pointer;transition:background .2s;display:flex;flex-direction:column}
 .card:hover{background:var(--cream)}
 .card-img{display:none}
 .card-body{padding:22px 24px 20px;flex:1;display:flex;flex-direction:column}
@@ -1961,7 +1961,7 @@ async function loadDynamicArticles(){
     if(_featuredPool.length>0){ updateFeaturedHero(_featuredPool[0]); startFeaturedRotation(); }
 
     grid.innerHTML='';
-    allArticlesCache.filter(a=>a.title&&a.title.trim()).forEach((article,index)=>grid.appendChild(buildCard(article,index)));
+    allArticlesCache.filter(a=>a.title&&a.title.trim()&&(a.summary||a.content||'').trim()).forEach((article,index)=>grid.appendChild(buildCard(article,index)));
 
     // Populate Papers section
     const papers=allArticlesCache.filter(a=>a.category==='Research'||(a.tags&&a.tags.some(t=>/paper|arxiv|research/i.test(t)))).slice(0,6);
@@ -2113,7 +2113,7 @@ searchInput?.addEventListener('input',async function(){
     await ensureArticlesCache();
     const lower=q.toLowerCase();
     const results=allArticlesCache.filter(a=>
-      a.title&&a.title.trim()&&(
+      a.title&&a.title.trim()&&(a.summary||a.content||'').trim()&&(
       (a.title||'').toLowerCase().includes(lower)||
       (a.summary||'').toLowerCase().includes(lower)||
       (a.tags||[]).some(t=>t.toLowerCase().includes(lower))||
@@ -2285,6 +2285,7 @@ function filterCategory(category, navKey){
 
   ensureArticlesCache().then(()=>{
     const filtered=allArticlesCache.filter(a=>{
+      if(!a.title||!a.title.trim()||!(a.summary||a.content||'').trim()) return false;
       const cat=(a.category||'').toLowerCase();
       const tags=(a.tags||[]).map(t=>t.toLowerCase());
       return cat===lowerCat||cat.includes(lowerCat)||tags.includes(lowerCat)||tags.includes(category.toLowerCase());
