@@ -1961,7 +1961,7 @@ async function loadDynamicArticles(){
     if(_featuredPool.length>0){ updateFeaturedHero(_featuredPool[0]); startFeaturedRotation(); }
 
     grid.innerHTML='';
-    allArticlesCache.forEach((article,index)=>grid.appendChild(buildCard(article,index)));
+    allArticlesCache.filter(a=>a.title&&a.title.trim()).forEach((article,index)=>grid.appendChild(buildCard(article,index)));
 
     // Populate Papers section
     const papers=allArticlesCache.filter(a=>a.category==='Research'||(a.tags&&a.tags.some(t=>/paper|arxiv|research/i.test(t)))).slice(0,6);
@@ -2113,10 +2113,11 @@ searchInput?.addEventListener('input',async function(){
     await ensureArticlesCache();
     const lower=q.toLowerCase();
     const results=allArticlesCache.filter(a=>
+      a.title&&a.title.trim()&&(
       (a.title||'').toLowerCase().includes(lower)||
       (a.summary||'').toLowerCase().includes(lower)||
       (a.tags||[]).some(t=>t.toLowerCase().includes(lower))||
-      (a.category||'').toLowerCase().includes(lower)
+      (a.category||'').toLowerCase().includes(lower))
     );
     if(!grid) return;
     let lbl=document.getElementById('searchResultsLabel');
