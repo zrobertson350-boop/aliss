@@ -2396,6 +2396,35 @@ app.post("/api/generate", async (req, res) => {
   }
 });
 
+// Direct article insert — bypasses Claude API, accepts pre-written article
+app.post("/api/insert-article", async (req, res) => {
+  if (!isDbReady()) return res.status(503).json({ msg: "DB not ready" });
+  const { title, subtitle, body, summary, category, tags, slug } = req.body || {};
+  if (!title || !body) return res.status(400).json({ msg: "title and body required" });
+  const articleSlug = slug || title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "").slice(0, 80);
+  const doc = {
+    slug: articleSlug,
+    title,
+    subtitle: subtitle || "",
+    content: "",
+    summary: summary || "",
+    body: body || "",
+    tags: tags || [],
+    category: category || "Analysis",
+    source: "Aliss",
+    is_external: false,
+    is_generated: true,
+    published_at: new Date().toISOString()
+  };
+  try {
+    await supabase.from("aliss_articles").insert(doc);
+    io.emit("newArticle", doc);
+    res.json(doc);
+  } catch (e) {
+    res.status(500).json({ msg: "Insert failed", error: e.message });
+  }
+});
+
 /* ======================
    STRIPE SUBSCRIPTIONS
 ====================== */
