@@ -3687,13 +3687,21 @@ const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {
   console.log(`Aliss running on port ${PORT}`);
 
-  // Self-ping every 5 minutes to prevent Render free-tier idle sleep
+  // Keep-alive: ping own /health endpoint via the public URL every 4 minutes.
+  // This makes an EXTERNAL HTTP request through Render's load balancer,
+  // which counts as inbound traffic and resets the idle timer.
   const KEEP_ALIVE_URL = `${BASE_URL}/health`;
-  const INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
-  setInterval(() => {
-    axios.get(KEEP_ALIVE_URL)
-      .then(() => console.log(`[keep-alive] pinged ${KEEP_ALIVE_URL}`))
-      .catch(err => console.warn(`[keep-alive] ping failed: ${err.message}`));
-  }, INTERVAL_MS);
+  const INTERVAL_MS = 4 * 60 * 1000; // 4 minutes
+  const keepAlive = () => {
+    const lib = KEEP_ALIVE_URL.startsWith("https") ? require("https") : require("http");
+    lib.get(KEEP_ALIVE_URL, (res) => {
+      let data = "";
+      res.on("data", (chunk) => (data += chunk));
+      res.on("end", () => console.log(`[keep-alive] ${res.statusCode} from ${KEEP_ALIVE_URL}`));
+    }).on("error", (err) => console.warn(`[keep-alive] failed: ${err.message}`));
+  };
+  // First ping after 30 seconds, then every 4 minutes
+  setTimeout(keepAlive, 30000);
+  setInterval(keepAlive, INTERVAL_MS);
   console.log(`[keep-alive] will ping ${KEEP_ALIVE_URL} every ${INTERVAL_MS / 60000} min`);
 });

@@ -3562,6 +3562,8 @@ initMathLab();
   if(page==='chess') window._chessInit&&window._chessInit();
   if(page==='compute') window._computeRender&&window._computeRender();
 })();
+// Client-side keep-alive: ping /health every 4 min while page is open
+setInterval(()=>{fetch('/health').catch(()=>{})},240000);
 </script>
 </body>
 </html>
