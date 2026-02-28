@@ -3649,6 +3649,14 @@ app.post("/api/telegram", async (req, res) => {
     tgSend(chatId, `Error: ${e.message}`);
   }
 });
+/* ======================
+   HEALTH / KEEP-ALIVE
+====================== */
+
+app.get("/health", (_req, res) => {
+  res.status(200).json({ status: "ok", uptime: process.uptime() });
+});
+
 
 /* ======================
    STATIC FRONTEND
@@ -3676,4 +3684,16 @@ app.get(["/", "/aliss"], (_req, res) => {
 ====================== */
 
 const PORT = process.env.PORT || 5000;
-server.listen(PORT, () => console.log(`Aliss running on port ${PORT}`));
+server.listen(PORT, () => {
+  console.log(`Aliss running on port ${PORT}`);
+
+  // Self-ping every 5 minutes to prevent Render free-tier idle sleep
+  const KEEP_ALIVE_URL = `${BASE_URL}/health`;
+  const INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
+  setInterval(() => {
+    axios.get(KEEP_ALIVE_URL)
+      .then(() => console.log(`[keep-alive] pinged ${KEEP_ALIVE_URL}`))
+      .catch(err => console.warn(`[keep-alive] ping failed: ${err.message}`));
+  }, INTERVAL_MS);
+  console.log(`[keep-alive] will ping ${KEEP_ALIVE_URL} every ${INTERVAL_MS / 60000} min`);
+});
