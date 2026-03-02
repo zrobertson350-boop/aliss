@@ -1,6 +1,39 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <!-- Navy circle -->
-  <circle cx="16" cy="16" r="16" fill="#1A2880"/>
-  <!-- A lettermark -->
-  <text x="16" y="21.5" font-family="Arial,Helvetica,sans-serif" font-size="16" font-weight="400" fill="#FFFFFF" text-anchor="middle" letter-spacing="0.5">A</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0a0a1a"/>
+      <stop offset="100%" stop-color="#0d1030"/>
+    </linearGradient>
+    <linearGradient id="glow" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#00e5ff"/>
+      <stop offset="100%" stop-color="#0066ff"/>
+    </linearGradient>
+    <filter id="blur">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="8"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="512" height="512" rx="96" fill="url(#bg)"/>
+
+  <!-- Subtle outer ring glow -->
+  <circle cx="256" cy="256" r="190" fill="none" stroke="#00e5ff" stroke-width="1.5" opacity="0.15"/>
+
+  <!-- Scanning arc accent -->
+  <path d="M256 66 A190 190 0 0 1 446 256" fill="none" stroke="url(#glow)" stroke-width="3" stroke-linecap="round" opacity="0.4"/>
+
+  <!-- Glow layer behind the A -->
+  <g filter="url(#blur)" opacity="0.5">
+    <path d="M256 100 L148 400 L180 400 L210 320 L302 320 L332 400 L364 400 Z" fill="#00b8ff"/>
+  </g>
+
+  <!-- The A - sharp geometric letterform -->
+  <path d="M256 115 L142 405 L178 405 L212 318 L300 318 L334 405 L370 405 Z" fill="none" stroke="url(#glow)" stroke-width="8" stroke-linejoin="miter"/>
+
+  <!-- Crossbar of the A -->
+  <line x1="200" y1="290" x2="312" y2="290" stroke="url(#glow)" stroke-width="8" stroke-linecap="round"/>
+
+  <!-- Small pulse dot at apex -->
+  <circle cx="256" cy="108" r="6" fill="#00e5ff"/>
+  <circle cx="256" cy="108" r="12" fill="#00e5ff" opacity="0.3"/>
 </svg>
