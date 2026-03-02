@@ -220,7 +220,7 @@ async function callClaude(system, userMsg, maxTokens = 2000) {
     const res = await axios.post(
       "https://api.anthropic.com/v1/messages",
       {
-        model: "claude-3-5-sonnet-latest",
+        model: "claude-sonnet-4-6",
         max_tokens: maxTokens,
         system,
         messages: [{ role: "user", content: userMsg }]
@@ -247,7 +247,7 @@ async function callClaudeOpus(system, userMsg, maxTokens = 8000) {
     const res = await axios.post(
       "https://api.anthropic.com/v1/messages",
       {
-        model: "claude-3-5-sonnet-latest",
+        model: "claude-sonnet-4-6",
         max_tokens: maxTokens,
         system,
         messages: [{ role: "user", content: userMsg }]
