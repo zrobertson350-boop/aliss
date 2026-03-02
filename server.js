@@ -231,7 +231,7 @@ async function callClaude(system, userMsg, maxTokens = 2000) {
           "x-api-key": ANTHROPIC_KEY,
           "anthropic-version": "2023-06-01"
         },
-        timeout: 90000
+        timeout: 180000
       }
     );
     return res.data?.content?.[0]?.text || "";
