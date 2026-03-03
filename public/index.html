@@ -68,17 +68,28 @@ fetch('/api/config').then(r=>r.json()).then(cfg=>{
   if(localStorage.getItem('aliss_cookie_consent')==='all') loadGA4(window._ga4Id);
 }).catch(()=>{});
 </script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Source+Sans+3:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<meta name="color-scheme" content="light dark">
 <style>
 :root{--ink:#141414;--paper:#FAFAF7;--cream:#F5F3EE;--accent:#C0392B;--accent-hover:#A93226;--muted:#7A7A72;--muted-light:#A8A8A0;--divider:#DDD9D0;--highlight:#FDF2E9;--tag-bg:#EEEDEA;--card-bg:#FFF;--serif:'Playfair Display',Georgia,serif;--sans:'Source Sans 3','Segoe UI',sans-serif;--mono:'JetBrains Mono',monospace;--max-w:1280px;--content-w:900px}
+/* Dark mode */
+[data-theme="dark"]{--ink:#E8E6E1;--paper:#0e0e14;--cream:#161620;--accent:#E74C3C;--accent-hover:#C0392B;--muted:#9A9A92;--muted-light:#6A6A62;--divider:#2A2A35;--highlight:#1A1A24;--tag-bg:#1E1E28;--card-bg:#14141E}
+/* Read progress bar */
+.read-progress{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,#00e5ff,#0066ff);width:0;z-index:9999;transition:width 80ms linear;pointer-events:none;opacity:0}
+.read-progress.active{opacity:1}
+/* Skip to content */
+.skip-link{position:absolute;top:-100%;left:16px;background:var(--accent);color:#fff;padding:8px 16px;z-index:10000;border-radius:0 0 4px 4px;font-size:14px;font-weight:600;transition:top .2s}.skip-link:focus{top:0}
 *{margin:0;padding:0;box-sizing:border-box}html{scroll-behavior:smooth}
-body{background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:17px;line-height:1.75;-webkit-font-smoothing:antialiased}
+body{background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:17px;line-height:1.75;-webkit-font-smoothing:antialiased;transition:background .3s,color .3s}
 a{color:inherit;text-decoration:none}
 .container{max-width:var(--max-w);margin:0 auto;padding:0 36px}
 .topbar{background:var(--ink);color:#ccc;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;padding:10px 0}
 .topbar .container{display:flex;justify-content:space-between;align-items:center}
 .topbar a{color:#ccc;transition:color .2s}.topbar a:hover{color:#fff}
-.topbar-right{display:flex;gap:18px}
+.topbar-right{display:flex;gap:18px;align-items:center}
+.dark-toggle{background:none;border:1px solid #444;color:#ccc;cursor:pointer;font-size:14px;padding:3px 8px;border-radius:3px;transition:all .2s;line-height:1}.dark-toggle:hover{border-color:#999;color:#fff}
 .masthead{text-align:center;padding:22px 20px 0}
 .masthead-logo{font-family:var(--serif);font-weight:900;font-size:clamp(34px,5vw,48px);letter-spacing:8px;text-transform:uppercase;color:var(--ink);display:inline-block;cursor:pointer}
 .logo-accent{color:var(--accent)}
@@ -640,9 +651,39 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-off
 .tracker-flash-title{font-family:var(--serif);font-size:17px;font-weight:700;color:var(--ink);margin-bottom:8px}
 .tracker-flash-desc{font-size:13px;color:var(--muted);line-height:1.65}
 @media(max-width:640px){.tracker-flash-grid{grid-template-columns:1fr}.tracker-flash-card{border-right:none!important}.tracker-scoreboard-header{grid-template-columns:1fr 40px 1fr}.tracker-country-label{font-size:14px;padding:12px 10px}.tracker-vs{padding:0 8px;font-size:12px}}
+/* Dark mode overrides */
+[data-theme="dark"] .topbar{background:#08080e}
+[data-theme="dark"] .site-footer{background:#08080e}
+[data-theme="dark"] .featured-hero{border:1px solid var(--divider)}
+[data-theme="dark"] .article-hero{background:var(--cream)}
+[data-theme="dark"] .card{border-color:var(--divider)}
+[data-theme="dark"] .cards-grid{background:var(--divider)}
+[data-theme="dark"] .card:hover{background:var(--highlight)}
+[data-theme="dark"] img{filter:brightness(.9)}
+[data-theme="dark"] .ticker{background:var(--cream);border-color:var(--divider)}
+[data-theme="dark"] .main-nav{border-color:var(--divider)}
+[data-theme="dark"] .welcome-overlay .welcome-box{background:var(--cream);color:var(--ink)}
+[data-theme="dark"] .search-input-wrap{background:var(--cream);border-color:var(--divider)}
+[data-theme="dark"] .search-input-wrap input{color:var(--ink)}
+[data-theme="dark"] .section-header{border-color:var(--divider)}
+[data-theme="dark"] .paper-card{background:var(--card-bg);border-color:var(--divider)}
+[data-theme="dark"] .pull-quote{border-color:var(--divider);color:var(--muted)}
+[data-theme="dark"] .data-callout{background:var(--cream);border-color:var(--divider)}
+/* Reading time badge */
+.reading-time{font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:.5px}
+/* Load more button */
+.load-more-wrap{text-align:center;padding:32px 0}
+.load-more-btn{background:var(--ink);color:var(--paper);border:none;cursor:pointer;padding:12px 36px;font-family:var(--sans);font-size:14px;font-weight:600;letter-spacing:1px;text-transform:uppercase;transition:all .2s}.load-more-btn:hover{background:var(--accent)}
 </style>
 </head>
 <body>
+<a href="#main-content" class="skip-link">Skip to content</a>
+<div class="read-progress" id="readProgress"></div>
+<noscript><div style="padding:40px;text-align:center;font-family:sans-serif;background:#141414;color:#ccc;min-height:100vh;display:flex;align-items:center;justify-content:center"><div><h1 style="margin-bottom:16px">Aliss</h1><p>JavaScript is required to read Aliss. Please enable JavaScript in your browser settings.</p></div></div></noscript>
+<script>
+// Restore dark mode preference before paint
+if(localStorage.getItem('aliss_dark_mode')==='true') document.documentElement.setAttribute('data-theme','dark');
+</script>
 
 <!-- Welcome / boot splash — shown once per session -->
 <div id="alissBoot">
@@ -655,7 +696,7 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-off
   </div>
 </div>
 
-<div class="topbar"><div class="container"><div id="authTopbarControl" style="position:relative"><a href="#" onclick="showSignIn();return false" class="signin-btn" id="signinTopbarBtn">Sign In</a><button class="auth-user-btn" id="userTopbarBtn" onclick="toggleUserDropdown()"><span id="userEmailDisplay"></span><span style="font-size:8px;margin-left:4px">&#9660;</span></button><div class="auth-dropdown" id="userDropdown"><button onclick="doSignOut()">Sign Out</button></div></div><div class="topbar-right"><a href="#" onclick="filterCategory(null,'home');return false">Home</a><a href="#" onclick="navigate('about');return false">About</a><a href="/rss.xml" target="_blank" rel="noopener">RSS</a></div></div></div>
+<div class="topbar"><div class="container"><div id="authTopbarControl" style="position:relative"><a href="#" onclick="showSignIn();return false" class="signin-btn" id="signinTopbarBtn">Sign In</a><button class="auth-user-btn" id="userTopbarBtn" onclick="toggleUserDropdown()"><span id="userEmailDisplay"></span><span style="font-size:8px;margin-left:4px">&#9660;</span></button><div class="auth-dropdown" id="userDropdown"><button onclick="doSignOut()">Sign Out</button></div></div><div class="topbar-right"><a href="#" onclick="filterCategory(null,'home');return false">Home</a><a href="#" onclick="navigate('about');return false">About</a><a href="/rss.xml" target="_blank" rel="noopener">RSS</a><button class="dark-toggle" id="darkToggle" onclick="toggleDarkMode()" aria-label="Toggle dark mode" title="Toggle dark mode">&#9789;</button></div></div></div>
 
 <header class="masthead"><a class="masthead-logo" onclick="navigate('home');return false"><span class="logo-accent">A</span>l<span class="logo-accent">i</span>ss</a><div class="masthead-tagline">Intelligence on Artificial Intelligence</div></header>
 
@@ -684,17 +725,13 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-off
 
 <div class="ticker">
   <div class="container">
-    <div class="ticker__track" id="liveTickerTrack">
-      <span class="ticker__item">• live updates of ai</span>
-      <span class="ticker__item">• live updates of ai</span>
-      <span class="ticker__item">• live updates of ai</span>
-      <span class="ticker__item">• live updates of ai</span>
-      <span class="ticker__item">• live updates of ai</span>
-      <span class="ticker__item">• live updates of ai</span>
+    <div class="ticker__track" id="liveTickerTrack" aria-live="polite" aria-label="Live AI news ticker">
+      <span class="ticker__item">Aliss — loading live headlines...</span>
     </div>
   </div>
 </div>
 
+<div id="main-content"></div>
 <div id="page-home" class="page active"><div class="container">
 
 <div class="featured-hero hero-bg-1" id="dynamicFeaturedHero" style="display:none">
@@ -716,7 +753,7 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-off
 
 <div id="liveUpdatesSection" style="display:none;margin-top:48px">
 <div class="section-header"><h3>Daily Briefing <span id="liveUpdatesDate" style="font-weight:400;font-size:12px;opacity:0.5;margin-left:8px"></span></h3></div>
-<div class="live-grid" id="liveUpdatesGrid"></div>
+<div class="live-updates-grid" id="liveUpdatesGrid"></div>
 </div>
 
 </div></div>
@@ -1557,10 +1594,10 @@ Right now, we just focus on the research, and then the answer to the business qu
 <footer class="site-footer"><div class="container">
 <div class="footer-grid">
 <div class="footer-brand"><span class="footer-logo"><span class="logo-accent">A</span>l<span class="logo-accent">i</span>ss <span style="font-size:16px;letter-spacing:3px">AI</span></span><p>The world's first fully AI-autonomous news network. Self-generating. Self-publishing. Running 24/7.</p></div>
-<div class="footer-col"><h5>Sections</h5><ul><li><a href="#" onclick="navigate('home');return false">Home</a></li><li><a href="#">Profiles</a></li><li><a href="#">Research</a></li><li><a href="#" onclick="navigate('industry');return false">Industry</a></li><li><a href="#">Opinion</a></li></ul></div>
-<div class="footer-col"><h5>Company</h5><ul><li><a href="#" onclick="navigate('about');return false">About</a></li><li><a href="#">Contact</a></li><li><a href="#">Advertise</a></li><li><a href="#">Careers</a></li></ul></div>
-<div class="footer-col"><h5>Follow</h5><ul><li><a href="#">X / Twitter</a></li><li><a href="#">LinkedIn</a></li><li><a href="/rss.xml" target="_blank" rel="noopener">RSS Feed</a></li></ul></div></div>
-<div class="footer-bottom"><span>&copy; 2026 Aliss. All rights reserved.</span><div class="footer-bottom-links"><a href="#" onclick="navigate('privacy');return false">Privacy Policy</a><a href="#">Terms</a><a href="#">Accessibility</a></div></div>
+<div class="footer-col"><h5>Sections</h5><ul><li><a href="#" onclick="navigate('home');return false">Home</a></li><li><a href="#" onclick="filterCategory('Profile');return false">Profiles</a></li><li><a href="#" onclick="filterCategory('Research');return false">Research</a></li><li><a href="#" onclick="navigate('industry');return false">Industry</a></li><li><a href="#" onclick="filterCategory('Opinion');return false">Opinion</a></li></ul></div>
+<div class="footer-col"><h5>Company</h5><ul><li><a href="#" onclick="navigate('about');return false">About</a></li><li><a href="#" onclick="navigate('privacy');return false">Privacy</a></li><li><a href="/rss.xml" target="_blank" rel="noopener">RSS Feed</a></li></ul></div>
+<div class="footer-col"><h5>Explore</h5><ul><li><a href="#" onclick="navigate('tracker');return false">AI Tracker</a></li><li><a href="#" onclick="navigate('tldr');return false">TL;DR</a></li><li><a href="#" onclick="navigate('compute');return false">Compute Lab</a></li><li><a href="#" onclick="navigate('chess');return false">Chess</a></li></ul></div></div>
+<div class="footer-bottom"><span>&copy; 2026 Aliss. All rights reserved.</span><div class="footer-bottom-links"><a href="#" onclick="navigate('privacy');return false">Privacy Policy</a></div></div>
 </div></footer>
 
 <button class="scroll-top" id="scrollTop" onclick="window.scrollTo({top:0,behavior:'smooth'})">&#8593;</button>
@@ -1715,7 +1752,9 @@ async function openDynamicArticle(slug,{replace=false}={}){
     categoryEl.textContent=tag;
     titleEl.textContent=title;
     summaryEl.textContent=String(article?.subtitle||summary);
-    metaEl.innerHTML=`By <strong>${escapeHtml(source)}</strong> · ${escapeHtml(publishedAt)}`;
+    const bodyText=String(article?.body||article?.content||'').replace(/<[^>]*>/g,' ');
+    const readMin=Math.max(1,Math.round(bodyText.split(/\s+/).length/238));
+    metaEl.innerHTML=`By <strong>${escapeHtml(source)}</strong> · ${escapeHtml(publishedAt)} · <span class="reading-time">${readMin} min read</span>`;
 
     // Update SEO meta for this article
     const tags=Array.isArray(article?.tags)?article.tags:[];
@@ -1848,7 +1887,8 @@ function escapeHtml(value){
     .replaceAll("'",'&#39;');
 }
 
-let articlesShown=500;
+let articlesShown=12;
+const ARTICLES_PER_PAGE=12;
 
 /* ---- Relevance sort ---- */
 const CATEGORY_WEIGHT={'Scale':8,'Analysis':7,'Research':7,'Industry':6,'Chip War':7,'Philosophy':5,'Opinion':5,'Profile':3,'Futures':4,'Business':4,'Tech':4,'Words':4,'AI Outlook':4,'Culture':4,'Science':3,'Politics':3,'Health':3,'News':2};
@@ -1959,7 +1999,10 @@ async function loadDynamicArticles(){
     if(_featuredPool.length>0){ updateFeaturedHero(_featuredPool[0]); startFeaturedRotation(); }
 
     grid.innerHTML='';
-    allArticlesCache.filter(a=>a.title&&a.title.trim()&&(a.summary||a.content||'').trim()).forEach((article,index)=>grid.appendChild(buildCard(article,index)));
+    const displayable=allArticlesCache.filter(a=>a.title&&a.title.trim()&&(a.summary||a.content||'').trim());
+    articlesShown=ARTICLES_PER_PAGE;
+    displayable.slice(0,articlesShown).forEach((article,index)=>grid.appendChild(buildCard(article,index)));
+    renderLoadMoreButton(displayable.length);
 
     // Populate Papers section
     const papers=allArticlesCache.filter(a=>a.category==='Research'||(a.tags&&a.tags.some(t=>/paper|arxiv|research/i.test(t)))).slice(0,6);
@@ -1980,7 +2023,27 @@ async function loadDynamicArticles(){
   }catch{}
 }
 
-function loadMore(){}
+function renderLoadMoreButton(total){
+  const existing=document.querySelector('.load-more-wrap');
+  if(existing) existing.remove();
+  if(articlesShown>=total) return;
+  const grid=document.getElementById('latestStoriesGrid');
+  if(!grid) return;
+  const wrap=document.createElement('div');
+  wrap.className='load-more-wrap';
+  wrap.innerHTML=`<button class="load-more-btn" onclick="loadMore()">Load more articles (${total-articlesShown} remaining)</button>`;
+  grid.parentNode.insertBefore(wrap,grid.nextSibling);
+}
+
+function loadMore(){
+  const grid=document.getElementById('latestStoriesGrid');
+  if(!grid) return;
+  const displayable=allArticlesCache.filter(a=>a.title&&a.title.trim()&&(a.summary||a.content||'').trim());
+  const nextBatch=displayable.slice(articlesShown,articlesShown+ARTICLES_PER_PAGE);
+  nextBatch.forEach((article,i)=>grid.appendChild(buildCard(article,articlesShown+i)));
+  articlesShown+=nextBatch.length;
+  renderLoadMoreButton(displayable.length);
+}
 
 function updateFeaturedHero(article){
   const hero=document.getElementById('dynamicFeaturedHero');
@@ -3565,6 +3628,54 @@ initMathLab();
 })();
 // Client-side keep-alive: ping /health every 4 min while page is open
 setInterval(()=>{fetch('/health').catch(()=>{})},240000);
+</script>
+
+<script>
+/* ========================
+   DARK MODE TOGGLE
+======================== */
+function toggleDarkMode(){
+  const isDark=document.documentElement.getAttribute('data-theme')==='dark';
+  if(isDark){
+    document.documentElement.removeAttribute('data-theme');
+    localStorage.setItem('aliss_dark_mode','false');
+    document.getElementById('darkToggle').innerHTML='&#9789;';
+  }else{
+    document.documentElement.setAttribute('data-theme','dark');
+    localStorage.setItem('aliss_dark_mode','true');
+    document.getElementById('darkToggle').innerHTML='&#9788;';
+  }
+}
+// Set toggle icon on load
+(function(){
+  const btn=document.getElementById('darkToggle');
+  if(btn&&localStorage.getItem('aliss_dark_mode')==='true') btn.innerHTML='&#9788;';
+})();
+
+/* ========================
+   READ PROGRESS BAR
+======================== */
+(function(){
+  const bar=document.getElementById('readProgress');
+  if(!bar) return;
+  let ticking=false;
+  window.addEventListener('scroll',function(){
+    if(ticking) return;
+    ticking=true;
+    requestAnimationFrame(function(){
+      const articlePage=document.getElementById('page-article');
+      const isArticle=articlePage&&articlePage.classList.contains('active');
+      // Also check static article pages
+      const anyArticle=isArticle||document.querySelector('.page.active .article-body');
+      if(!anyArticle){bar.classList.remove('active');bar.style.width='0';ticking=false;return;}
+      bar.classList.add('active');
+      const docH=document.documentElement.scrollHeight-window.innerHeight;
+      const pct=docH>0?Math.min(100,(window.scrollY/docH)*100):0;
+      bar.style.width=pct+'%';
+      ticking=false;
+    });
+  });
+})();
 </script>
 </body>
 </html>
