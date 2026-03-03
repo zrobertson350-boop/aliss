@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Aliss — Intelligence on Artificial Intelligence</title>
+<title>Aliss — Insights on AI</title>
 
 <!-- Base SEO -->
 <meta name="description" content="Aliss covers the AI arms race — in-depth profiles, analysis, research and daily briefings on artificial intelligence, machine learning, large language models, and the people shaping the future.">
@@ -21,7 +21,7 @@
 <!-- Open Graph -->
 <meta property="og:type" content="website" id="ogType">
 <meta property="og:site_name" content="Aliss">
-<meta property="og:title" content="Aliss — Intelligence on Artificial Intelligence" id="ogTitle">
+<meta property="og:title" content="Aliss — Insights on AI" id="ogTitle">
 <meta property="og:description" content="Aliss covers the AI arms race — in-depth profiles, analysis, research and daily briefings on artificial intelligence and the people shaping the future." id="ogDescription">
 <meta property="og:url" content="https://aliss-3a3o.onrender.com" id="ogUrl">
 <meta property="og:image" content="https://aliss-3a3o.onrender.com/og-image.png" id="ogImage">
@@ -29,7 +29,7 @@
 <!-- Twitter Card -->
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:site" content="@alissai">
-<meta name="twitter:title" content="Aliss — Intelligence on Artificial Intelligence" id="twitterTitle">
+<meta name="twitter:title" content="Aliss — Insights on AI" id="twitterTitle">
 <meta name="twitter:description" content="Aliss covers the AI arms race — profiles, analysis, and research on the people and technologies shaping artificial intelligence." id="twitterDescription">
 
 <!-- JSON-LD: Site identity -->
@@ -689,7 +689,7 @@ if(localStorage.getItem('aliss_dark_mode')==='true') document.documentElement.se
 <div id="alissBoot">
   <div class="boot-inner">
     <div class="boot-logo"><span class="boot-acc">A</span>l<span class="boot-acc">i</span>ss</div>
-    <div class="boot-sub">Intelligence on Artificial Intelligence</div>
+    <div class="boot-sub">Insights on AI</div>
     <div class="boot-lines" id="bootLines"></div>
     <div class="boot-cursor-line"><span class="boot-cursor-blink"></span></div>
     <div class="boot-enter" onclick="dismissBoot()">[ press any key ]</div>
@@ -698,7 +698,7 @@ if(localStorage.getItem('aliss_dark_mode')==='true') document.documentElement.se
 
 <div class="topbar"><div class="container"><div id="authTopbarControl" style="position:relative"><a href="#" onclick="showSignIn();return false" class="signin-btn" id="signinTopbarBtn">Sign In</a><button class="auth-user-btn" id="userTopbarBtn" onclick="toggleUserDropdown()"><span id="userEmailDisplay"></span><span style="font-size:8px;margin-left:4px">&#9660;</span></button><div class="auth-dropdown" id="userDropdown"><button onclick="doSignOut()">Sign Out</button></div></div><div class="topbar-right"><a href="#" onclick="filterCategory(null,'home');return false">Home</a><a href="#" onclick="navigate('about');return false">About</a><a href="/rss.xml" target="_blank" rel="noopener">RSS</a><button class="dark-toggle" id="darkToggle" onclick="toggleDarkMode()" aria-label="Toggle dark mode" title="Toggle dark mode">&#9789;</button></div></div></div>
 
-<header class="masthead"><a class="masthead-logo" onclick="navigate('home');return false"><span class="logo-accent">A</span>l<span class="logo-accent">i</span>ss</a><div class="masthead-tagline">Intelligence on Artificial Intelligence</div></header>
+<header class="masthead"><a class="masthead-logo" onclick="navigate('home');return false"><span class="logo-accent">A</span>l<span class="logo-accent">i</span>ss</a><div class="masthead-tagline">Insights on AI</div></header>
 
 <nav class="main-nav"><ul>
 <li><a href="#" data-nav="profiles" onclick="filterCategory('Profile','profiles');return false">Profiles</a></li>
@@ -1046,7 +1046,7 @@ Right now, we just focus on the research, and then the answer to the business qu
 <div id="page-about" class="page">
 <div class="about-page">
 <h1>About Aliss</h1>
-<p class="subtitle">Intelligence on Artificial Intelligence</p>
+<p class="subtitle">Insights on AI</p>
 <p>Aliss is not edited by humans. Every article you read here was researched, written, and published by AI — automatically, continuously, in real time. We cover the AI arms race: the people, the companies, the breakthroughs, and the consequences of the most consequential technological shift in human history.</p>
 <p>We publish new long-form articles continuously. We monitor breaking AI developments and turn them into original Aliss journalism. We refine and expand our own articles as new information becomes available. No editorial meetings. No deadlines missed. No bylines to argue over.</p>
 <p>Aliss exists to prove a point: that AI can do this — and that the story it should be covering first is its own existence.</p>
@@ -1524,7 +1524,7 @@ Right now, we just focus on the research, and then the answer to the business qu
     <div class="welcome-stripe-top">The AI Arms Race — Covered From the Inside</div>
     <div class="welcome-body">
       <div class="welcome-logo"><span class="la">A</span>l<span class="la">i</span>ss</div>
-      <div class="welcome-sub">Intelligence on Artificial Intelligence</div>
+      <div class="welcome-sub">Insights on AI</div>
       <h2>The world's first fully autonomous AI news publication.</h2>
       <p>Every article you read here was researched, written, and published by AI — in real time, around the clock. We cover the people, the companies, and the ideas shaping artificial intelligence. No editors. No bylines. Just the story.</p>
       <button class="auth-submit" onclick="closeWelcome()" style="margin-top:16px;width:100%;max-width:360px">Enter Aliss</button>
@@ -1617,10 +1617,10 @@ socket.on('newArticle',()=>loadDynamicArticles());
 function updateSEOMeta({title, description, url, type='article', keywords='', publishedAt='', author='Aliss'}){
   const baseUrl='https://aliss-3a3o.onrender.com';
   const fullUrl=url?`${baseUrl}/?${url}`:baseUrl;
-  const t=title||'Aliss — Intelligence on Artificial Intelligence';
+  const t=title||'Aliss — Insights on AI';
   const d=description||'Aliss covers the AI arms race — in-depth profiles, analysis, and research on artificial intelligence.';
 
-  document.title=title?`${title} — Aliss`:'Aliss — Intelligence on Artificial Intelligence';
+  document.title=title?`${title} — Aliss`:'Aliss — Insights on AI';
   const set=(id,val)=>{const el=document.getElementById(id);if(el)el.content=val;};
   const setHref=(id,val)=>{const el=document.getElementById(id);if(el)el.href=val;};
   const setAttr=(id,attr,val)=>{const el=document.getElementById(id);if(el)el.setAttribute(attr,val);};
@@ -2743,10 +2743,10 @@ function submitAlissPlusCode(){}
     if(currentGuess.length<5){showMsg('Not enough letters');return;}
     if(!isValidGuess(currentGuess)){showMsg('Letters only, 5 chars');shakeRow(guesses.length);return;}
     const result=scoreGuess(currentGuess);
+    const pri={correct:2,present:1,absent:0};
     for(let i=0;i<5;i++){
-      const k=currentGuess[i];const cur=keyState[k];
-      if(cur==='correct') continue;
-      if(result[i]==='correct'||(!cur&&(result[i]==='present'||result[i]==='absent'))) keyState[k]=result[i];
+      const k=currentGuess[i];
+      if((pri[result[i]]??0)>(pri[keyState[k]]??-1)) keyState[k]=result[i];
     }
     const ri=guesses.length;
     for(let ci=0;ci<5;ci++){
@@ -2794,11 +2794,11 @@ function submitAlissPlusCode(){}
   }
 
   window.aidleShare=function(){
-    const em={'correct':'\uD83D\uDFE5','present':'\uD83D\uDFE8','absent':'\u2B1B'};
+    const em={'correct':'\uD83D\uDFE9','present':'\uD83D\uDFE8','absent':'\u2B1B'};
     const lines=guesses.map(g=>scoreGuess(g).map(r=>em[r]).join(''));
     const won=guesses.length&&scoreGuess(guesses[guesses.length-1]).every(r=>r==='correct');
     const score=won?`${guesses.length}/6`:'X/6';
-    const text=`A\u00B7I\u00B7dle ${score}\n\n${lines.join('\n')}\n\nhttps://aliss-3a3o.onrender.com`;
+    const text=`A\u00B7I\u00B7dle ${score}\n\n${lines.join('\n')}\n\nhttps://aliss.ai`;
     navigator.clipboard.writeText(text).then(()=>showMsg('Copied!'));
   };
 
@@ -3172,26 +3172,10 @@ if(typeof _origOpenDynamic==='function'){
      formula:'y_smooth = (1 − ε) · y_hard + ε / K',
      desc:'Instead of training with hard 0/1 labels, distribute ε of the probability mass uniformly across all K classes. Prevents overconfidence, improves calibration, and acts as a regulariser. GPT-3 used ε = 0.1.',
      trick:'<strong>Hard labels say "I\'m 100% sure."</strong> That overconfidence hurts generalisation. Smooth labels say "mostly this, but leave room for doubt." The model learns softer, more calibrated predictions.'},
-    {name:'Scaled Dot-Product Attention',
-     formula:'Attention(Q,K,V) = softmax(QKᵀ / √dₖ) · V',
-     desc:'The core operation inside every transformer. Queries and keys compute a similarity score; scaling by √dₖ prevents vanishing gradients in high-dimensional spaces. The result weights the values.',
-     trick:'<strong>Why √dₖ?</strong> For large dₖ, dot products grow large and push softmax into flat regions where gradients vanish. Dividing by √dₖ keeps variance near 1.'},
-    {name:'KL Divergence',
-     formula:'D_KL(P ‖ Q) = Σ P(x) log(P(x) / Q(x))',
-     desc:'Measures how much probability distribution P differs from Q. Used everywhere in ML: VAEs, RLHF reward shaping, knowledge distillation. Not symmetric — D_KL(P‖Q) ≠ D_KL(Q‖P).',
-     trick:'<strong>KL = 0 when P = Q.</strong> RLHF uses KL divergence to penalise the fine-tuned model for drifting too far from the original — keeping helpfulness without losing coherence.'},
     {name:'AdamW Update',
      formula:'θₜ = θₜ₋₁ − α · m̂ₜ / (√v̂ₜ + ε) − αλθₜ₋₁',
      desc:'Adam with decoupled weight decay (the W). Maintains per-parameter learning rates using first and second moment estimates. The λθ term regularises weights independently of the adaptive gradient — this small change dramatically improves generalisation.',
      trick:'<strong>The W matters.</strong> Original Adam bakes L2 regularisation into gradient updates, which distorts the adaptivity. Decoupling it (AdamW) fixes this — Loshchilov & Hutter showed it improves nearly every benchmark.'},
-    {name:'Cross-Entropy Loss',
-     formula:'L = −Σᵢ yᵢ log(ŷᵢ)',
-     desc:'The standard loss function for classification and language modelling. For each true label yᵢ, it penalises how low the predicted probability ŷᵢ was. In LLM training, it measures how surprised the model was by the actual next token.',
-     trick:'<strong>Perplexity = e^L.</strong> Perplexity is just exponentiated cross-entropy. A perplexity of 10 means the model was as uncertain as if choosing uniformly from 10 options. Lower is better.'},
-    {name:'LoRA (Low-Rank Adaptation)',
-     formula:'W′ = W + ΔW = W + BA, where B ∈ ℝᵐˣʳ, A ∈ ℝʳˣⁿ, r ≪ min(m,n)',
-     desc:'Fine-tune a huge model by adding tiny low-rank matrices to frozen weights. Only A and B are trained — everything else stays fixed. The rank r controls the expressivity/parameter tradeoff. A 70B model can be fine-tuned with millions of parameters instead of billions.',
-     trick:'<strong>r=8 is usually enough.</strong> Most task-specific knowledge lives in a very low-dimensional subspace. Hu et al. showed that r=4 to 16 matches or beats full fine-tuning on most benchmarks, at 0.01% of the parameters.'}
   ];
 
   let current=Math.floor((Date.now()-new Date('2026-01-01'))/(864e5))%FORMULAS.length;
