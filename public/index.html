@@ -386,38 +386,73 @@ a{color:inherit;text-decoration:none}
 .privacy-page ul{padding-left:24px;margin-bottom:16px}
 .privacy-page a{color:var(--accent)}
 
-/* A·I·dle Word Game */
-.aidle-page{max-width:560px;margin:0 auto;padding:32px 16px 80px;text-align:center}
-.aidle-header{margin-bottom:24px}
-.aidle-title{font-family:var(--serif);font-size:32px;font-weight:900;letter-spacing:4px;text-transform:uppercase;color:var(--ink)}
-.aidle-title .aidle-dot{color:var(--accent)}
-.aidle-sub{font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--muted);margin-top:6px}
-.aidle-streak{font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted-light);margin-top:4px}
-.aidle-grid{display:grid;grid-template-rows:repeat(6,1fr);gap:6px;margin:0 auto 24px;width:fit-content}
-.aidle-row{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
-.aidle-cell{width:60px;height:60px;border:2px solid var(--divider);display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-size:24px;font-weight:900;text-transform:uppercase;color:var(--ink);transition:background .3s,border-color .3s,color .3s;position:relative;overflow:hidden}
-.aidle-cell.filled{border-color:var(--muted);animation:aidlePop .1s ease-out}
-.aidle-cell.correct{background:var(--accent);border-color:var(--accent);color:#fff}
-.aidle-cell.present{background:#E6A817;border-color:#E6A817;color:#fff}
-.aidle-cell.absent{background:#6B6B63;border-color:#6B6B63;color:#fff}
-.aidle-cell.reveal{animation:aidleFlip .5s ease-in-out}
-@keyframes aidlePop{0%,100%{transform:scale(1)}50%{transform:scale(1.12)}}
-@keyframes aidleFlip{0%{transform:rotateX(0)}50%{transform:rotateX(-90deg)}100%{transform:rotateX(0)}}
-.aidle-shake{animation:aidleShake .4s ease-out}
-@keyframes aidleShake{0%,100%{transform:translateX(0)}20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
-.aidle-keyboard{display:flex;flex-direction:column;gap:6px;align-items:center}
-.aidle-kb-row{display:flex;gap:5px}
-.aidle-key{height:56px;min-width:40px;padding:0 8px;border:none;border-radius:4px;background:var(--divider);color:var(--ink);font-family:var(--sans);font-size:13px;font-weight:700;text-transform:uppercase;cursor:pointer;transition:background .2s,color .2s;display:flex;align-items:center;justify-content:center}
-.aidle-key.wide{min-width:58px;font-size:11px;letter-spacing:1px}
-.aidle-key.correct{background:var(--accent);color:#fff}
-.aidle-key.present{background:#E6A817;color:#fff}
-.aidle-key.absent{background:#9E9E96;color:#fff}
-.aidle-key:active{opacity:.75}
-.aidle-msg{min-height:28px;font-size:13px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--accent);margin-bottom:8px;transition:opacity .3s}
-.aidle-share-btn{margin-top:16px;padding:12px 28px;background:var(--accent);color:#fff;border:none;font-size:11px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;font-family:var(--sans);cursor:pointer;border-radius:2px;display:none}
-.aidle-share-btn.visible{display:inline-block}
-.aidle-hint{font-size:12px;color:var(--muted);margin-top:14px;line-height:1.5}
-.aidle-next{font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted-light);margin-top:8px}
+/* Mathematics Page */
+.math-page{max-width:960px;margin:0 auto;padding:36px 20px 80px}
+.math-header{text-align:center;margin-bottom:40px}
+.math-icon{font-family:var(--mono);font-size:36px;font-weight:700;color:var(--accent);margin-bottom:8px}
+.math-title{font-family:var(--serif);font-size:30px;font-weight:900;letter-spacing:4px;text-transform:uppercase;color:var(--ink)}
+.math-title .math-dot{color:var(--accent)}
+.math-sub{font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--muted);margin-top:6px}
+.math-section-title{font-family:var(--serif);font-size:20px;font-weight:700;color:var(--ink);margin:40px 0 16px;padding-bottom:8px;border-bottom:1px solid var(--divider)}
+.math-cotd{background:var(--ink);color:var(--paper);border-radius:4px;padding:36px 32px;margin-bottom:32px;position:relative;overflow:hidden}
+.math-cotd-label{font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--accent);font-family:var(--mono);margin-bottom:16px}
+.math-cotd-formula{font-family:var(--mono);font-size:clamp(18px,3vw,26px);font-weight:500;color:#fff;line-height:1.4;margin-bottom:20px;word-break:break-word}
+.math-cotd-name{font-family:var(--serif);font-size:22px;font-weight:700;color:#fff;margin-bottom:8px}
+.math-cotd-desc{font-size:14px;color:rgba(255,255,255,.6);line-height:1.6;margin-bottom:16px}
+.math-cotd-insight{background:rgba(192,57,43,.08);border-left:3px solid var(--accent);padding:14px 18px;font-size:13px;color:rgba(255,255,255,.7);line-height:1.55;font-style:italic}
+.math-cotd-insight strong{color:var(--accent);font-style:normal}
+.math-topics-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:1px;background:var(--divider);border:1px solid var(--divider);margin-bottom:32px}
+.math-topic{background:var(--paper);padding:18px 20px;cursor:pointer;transition:background .15s}
+.math-topic:hover{background:var(--cream)}
+.math-topic.open{background:var(--cream);border-left:3px solid var(--accent)}
+.math-topic-head{display:flex;align-items:center;gap:10px}
+.math-topic-icon{font-size:20px}
+.math-topic-name{font-family:var(--serif);font-size:14px;font-weight:700;color:var(--ink)}
+.math-topic-brief{font-size:12px;color:var(--muted);margin-top:6px;line-height:1.5}
+.math-topic-formulas{display:none;margin-top:12px;padding-top:12px;border-top:1px solid var(--divider)}
+.math-topic.open .math-topic-formulas{display:block}
+.math-topic-formula{font-family:var(--mono);font-size:11px;color:var(--muted);margin-bottom:6px;line-height:1.4}
+.math-topic-formula strong{color:var(--ink);font-family:var(--sans);font-size:12px}
+.math-viz-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-bottom:32px}
+@media(max-width:640px){.math-viz-grid{grid-template-columns:1fr}}
+.math-viz-card{background:var(--ink);border-radius:4px;padding:20px;overflow:hidden}
+.math-viz-title{font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--accent);margin-bottom:12px}
+.math-viz-canvas{width:100%;height:220px;border-radius:2px;display:block;background:#0a0a14}
+.math-viz-controls{display:flex;align-items:center;gap:10px;margin-top:12px;flex-wrap:wrap}
+.math-viz-slider{-webkit-appearance:none;appearance:none;flex:1;height:4px;background:#333;border-radius:2px;outline:none}
+.math-viz-slider::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--accent);cursor:pointer}
+.math-viz-slider-label{font-family:var(--mono);font-size:10px;color:rgba(255,255,255,.5);min-width:60px}
+.math-viz-btn{background:none;border:1px solid #444;color:#aaa;font-family:var(--mono);font-size:10px;padding:4px 10px;border-radius:2px;cursor:pointer;transition:all .2s}
+.math-viz-btn:hover,.math-viz-btn.active{border-color:var(--accent);color:var(--accent)}
+.math-viz-info{font-family:var(--mono);font-size:10px;color:rgba(255,255,255,.5);margin-top:8px}
+.math-quiz-wrap{margin-bottom:32px}
+.math-quiz-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.math-quiz-score{font-family:var(--mono);font-size:12px;color:var(--muted)}
+.math-quiz-streak{font-family:var(--mono);font-size:11px;color:var(--accent)}
+.math-quiz-card{background:var(--card-bg);border:1px solid var(--divider);border-radius:4px;padding:20px;margin-bottom:12px}
+.math-quiz-q{font-family:var(--serif);font-size:15px;font-weight:700;color:var(--ink);margin-bottom:14px;line-height:1.5}
+.math-quiz-opts{display:grid;gap:8px}
+.math-quiz-opt{background:var(--cream);border:1px solid var(--divider);border-radius:3px;padding:10px 14px;font-size:13px;color:var(--ink);cursor:pointer;transition:all .15s;text-align:left;font-family:var(--sans)}
+.math-quiz-opt:hover{border-color:var(--accent)}
+.math-quiz-opt.correct{background:#2ecc71;border-color:#27ae60;color:#fff;cursor:default}
+.math-quiz-opt.wrong{background:#e74c3c;border-color:#c0392b;color:#fff;cursor:default}
+.math-quiz-opt.reveal{border-color:#2ecc71;background:rgba(46,204,113,.1);cursor:default}
+.math-quiz-opt.disabled{pointer-events:none;opacity:.6}
+.math-quiz-explain{display:none;margin-top:10px;padding:10px 14px;background:var(--highlight);border-radius:3px;font-size:12px;color:var(--muted);line-height:1.5}
+.math-quiz-explain.visible{display:block}
+.math-cheat-group{margin-bottom:16px;border:1px solid var(--divider);border-radius:4px;overflow:hidden}
+.math-cheat-head{background:var(--cream);padding:14px 18px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;transition:background .15s}
+.math-cheat-head:hover{background:var(--highlight)}
+.math-cheat-head h4{font-family:var(--serif);font-size:14px;font-weight:700;color:var(--ink);margin:0}
+.math-cheat-toggle{font-size:14px;color:var(--muted);transition:transform .2s}
+.math-cheat-group.open .math-cheat-toggle{transform:rotate(180deg)}
+.math-cheat-body{display:none;padding:14px 18px;background:var(--card-bg)}
+.math-cheat-group.open .math-cheat-body{display:block}
+.math-cheat-item{margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid var(--divider)}
+.math-cheat-item:last-child{margin-bottom:0;padding-bottom:0;border-bottom:none}
+.math-cheat-item strong{font-family:var(--sans);font-size:13px;color:var(--ink);display:block;margin-bottom:2px}
+.math-cheat-item code{font-family:var(--mono);font-size:12px;color:var(--accent);display:block;margin-bottom:2px}
+.math-cheat-item span{font-size:11px;color:var(--muted)}
 
 
 /* Welcome / boot splash */
@@ -708,7 +743,7 @@ if(localStorage.getItem('aliss_dark_mode')==='true') document.documentElement.se
 <li><a href="#" data-nav="chipwar" onclick="filterCategory('Chip War','chipwar');return false">Chip War</a></li>
 <li><a href="#" data-nav="tracker" onclick="navigate('tracker');return false">Tracker</a></li>
 <li><a href="#" data-nav="chess" onclick="navigate('chess');return false">Chess</a></li>
-<li><a href="#" data-nav="aidle" onclick="navigate('aidle');return false">A·I·dle</a></li>
+<li><a href="#" data-nav="mathematics" onclick="filterCategory('Mathematics','mathematics');return false">Mathematics &lt;/&gt;</a></li>
 <li><a href="#" data-nav="compute" onclick="navigate('compute');return false">Compute</a></li>
 <li><a href="#" data-nav="tldr" onclick="navigate('tldr');return false">TL;DR</a></li>
 </ul></nav>
@@ -1436,20 +1471,84 @@ Right now, we just focus on the research, and then the answer to the business qu
 </div>
 </div>
 
-<!-- A·I·dle Word Game Page -->
-<div id="page-aidle" class="page">
-<div class="aidle-page">
-  <div class="aidle-header">
-    <div class="aidle-title">A<span class="aidle-dot">·</span>I<span class="aidle-dot">·</span>dle</div>
-    <div class="aidle-sub">Guess the AI word · 6 tries · daily</div>
-    <div class="aidle-streak" id="aidleStreak"></div>
+<!-- Mathematics Page -->
+<div id="page-mathematics" class="page">
+<div class="math-page">
+  <div class="math-header">
+    <div class="math-icon">&lt;/&gt;</div>
+    <div class="math-title">M<span class="math-dot">&middot;</span>A<span class="math-dot">&middot;</span>T<span class="math-dot">&middot;</span>H</div>
+    <div class="math-sub">The mathematics powering artificial intelligence</div>
   </div>
-  <div class="aidle-msg" id="aidleMsg"></div>
-  <div class="aidle-grid" id="aidleGrid"></div>
-  <button class="aidle-share-btn" id="aidleShareBtn" onclick="aidleShare()">Share Result</button>
-  <div class="aidle-hint" id="aidleHint"></div>
-  <div class="aidle-next" id="aidleNext"></div>
-  <div class="aidle-keyboard" id="aidleKeyboard"></div>
+  <div class="math-cotd" id="mathCotd">
+    <div class="math-cotd-label">Concept of the Day</div>
+    <div class="math-cotd-name" id="mathCotdName"></div>
+    <div class="math-cotd-formula" id="mathCotdFormula"></div>
+    <div class="math-cotd-desc" id="mathCotdDesc"></div>
+    <div class="math-cotd-insight" id="mathCotdInsight"></div>
+  </div>
+  <h3 class="math-section-title">Topic Domains</h3>
+  <div class="math-topics-grid" id="mathTopicsGrid"></div>
+  <h3 class="math-section-title">Visualization Lab</h3>
+  <div class="math-viz-grid">
+    <div class="math-viz-card">
+      <div class="math-viz-title">Gradient Descent 2D</div>
+      <canvas id="vizGradDescent" class="math-viz-canvas"></canvas>
+      <div class="math-viz-controls">
+        <span class="math-viz-slider-label" id="vizGdLrLabel">LR: 0.05</span>
+        <input type="range" class="math-viz-slider" id="vizGdLr" min="1" max="100" value="5">
+        <button class="math-viz-btn" id="vizGdReset" onclick="window._mathVizResetGD&&window._mathVizResetGD()">Reset</button>
+      </div>
+    </div>
+    <div class="math-viz-card">
+      <div class="math-viz-title">Activation Functions</div>
+      <canvas id="vizActivations" class="math-viz-canvas"></canvas>
+      <div class="math-viz-controls" id="vizActBtns"></div>
+    </div>
+    <div class="math-viz-card">
+      <div class="math-viz-title">Normal Distribution</div>
+      <canvas id="vizGaussian" class="math-viz-canvas"></canvas>
+      <div class="math-viz-controls">
+        <span class="math-viz-slider-label" id="vizGaussLabelMu">&mu;: 0</span>
+        <input type="range" class="math-viz-slider" id="vizGaussMu" min="-30" max="30" value="0">
+        <span class="math-viz-slider-label" id="vizGaussLabelSig">&sigma;: 1.0</span>
+        <input type="range" class="math-viz-slider" id="vizGaussSig" min="2" max="40" value="10">
+      </div>
+    </div>
+    <div class="math-viz-card">
+      <div class="math-viz-title">Learning Rate Comparison</div>
+      <canvas id="vizLrCompare" class="math-viz-canvas"></canvas>
+      <div class="math-viz-controls">
+        <button class="math-viz-btn" id="vizLrRestart" onclick="window._mathVizRestartLR&&window._mathVizRestartLR()">Restart</button>
+      </div>
+    </div>
+    <div class="math-viz-card">
+      <div class="math-viz-title">Backprop Chain Rule</div>
+      <canvas id="vizBackprop" class="math-viz-canvas"></canvas>
+      <div class="math-viz-controls">
+        <button class="math-viz-btn" id="vizBpStep" onclick="window._mathVizStepBP&&window._mathVizStepBP()">Step</button>
+        <button class="math-viz-btn" id="vizBpReset" onclick="window._mathVizResetBP&&window._mathVizResetBP()">Reset</button>
+        <span class="math-viz-info" id="vizBpInfo">Click Step to begin forward pass</span>
+      </div>
+    </div>
+    <div class="math-viz-card">
+      <div class="math-viz-title">Linear Regression</div>
+      <canvas id="vizLinReg" class="math-viz-canvas"></canvas>
+      <div class="math-viz-controls">
+        <button class="math-viz-btn" onclick="window._mathVizClearLR&&window._mathVizClearLR()">Clear Points</button>
+        <span class="math-viz-info" id="vizLinRegInfo">Click canvas to add points</span>
+      </div>
+    </div>
+  </div>
+  <h3 class="math-section-title">Daily Quiz</h3>
+  <div class="math-quiz-wrap">
+    <div class="math-quiz-header">
+      <span class="math-quiz-score" id="mathQuizScore"></span>
+      <span class="math-quiz-streak" id="mathQuizStreak"></span>
+    </div>
+    <div id="mathQuizCards"></div>
+  </div>
+  <h3 class="math-section-title">Cheat Sheet</h3>
+  <div id="mathCheatSheet"></div>
 </div>
 </div>
 
@@ -1596,7 +1695,7 @@ Right now, we just focus on the research, and then the answer to the business qu
 <div class="footer-brand"><span class="footer-logo"><span class="logo-accent">A</span>l<span class="logo-accent">i</span>ss <span style="font-size:16px;letter-spacing:3px">AI</span></span><p>The world's first fully AI-autonomous news network. Self-generating. Self-publishing. Running 24/7.</p></div>
 <div class="footer-col"><h5>Sections</h5><ul><li><a href="#" onclick="navigate('home');return false">Home</a></li><li><a href="#" onclick="filterCategory('Profile');return false">Profiles</a></li><li><a href="#" onclick="filterCategory('Research');return false">Research</a></li><li><a href="#" onclick="navigate('industry');return false">Industry</a></li><li><a href="#" onclick="filterCategory('Opinion');return false">Opinion</a></li></ul></div>
 <div class="footer-col"><h5>Company</h5><ul><li><a href="#" onclick="navigate('about');return false">About</a></li><li><a href="#" onclick="navigate('privacy');return false">Privacy</a></li><li><a href="/rss.xml" target="_blank" rel="noopener">RSS Feed</a></li></ul></div>
-<div class="footer-col"><h5>Explore</h5><ul><li><a href="#" onclick="navigate('tracker');return false">AI Tracker</a></li><li><a href="#" onclick="navigate('tldr');return false">TL;DR</a></li><li><a href="#" onclick="navigate('compute');return false">Compute Lab</a></li><li><a href="#" onclick="navigate('chess');return false">Chess</a></li></ul></div></div>
+<div class="footer-col"><h5>Explore</h5><ul><li><a href="#" onclick="navigate('tracker');return false">AI Tracker</a></li><li><a href="#" onclick="navigate('tldr');return false">TL;DR</a></li><li><a href="#" onclick="navigate('compute');return false">Compute Lab</a></li><li><a href="#" onclick="navigate('mathematics');return false">Mathematics</a></li><li><a href="#" onclick="navigate('chess');return false">Chess</a></li></ul></div></div>
 <div class="footer-bottom"><span>&copy; 2026 Aliss. All rights reserved.</span><div class="footer-bottom-links"><a href="#" onclick="navigate('privacy');return false">Privacy Policy</a></div></div>
 </div></footer>
 
@@ -1677,7 +1776,7 @@ function renderPage(pageId,{scroll=true}={}){
   if(pageId.startsWith('article'))document.querySelector('.main-nav a[data-nav="profiles"]')?.classList.add('active');
   if(scroll) window.scrollTo({top:0,behavior:'smooth'});
   if(pageId==='compute') window._computeRender?.();
-  if(pageId==='aidle') window._aidleInit?.();
+  if(pageId==='mathematics') window._mathInit?.();
   if(pageId==='chess') window._chessInit?.();
   if(pageId==='tracker') window._trackerInit?.();
 }
@@ -1854,7 +1953,7 @@ window.addEventListener('popstate',()=>{
     openDynamicArticle(slug,{replace:true});
   }else{
     renderPage(page,{scroll:false});
-    if(page==='aidle') window._aidleInit&&window._aidleInit();
+    if(page==='mathematics') window._mathInit&&window._mathInit();
     if(page==='chess') window._chessInit&&window._chessInit();
     if(page==='compute') window._computeRender&&window._computeRender();
   }
@@ -2311,7 +2410,7 @@ navigate=function(pageId,opts){
   _origNavigate(pageId,opts);
   if(pageId==='industry') loadIndustryPage();
   if(pageId==='chess') window._chessInit&&window._chessInit();
-  if(pageId==='aidle') window._aidleInit&&window._aidleInit();
+  if(pageId==='mathematics') window._mathInit&&window._mathInit();
   if(pageId==='tracker') window._trackerInit&&window._trackerInit();
 };
 
@@ -2607,317 +2706,386 @@ function startAlissPlusCheckout(){}
 function submitAlissPlusCode(){}
 
 /* ======================
-   A·I·dle — Daily AI Word Game
+   Mathematics — AI Math Education Page
 ====================== */
 (function(){
-  const WORDS=['MODEL','TRAIN','TOKEN','AGENT','LAYER','LEARN','SCALE','EPOCH','QUERY','LLAMA',
-    'NODES','LOGIC','BYTES','CLOUD','INFER','LABEL','MASKS','NOISE','BATCH','DENSE',
-    'EMBED','GRAPH','INDEX','LOCAL','VALID','BEAMS','TOOLS','INPUT','TRUST','VALUE',
-    'ALIGN','SCORE','CHAIN','HEADS','TASKS','GRADS','STATS','FACTS','RISKS','FLOWS',
-    'GATES','PATHS','STEPS','REGEX','SCOPE','LOOPS','TREES','LINES','GOALS','FORMS',
-    'TERMS','TYPES','UNITS','ROUGE','HUMAN','BRAIN','ROBOT','ALPHA','SIGMA','DELTA',
-    'THETA','OMEGA','GAMMA','VOCAB','PARSE','HOOKS','PIPES','CLIPS','TESTS','LINKS',
-    'RANKS','TEXTS','ULTRA','MICRO','SUPER','WORDS','CODES','SPANS','ITEMS','LANES'];
+  // ── DATA ──────────────────────────────────────────────
 
-  // Allow any 5-letter alphabetic guess — targets are AI terms only
-  function isValidGuess(g){ return g.length===5&&/^[A-Z]{5}$/.test(g); }
+  const CONCEPTS=[
+    {name:'Softmax Function',formula:'softmax(z_i) = e^(z_i) / Sum(e^(z_j))',desc:'Converts a vector of raw scores (logits) into a probability distribution. Each output is between 0 and 1 and they all sum to 1.',insight:'<strong>AI connection:</strong> Every LLM uses softmax in its final layer to pick the next token. Temperature scaling divides z_i before softmax to control randomness.'},
+    {name:'Cross-Entropy Loss',formula:'L = -Sum(y_i * log(p_i))',desc:'Measures how different a predicted probability distribution p is from the true distribution y. The primary loss function for classification.',insight:'<strong>Key insight:</strong> Cross-entropy is equivalent to KL divergence plus entropy of the true distribution. Minimising CE is the same as minimising KL divergence.'},
+    {name:'Chain Rule',formula:'dL/dw = (dL/dy) * (dy/dz) * (dz/dw)',desc:'Decomposes the gradient of a composition of functions. The backbone of backpropagation in neural networks.',insight:'<strong>Why it matters:</strong> Without the chain rule, we could not train deep networks. Backprop applies it layer by layer to compute gradients in O(n) time.'},
+    {name:'Bayes\' Theorem',formula:'P(A|B) = P(B|A) * P(A) / P(B)',desc:'Updates the probability of a hypothesis A given new evidence B. Foundation of probabilistic inference and Bayesian learning.',insight:'<strong>AI connection:</strong> Bayesian methods underpin Gaussian processes, probabilistic programming, and uncertainty quantification in modern AI systems.'},
+    {name:'Gradient Descent Update',formula:'w := w - lr * dL/dw',desc:'Iteratively adjusts model parameters w in the direction that reduces loss L. The learning rate lr controls step size.',insight:'<strong>Variants:</strong> SGD, Adam, AdaGrad, and RMSProp all modify this basic update rule to converge faster or more stably.'},
+    {name:'Attention Mechanism',formula:'Attention(Q,K,V) = softmax(QK^T / sqrt(d_k)) V',desc:'The core of the Transformer architecture. Computes weighted combinations of values based on query-key similarity.',insight:'<strong>Scale factor:</strong> Dividing by sqrt(d_k) prevents dot products from growing too large, which would push softmax into extreme values.'},
+    {name:'Matrix Multiplication',formula:'(AB)_ij = Sum_k(A_ik * B_kj)',desc:'The fundamental operation in neural networks. Every dense layer computes y = Wx + b, which is a matrix-vector multiply plus bias.',insight:'<strong>Complexity:</strong> Naive matrix multiply is O(n^3). Tensor cores on GPUs accelerate this to make deep learning feasible.'},
+    {name:'Sigmoid Function',formula:'sigma(x) = 1 / (1 + e^(-x))',desc:'Squashes any real number into (0, 1). Historically used as an activation function; now primarily used in gates and binary classification.',insight:'<strong>Gradient issue:</strong> Sigmoid saturates for large |x|, causing vanishing gradients. ReLU largely replaced it in hidden layers.'},
+    {name:'ReLU Activation',formula:'ReLU(x) = max(0, x)',desc:'The most widely used activation function. Simple, fast, and avoids vanishing gradient for positive inputs.',insight:'<strong>Dead neurons:</strong> If a neuron always outputs 0, it stops learning. Leaky ReLU (max(0.01x, x)) addresses this.'},
+    {name:'Dot Product',formula:'a . b = Sum(a_i * b_i) = |a||b|cos(theta)',desc:'Measures similarity between two vectors. The geometric interpretation connects magnitude and angle.',insight:'<strong>In AI:</strong> Cosine similarity (dot product of normalised vectors) is used everywhere: embeddings, attention, retrieval, and recommendation.'},
+    {name:'KL Divergence',formula:'D_KL(P||Q) = Sum(P(x) * log(P(x)/Q(x)))',desc:'Measures how one probability distribution P diverges from a reference distribution Q. Not symmetric.',insight:'<strong>In VAEs:</strong> The KL term in the ELBO regularises the latent space to stay close to a prior (usually Gaussian).'},
+    {name:'Information Entropy',formula:'H(X) = -Sum(P(x) * log2(P(x)))',desc:'Quantifies the average amount of information (in bits) produced by a random variable. Maximum when all outcomes are equally likely.',insight:'<strong>Connection:</strong> Cross-entropy = entropy + KL divergence. A perfect model has cross-entropy equal to the true entropy.'},
+    {name:'Eigenvalue Equation',formula:'Av = lambda * v',desc:'An eigenvector v of matrix A is scaled by eigenvalue lambda when multiplied by A. Fundamental to PCA and spectral methods.',insight:'<strong>In AI:</strong> PCA uses eigenvectors of the covariance matrix to find principal components for dimensionality reduction.'},
+    {name:'Convolution',formula:'(f * g)(t) = Integral f(tau) g(t - tau) dtau',desc:'Blends two functions by sliding one over the other. In CNNs, discrete convolution applies learned filters to detect features.',insight:'<strong>Why CNNs work:</strong> Convolution provides translation invariance and weight sharing, dramatically reducing parameters vs fully connected layers.'},
+    {name:'L2 Regularisation',formula:'L_reg = L + lambda * Sum(w_i^2)',desc:'Adds a penalty proportional to the squared magnitude of weights. Prevents overfitting by discouraging large weights.',insight:'<strong>Bayesian view:</strong> L2 regularisation is equivalent to placing a Gaussian prior on the weights with precision lambda.'},
+    {name:'Normal Distribution',formula:'f(x) = (1/sqrt(2*pi*sigma^2)) * exp(-(x-mu)^2 / (2*sigma^2))',desc:'The bell curve. Parameterised by mean mu and standard deviation sigma. Appears everywhere due to the Central Limit Theorem.',insight:'<strong>In AI:</strong> Weight initialisation, VAE latent spaces, Gaussian processes, and noise models all rely on the normal distribution.'},
+    {name:'Log-Likelihood',formula:'LL = Sum(log P(x_i | theta))',desc:'The sum of log-probabilities of observed data under model parameters theta. Maximising LL is the standard training objective.',insight:'<strong>Equivalence:</strong> Maximising log-likelihood is identical to minimising cross-entropy loss for classification problems.'},
+    {name:'Taylor Expansion',formula:'f(x) ~= f(a) + f\'(a)(x-a) + f\'\'(a)(x-a)^2/2! + ...',desc:'Approximates any smooth function as an infinite polynomial around point a. Truncating gives useful local approximations.',insight:'<strong>In optimisation:</strong> Newton\'s method uses a 2nd-order Taylor expansion. Adam and L-BFGS approximate 2nd-order information cheaply.'},
+    {name:'Cosine Similarity',formula:'cos(theta) = (a . b) / (|a| * |b|)',desc:'Measures the angle between two vectors, ignoring magnitude. Returns 1 for identical direction, 0 for orthogonal, -1 for opposite.',insight:'<strong>Embeddings:</strong> Sentence embeddings are compared via cosine similarity for semantic search, RAG retrieval, and clustering.'},
+    {name:'Mean Squared Error',formula:'MSE = (1/n) * Sum((y_i - y_hat_i)^2)',desc:'Average squared difference between predictions and targets. The standard loss for regression tasks.',insight:'<strong>Gradient:</strong> dMSE/dy_hat = -2/n * (y - y_hat). Smooth and differentiable everywhere, unlike absolute error.'},
+    {name:'Batch Normalisation',formula:'y = gamma * (x - mu_B) / sqrt(sigma_B^2 + eps) + beta',desc:'Normalises layer inputs to zero mean and unit variance within a mini-batch, then scales and shifts with learned parameters.',insight:'<strong>Effect:</strong> Reduces internal covariate shift, allows higher learning rates, and acts as a mild regulariser.'},
+    {name:'Adam Optimiser Update',formula:'m_t = beta1*m_(t-1) + (1-beta1)*g_t; v_t = beta2*v_(t-1) + (1-beta2)*g_t^2',desc:'Maintains exponential moving averages of the gradient (m) and squared gradient (v) for adaptive per-parameter learning rates.',insight:'<strong>Bias correction:</strong> m_hat = m/(1-beta1^t) corrects the zero-initialisation bias in early steps. Default betas: 0.9, 0.999.'},
+    {name:'Jacobian Matrix',formula:'J_ij = d(f_i) / d(x_j)',desc:'Matrix of all first-order partial derivatives of a vector-valued function. Generalises the derivative to multiple inputs and outputs.',insight:'<strong>In deep learning:</strong> The Jacobian appears in backprop through layers. Its spectrum affects gradient flow — singular values near 1 are ideal.'},
+    {name:'Determinant',formula:'det(A) = Sum(sgn(sigma) * Prod(a_i,sigma(i)))',desc:'A scalar that captures how a linear transformation scales area/volume. Zero determinant means the matrix is singular (not invertible).',insight:'<strong>In normalising flows:</strong> The change-of-variables formula requires computing log|det(J)|, which must be tractable for efficient training.'},
+    {name:'SVD',formula:'A = U * Sigma * V^T',desc:'Singular Value Decomposition factors any matrix into rotation, scaling, and rotation. The most important matrix decomposition in applied math.',insight:'<strong>Low-rank approximation:</strong> Truncating SVD to k singular values gives the best rank-k approximation (Eckart-Young theorem). Used in LoRA fine-tuning.'},
+    {name:'Mutual Information',formula:'I(X;Y) = Sum P(x,y) * log(P(x,y) / (P(x)*P(y)))',desc:'Measures how much knowing X reduces uncertainty about Y (and vice versa). Zero iff X and Y are independent.',insight:'<strong>In representation learning:</strong> InfoNCE loss (used in contrastive learning) is a lower bound on mutual information between views.'},
+    {name:'Variance',formula:'Var(X) = E[(X - mu)^2] = E[X^2] - (E[X])^2',desc:'Measures the spread of a distribution around its mean. Square root of variance is the standard deviation.',insight:'<strong>Bias-variance tradeoff:</strong> Model error = bias^2 + variance + noise. Reducing one often increases the other.'},
+    {name:'Residual Connection',formula:'y = F(x) + x',desc:'Adds the input directly to the output of a transformation. The key innovation in ResNets and Transformers.',insight:'<strong>Gradient flow:</strong> The skip connection provides a direct gradient path, preventing vanishing gradients in very deep networks.'},
+    {name:'Positional Encoding',formula:'PE(pos, 2i) = sin(pos / 10000^(2i/d_model))',desc:'Injects position information into Transformer embeddings using sinusoidal functions at different frequencies.',insight:'<strong>Why sinusoids:</strong> Any fixed offset can be represented as a linear function of the encoding, letting the model learn relative positions.'},
+    {name:'GELU Activation',formula:'GELU(x) = x * Phi(x) ~= 0.5x(1 + tanh(sqrt(2/pi)(x + 0.044715x^3)))',desc:'Gaussian Error Linear Unit. Smoothly gates the input by its probability under a standard normal distribution.',insight:'<strong>Usage:</strong> GELU is the default activation in GPT, BERT, and most modern Transformers, replacing ReLU for smoother gradients.'}
+  ];
 
-  function getDayIndex(){
-    const start=new Date('2026-01-01').getTime();
-    return Math.floor((Date.now()-start)/(1000*60*60*24))%WORDS.length;
-  }
+  const TOPICS=[
+    {icon:'\u{1F4D0}',name:'Linear Algebra',brief:'Vectors, matrices, transformations — the language of neural networks.',formulas:[
+      {label:'Matrix multiply',expr:'(AB)_ij = Sum_k A_ik B_kj'},
+      {label:'Transpose',expr:'(A^T)_ij = A_ji'},
+      {label:'Inverse',expr:'AA^(-1) = I'},
+      {label:'Eigendecomposition',expr:'A = Q Lambda Q^(-1)'},
+      {label:'Trace',expr:'tr(A) = Sum(A_ii) = Sum(lambda_i)'}
+    ]},
+    {icon:'\u{1F4C8}',name:'Calculus',brief:'Derivatives, integrals, and optimisation — how models learn.',formulas:[
+      {label:'Chain rule',expr:'d/dx f(g(x)) = f\'(g(x)) * g\'(x)'},
+      {label:'Product rule',expr:'d/dx [f*g] = f\'g + fg\''},
+      {label:'Gradient',expr:'nabla f = (df/dx_1, ..., df/dx_n)'},
+      {label:'Hessian',expr:'H_ij = d^2f / (dx_i dx_j)'},
+      {label:'Fundamental theorem',expr:'Integral_a^b f\'(x)dx = f(b) - f(a)'}
+    ]},
+    {icon:'\u{1F3B2}',name:'Probability',brief:'Distributions, expectations, Bayes — reasoning under uncertainty.',formulas:[
+      {label:'Bayes\' theorem',expr:'P(A|B) = P(B|A)P(A) / P(B)'},
+      {label:'Expectation',expr:'E[X] = Sum x_i P(x_i)'},
+      {label:'Variance',expr:'Var(X) = E[X^2] - (E[X])^2'},
+      {label:'Law of total prob.',expr:'P(A) = Sum P(A|B_i)P(B_i)'},
+      {label:'Gaussian PDF',expr:'f(x) = (1/sqrt(2pi sigma^2)) exp(-(x-mu)^2/(2sigma^2))'}
+    ]},
+    {icon:'\u{1F3AF}',name:'Optimisation',brief:'Gradient descent, convexity, convergence — finding the best parameters.',formulas:[
+      {label:'GD update',expr:'w := w - lr * nabla L(w)'},
+      {label:'SGD',expr:'w := w - lr * nabla L_i(w)'},
+      {label:'Momentum',expr:'v := beta*v + nabla L; w := w - lr*v'},
+      {label:'Adam m update',expr:'m := beta1*m + (1-beta1)*g'},
+      {label:'Convexity',expr:'f(tx + (1-t)y) <= t*f(x) + (1-t)*f(y)'}
+    ]},
+    {icon:'\u{1F4E1}',name:'Information Theory',brief:'Entropy, mutual information, coding — quantifying information.',formulas:[
+      {label:'Entropy',expr:'H(X) = -Sum P(x) log P(x)'},
+      {label:'KL divergence',expr:'D_KL(P||Q) = Sum P(x) log(P(x)/Q(x))'},
+      {label:'Mutual info',expr:'I(X;Y) = H(X) - H(X|Y)'},
+      {label:'Cross-entropy',expr:'H(P,Q) = -Sum P(x) log Q(x)'},
+      {label:'Data proc. ineq.',expr:'X->Y->Z => I(X;Z) <= I(X;Y)'}
+    ]},
+    {icon:'\u{1F52C}',name:'Numerical Methods',brief:'Floating point, stability, approximation — making math work on computers.',formulas:[
+      {label:'Euler method',expr:'y_(n+1) = y_n + h*f(t_n, y_n)'},
+      {label:'Newton\'s method',expr:'x_(n+1) = x_n - f(x_n)/f\'(x_n)'},
+      {label:'Machine epsilon',expr:'eps ~ 2^(-52) for float64'},
+      {label:'Condition number',expr:'kappa(A) = |A| * |A^(-1)|'},
+      {label:'Finite difference',expr:'f\'(x) ~= (f(x+h) - f(x-h)) / (2h)'}
+    ]},
+    {icon:'\u{1F578}',name:'Graph Theory',brief:'Nodes, edges, connectivity — structure in data and computation.',formulas:[
+      {label:'Degree sum',expr:'Sum deg(v) = 2|E|'},
+      {label:'Adjacency spectrum',expr:'A = U Lambda U^T'},
+      {label:'Graph Laplacian',expr:'L = D - A'},
+      {label:'PageRank',expr:'r = alpha * M * r + (1-alpha)/n'},
+      {label:'Message passing',expr:'h_v = Update(h_v, Agg({h_u : u in N(v)}))'}
+    ]},
+    {icon:'\u{1F30A}',name:'Differential Equations',brief:'ODEs, PDEs, dynamical systems — modelling continuous change.',formulas:[
+      {label:'1st order ODE',expr:'dy/dt = f(t, y)'},
+      {label:'Neural ODE',expr:'dh/dt = f(h(t), t, theta)'},
+      {label:'Diffusion PDE',expr:'du/dt = D * nabla^2 u'},
+      {label:'SDE',expr:'dX = mu dt + sigma dW'},
+      {label:'Stability',expr:'Re(lambda) < 0 for all eigenvalues'}
+    ]}
+  ];
 
-  function getTodayKey(){
-    const d=new Date();
-    return `aidle_${d.getFullYear()}_${d.getMonth()}_${d.getDate()}`;
-  }
+  const QUIZ_QUESTIONS=[
+    {q:'What does the softmax function output?',opts:['A single scalar','A probability distribution','A binary value','An integer'],correct:1,explain:'Softmax converts a vector of logits into probabilities that sum to 1.'},
+    {q:'Which activation function can cause "dead neurons"?',opts:['Sigmoid','Tanh','ReLU','GELU'],correct:2,explain:'ReLU outputs 0 for all negative inputs. If weights push all inputs negative, the neuron permanently outputs 0.'},
+    {q:'What is the time complexity of naive matrix multiplication for n x n matrices?',opts:['O(n)','O(n^2)','O(n^3)','O(n log n)'],correct:2,explain:'Each of the n^2 output elements requires summing n products, giving O(n^3) total.'},
+    {q:'In the attention mechanism, what prevents dot products from becoming too large?',opts:['Layer normalisation','Dropout','Dividing by sqrt(d_k)','Gradient clipping'],correct:2,explain:'Scaling by 1/sqrt(d_k) keeps the variance of dot products stable, preventing softmax saturation.'},
+    {q:'What does KL divergence measure?',opts:['Distance between two points','Divergence of P from Q','Angle between two vectors','Correlation coefficient'],correct:1,explain:'KL divergence measures how much information is lost when Q is used to approximate P.'},
+    {q:'The chain rule in calculus is the mathematical basis for which algorithm?',opts:['K-means clustering','Backpropagation','Principal Component Analysis','A* search'],correct:1,explain:'Backpropagation applies the chain rule layer by layer to compute gradients efficiently.'},
+    {q:'What is the eigenvalue equation?',opts:['Av = lambda * v','A + v = lambda','A^2 = lambda','det(A) = lambda'],correct:0,explain:'Multiplying matrix A by eigenvector v simply scales v by eigenvalue lambda.'},
+    {q:'In L2 regularisation, what penalty is added to the loss?',opts:['Sum of absolute weights','Sum of squared weights','Maximum weight','Number of non-zero weights'],correct:1,explain:'L2 regularisation adds lambda * Sum(w_i^2), penalising large weight magnitudes.'},
+    {q:'What is the purpose of batch normalisation?',opts:['Increase batch size','Normalise layer inputs to zero mean and unit variance','Remove outliers from data','Reduce model size'],correct:1,explain:'BatchNorm normalises activations within each mini-batch, stabilising training and allowing higher learning rates.'},
+    {q:'Which optimiser maintains exponential moving averages of gradients and squared gradients?',opts:['SGD','SGD with momentum','Adam','Adagrad'],correct:2,explain:'Adam tracks both first moment (mean) and second moment (variance) of gradients for adaptive learning rates.'},
+    {q:'What does the determinant of a matrix tell you?',opts:['Its rank','How it scales area/volume','Its largest element','Number of eigenvalues'],correct:1,explain:'The determinant measures the factor by which a linear transformation scales area (2D) or volume (higher D).'},
+    {q:'Cosine similarity ignores which property of vectors?',opts:['Direction','Angle','Magnitude','Dimension'],correct:2,explain:'By normalising the dot product by vector magnitudes, cosine similarity only measures directional similarity.'},
+    {q:'Information entropy is maximised when:',opts:['One outcome has probability 1','All outcomes are equally likely','The distribution is Gaussian','Entropy is always constant'],correct:1,explain:'Maximum entropy occurs with a uniform distribution — maximum uncertainty about the outcome.'},
+    {q:'What does SVD stand for?',opts:['Standard Value Decomposition','Singular Value Decomposition','Symmetric Vector Division','Scaled Variance Distribution'],correct:1,explain:'SVD factors any matrix A into U * Sigma * V^T, where Sigma contains the singular values.'},
+    {q:'In a residual connection, the output is:',opts:['F(x) * x','F(x) - x','F(x) + x','F(x) / x'],correct:2,explain:'Residual connections add the input x directly to the transformed output F(x), enabling gradient flow.'},
+    {q:'The Gaussian (normal) distribution is parameterised by:',opts:['Mean and mode','Median and range','Mean and variance','Skewness and kurtosis'],correct:2,explain:'A Gaussian is fully specified by its mean (mu) and variance (sigma^2), or equivalently mean and standard deviation.'},
+    {q:'What is the gradient of MSE loss w.r.t. predictions?',opts:['2(y - y_hat)/n','y_hat - y','-2(y - y_hat)/n','log(y/y_hat)'],correct:2,explain:'dMSE/dy_hat = -2/n * Sum(y_i - y_hat_i). The negative sign points toward reducing the error.'},
+    {q:'Cross-entropy loss equals entropy plus:',opts:['Variance','KL divergence','Mutual information','Covariance'],correct:1,explain:'H(P,Q) = H(P) + D_KL(P||Q). Minimising cross-entropy is equivalent to minimising KL divergence.'},
+    {q:'Which technique is used in LoRA fine-tuning?',opts:['Pruning','Quantisation','Low-rank SVD approximation','Knowledge distillation'],correct:2,explain:'LoRA adds low-rank matrices (inspired by truncated SVD) to frozen weights, drastically reducing trainable parameters.'},
+    {q:'The PageRank formula is based on:',opts:['Shortest paths','Spectral clustering','Markov chain steady state','Minimum spanning tree'],correct:2,explain:'PageRank models a random surfer on the web graph and computes the stationary distribution of the Markov chain.'},
+    {q:'What is the purpose of positional encoding in Transformers?',opts:['Reduce memory usage','Inject token position information','Normalise embeddings','Add dropout'],correct:1,explain:'Since attention is permutation-invariant, positional encodings let the model know the order of tokens.'},
+    {q:'Taylor expansion approximates a function as:',opts:['A matrix','A polynomial','A probability distribution','A vector field'],correct:1,explain:'Taylor series represents a smooth function as an infinite polynomial (sum of terms involving derivatives at a point).'},
+    {q:'The Jacobian matrix contains:',opts:['Second derivatives','All first partial derivatives','Only diagonal elements','Eigenvalues'],correct:1,explain:'The Jacobian J_ij = df_i/dx_j contains all first-order partial derivatives of a vector-valued function.'},
+    {q:'Mutual information I(X;Y) = 0 when:',opts:['X = Y','X and Y are independent','X and Y are correlated','X > Y'],correct:1,explain:'Mutual information is zero if and only if X and Y are statistically independent.'},
+    {q:'GELU activation is used by default in:',opts:['ResNet','AlexNet','GPT and BERT','LSTM'],correct:2,explain:'GELU (Gaussian Error Linear Unit) is the standard activation in modern Transformers like GPT and BERT.'},
+    {q:'The condition number of a matrix measures:',opts:['Its size','Sensitivity to input perturbations','Number of non-zero entries','Sparsity pattern'],correct:1,explain:'A high condition number means small input changes cause large output changes — the matrix is ill-conditioned.'},
+    {q:'Convolution in CNNs provides:',opts:['Recurrence','Translation invariance and weight sharing','Attention mechanisms','Autoregressive generation'],correct:1,explain:'Convolutional filters are applied at every position, sharing weights and detecting features regardless of location.'},
+    {q:'The variance-bias tradeoff states that model error equals:',opts:['bias + variance','bias^2 + variance','bias^2 + variance + noise','bias * variance'],correct:2,explain:'Expected error = bias^2 + variance + irreducible noise. You cannot minimise all three simultaneously.'},
+    {q:'Neural ODEs model hidden state dynamics as:',opts:['Discrete layers','Continuous differential equations','Graph convolutions','Attention over time'],correct:1,explain:'Neural ODEs replace discrete layers with continuous dynamics: dh/dt = f(h(t), t, theta), solved with ODE solvers.'},
+    {q:'What does the log in log-likelihood do?',opts:['Makes computation faster','Converts products to sums','Increases likelihood values','Removes outliers'],correct:1,explain:'Log converts the product of probabilities into a sum of log-probabilities, which is numerically more stable.'},
+    {q:'The learning rate in gradient descent controls:',opts:['Number of epochs','Step size per update','Batch size','Model architecture'],correct:1,explain:'Learning rate scales the gradient to determine how far parameters move in each update step.'},
+    {q:'Which formula describes the Graph Laplacian?',opts:['L = A + D','L = D - A','L = A * D','L = D / A'],correct:1,explain:'The Graph Laplacian L = D - A, where D is the degree matrix and A is the adjacency matrix.'},
+    {q:'A sigmoid function outputs values in:',opts:['(-inf, inf)','(0, 1)','(-1, 1)','[0, inf)'],correct:1,explain:'Sigmoid squashes inputs to the open interval (0, 1), making it suitable for probability-like outputs.'},
+    {q:'The data processing inequality states:',opts:['More data is always better','Processing can\'t create information','Compression is lossless','Entropy always increases'],correct:1,explain:'X->Y->Z implies I(X;Z) <= I(X;Y). No deterministic processing of Y can increase information about X.'},
+    {q:'In backpropagation, gradients are computed from:',opts:['Input to output (forward)','Output to input (backward)','Randomly','In parallel only'],correct:1,explain:'Backpropagation flows gradients from the loss backward through the network, applying the chain rule at each layer.'},
+    {q:'What is a saddle point in optimisation?',opts:['A global minimum','A point that is a minimum in some directions and maximum in others','A point with zero loss','A local maximum'],correct:1,explain:'Saddle points have zero gradient but are not minima — the Hessian has both positive and negative eigenvalues.'},
+    {q:'Dropout during training acts as:',opts:['An optimiser','A regulariser','A loss function','An activation function'],correct:1,explain:'Randomly zeroing neurons during training prevents co-adaptation and acts as an approximate ensemble method.'},
+    {q:'The trace of a matrix equals:',opts:['Its determinant','Sum of diagonal elements','Product of eigenvalues','Number of rows'],correct:1,explain:'tr(A) = Sum(A_ii) = Sum(eigenvalues). The trace is invariant under change of basis.'},
+    {q:'Learning rate warmup means:',opts:['Using a constant high LR','Starting with small LR and increasing','Decreasing LR throughout','Random LR scheduling'],correct:1,explain:'Warmup gradually increases LR from near-zero, stabilising early training when gradient estimates are noisy.'},
+    {q:'Which method solves ODEs numerically by taking small steps?',opts:['SVD','Euler method','K-means','Softmax'],correct:1,explain:'Euler method approximates: y_(n+1) = y_n + h * f(t_n, y_n), stepping forward by increment h.'},
+    {q:'In a VAE, the KL term in the loss:',opts:['Maximises reconstruction','Regularises the latent space toward a prior','Increases model capacity','Eliminates the encoder'],correct:1,explain:'KL(q(z|x) || p(z)) pushes the learned latent distribution toward the prior (typically standard Gaussian).'},
+    {q:'The Frobenius norm of a matrix is:',opts:['Max absolute value','Square root of sum of squared entries','Largest singular value','Trace of the matrix'],correct:1,explain:'||A||_F = sqrt(Sum(a_ij^2)). It generalises the Euclidean norm to matrices.'},
+    {q:'Stochastic gradient descent differs from gradient descent by:',opts:['Using all data per step','Using a random subset (mini-batch) per step','Not using gradients','Always converging faster'],correct:1,explain:'SGD estimates the full gradient using a randomly sampled mini-batch, trading accuracy for speed.'},
+    {q:'What is the rank of a matrix?',opts:['Number of rows','Number of linearly independent rows/columns','Largest element','Determinant value'],correct:1,explain:'Rank is the dimension of the column (or row) space — the number of linearly independent columns.'},
+    {q:'Temperature in LLM sampling scales:',opts:['The number of tokens','The logits before softmax','The embedding dimension','The context length'],correct:1,explain:'Temperature T divides logits before softmax: softmax(z/T). T<1 sharpens, T>1 flattens the distribution.'},
+    {q:'The Central Limit Theorem says that:',opts:['All distributions are Gaussian','Sample means converge to a normal distribution','Variance always decreases','Large samples are biased'],correct:1,explain:'The CLT states that the mean of many i.i.d. random variables converges to a Gaussian, regardless of the original distribution.'},
+    {q:'Weight initialisation in neural networks typically uses:',opts:['All zeros','All ones','Random values scaled by layer size','Sequential integers'],correct:2,explain:'Xavier/He initialisation scales random weights by 1/sqrt(n) or sqrt(2/n) to maintain gradient magnitude across layers.'},
+    {q:'The Hessian matrix contains:',opts:['First derivatives','Second derivatives','Only eigenvalues','Singular values'],correct:1,explain:'The Hessian H_ij = d^2f/(dx_i dx_j) contains all second-order partial derivatives and characterises local curvature.'},
+    {q:'Contrastive learning maximises:',opts:['Reconstruction accuracy','Mutual information between views','Model size','Training time'],correct:1,explain:'Contrastive methods (SimCLR, CLIP) learn representations by maximising agreement between augmented views of the same data.'},
+    {q:'A matrix is singular when its determinant is:',opts:['1','Negative','0','Infinity'],correct:2,explain:'det(A) = 0 means A is not invertible (singular). It maps some non-zero vectors to zero.'}
+  ];
 
-  let TARGET='';
-  let guesses=[];
-  let currentGuess='';
-  let gameOver=false;
-  let keyState={};
+  const CHEAT_GROUPS=[
+    {title:'Linear Algebra',items:[
+      {name:'Dot product',formula:'a . b = Sum(a_i b_i)',note:'Measures similarity; basis of attention'},
+      {name:'Matrix multiply',formula:'(AB)_ij = Sum_k A_ik B_kj',note:'O(n^3) naive; every dense layer'},
+      {name:'Transpose',formula:'(A^T)_ij = A_ji',note:'Rows become columns'},
+      {name:'Inverse',formula:'AA^(-1) = I',note:'Exists iff det(A) != 0'},
+      {name:'Eigendecomposition',formula:'A = Q Lambda Q^(-1)',note:'Q = eigenvectors, Lambda = eigenvalues'},
+      {name:'SVD',formula:'A = U Sigma V^T',note:'Works for any matrix; LoRA uses low-rank approx'},
+      {name:'Trace',formula:'tr(A) = Sum A_ii = Sum lambda_i',note:'Invariant under similarity transform'},
+      {name:'Frobenius norm',formula:'||A||_F = sqrt(Sum a_ij^2)',note:'Euclidean norm for matrices'}
+    ]},
+    {title:'Calculus',items:[
+      {name:'Chain rule',formula:'d/dx f(g(x)) = f\'(g(x)) g\'(x)',note:'Backbone of backpropagation'},
+      {name:'Product rule',formula:'(fg)\' = f\'g + fg\'',note:'Needed for attention gradients'},
+      {name:'Gradient',formula:'nabla f = (df/dx_1, ..., df/dx_n)',note:'Direction of steepest ascent'},
+      {name:'Hessian',formula:'H_ij = d^2f/(dx_i dx_j)',note:'Curvature matrix; used in 2nd-order methods'},
+      {name:'Jacobian',formula:'J_ij = df_i/dx_j',note:'Generalised derivative for vector functions'},
+      {name:'Taylor (1st order)',formula:'f(x+h) ~= f(x) + f\'(x)h',note:'Linear approximation; gradient descent uses this'},
+      {name:'Fundamental theorem',formula:'Integral_a^b f\'(x)dx = f(b)-f(a)',note:'Connects derivatives and integrals'}
+    ]},
+    {title:'Probability & Statistics',items:[
+      {name:'Bayes\' theorem',formula:'P(A|B) = P(B|A)P(A)/P(B)',note:'Foundation of Bayesian inference'},
+      {name:'Expectation',formula:'E[X] = Sum x P(x)',note:'Weighted average of outcomes'},
+      {name:'Variance',formula:'Var(X) = E[X^2] - (E[X])^2',note:'Spread of distribution'},
+      {name:'Gaussian',formula:'N(mu, sigma^2)',note:'Bell curve; CLT makes it ubiquitous'},
+      {name:'Covariance',formula:'Cov(X,Y) = E[XY] - E[X]E[Y]',note:'Linear relationship strength'},
+      {name:'Law of large numbers',formula:'X_bar -> mu as n -> inf',note:'Sample mean converges to true mean'},
+      {name:'Central limit theorem',formula:'sqrt(n)(X_bar - mu) -> N(0, sigma^2)',note:'Sample means become Gaussian'}
+    ]},
+    {title:'Optimisation',items:[
+      {name:'Gradient descent',formula:'w := w - lr * nabla L',note:'The fundamental update rule'},
+      {name:'SGD',formula:'Use nabla L_batch instead of nabla L',note:'Trades accuracy for speed'},
+      {name:'Momentum',formula:'v := beta*v + g; w := w - lr*v',note:'Accumulates velocity; dampens oscillation'},
+      {name:'Adam',formula:'m,v EMAs of g,g^2; bias-corrected',note:'Default choice; lr=1e-3, betas=0.9/0.999'},
+      {name:'Learning rate decay',formula:'lr_t = lr_0 / (1 + decay*t)',note:'Reduce step size over training'},
+      {name:'Convexity',formula:'f(tx+(1-t)y) <= tf(x)+(1-t)f(y)',note:'Guarantees global minimum exists'}
+    ]},
+    {title:'Information Theory',items:[
+      {name:'Entropy',formula:'H(X) = -Sum P(x) log P(x)',note:'Average information content; bits if log2'},
+      {name:'Cross-entropy',formula:'H(P,Q) = -Sum P(x) log Q(x)',note:'Standard classification loss'},
+      {name:'KL divergence',formula:'D_KL(P||Q) = Sum P log(P/Q)',note:'Asymmetric; CE = H + KL'},
+      {name:'Mutual information',formula:'I(X;Y) = H(X) - H(X|Y)',note:'Shared information between X and Y'},
+      {name:'Data processing ineq.',formula:'X->Y->Z => I(X;Z)<=I(X;Y)',note:'Processing can\'t create information'}
+    ]},
+    {title:'Common Identities',items:[
+      {name:'Softmax',formula:'softmax(z_i) = e^(z_i)/Sum e^(z_j)',note:'Logits to probabilities'},
+      {name:'Sigmoid',formula:'sigma(x) = 1/(1+e^(-x))',note:'Special case: softmax with 2 classes'},
+      {name:'ReLU',formula:'max(0, x)',note:'Most popular activation; piecewise linear'},
+      {name:'GELU',formula:'x * Phi(x)',note:'Smooth gate; default in Transformers'},
+      {name:'Log-sum-exp trick',formula:'log Sum e^x_i = max(x) + log Sum e^(x_i - max(x))',note:'Numerically stable softmax'},
+      {name:'Cosine similarity',formula:'cos(a,b) = a.b / (|a||b|)',note:'Embedding similarity; ignores magnitude'},
+      {name:'L2 norm',formula:'||x|| = sqrt(Sum x_i^2)',note:'Euclidean distance from origin'},
+      {name:'Attention',formula:'softmax(QK^T/sqrt(d))V',note:'Core of Transformers'}
+    ]}
+  ];
 
-  function initGame(){
-    TARGET=WORDS[getDayIndex()];
-    currentGuess='';
-    guesses=[];
-    gameOver=false;
-    keyState={};
-    const saved=JSON.parse(localStorage.getItem(getTodayKey())||'null');
-    if(saved){
-      guesses=saved.guesses||[];
-      gameOver=saved.gameOver||false;
-      keyState=saved.keyState||{};
+  let initialized=false;
+
+  function initPage(){
+    if(initialized) return;
+    initialized=true;
     }
-    buildGrid();
-    buildKeyboard();
-    renderAll();
-    if(gameOver) showEndState();
-    updateStreak();
+    if(mQ)mQ.focus();
   }
 
-  function buildGrid(){
-    const grid=document.getElementById('aidleGrid');
-    if(!grid) return;
-    grid.innerHTML='';
-    for(let r=0;r<6;r++){
-      const row=document.createElement('div');
-      row.className='aidle-row';
-      row.id=`arow_${r}`;
-      for(let c=0;c<5;c++){
-        const cell=document.createElement('div');
-        cell.className='aidle-cell';
-        cell.id=`acell_${r}_${c}`;
-        row.appendChild(cell);
-      }
-      grid.appendChild(row);
+  if(mQ)mQ.addEventListener('keydown',e=>{if(e.key==='Enter')mathCompute()});
+
+  window.mathGoHome=function(){
+    mRes.classList.remove('show');mErr.style.display='none';mErr.classList.remove('show');
+    mSug.style.display='';mAssum.classList.remove('show');mRel.style.display='none';
+    if(mQ){mQ.value='';mQ.focus();}
+  };
+
+  window._mathRun=function(q){if(mQ)mQ.value=q;mathCompute();};
+
+  window.mathCompute=async function(){
+    const q=mQ?mQ.value.trim():'';if(!q)return;
+    mSug.style.display='none';mRes.classList.remove('show');mErr.style.display='none';mErr.classList.remove('show');
+    mLoad.classList.add('show');mBtn.classList.add('loading');mBtn.disabled=true;
+    mAssum.classList.remove('show');mRel.style.display='none';
+    const t0=performance.now();
+    try{
+      const r=await fetch('/api/compute',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({query:q})});
+      if(!r.ok){const e=await r.json();throw new Error(e.error||'Computation failed');}
+      const data=await r.json();
+      const elapsed=((performance.now()-t0)/1000).toFixed(2);
+      mInterp.innerHTML=`Input: <b>${mEscH(data.input_interpretation||data.title)}</b>`;
+      mMeta.textContent=`${data.pods?.length||0} pods · ${elapsed}s`;
+      mPods.innerHTML='';
+      if(data.assuming){mAssum.textContent=data.assuming;mAssum.classList.add('show');}else{mAssum.classList.remove('show');}
+      if(data.pods?.length)data.pods.forEach(p=>mRenderPod(p));
+      if(data.related?.length){
+        mRel.style.display='block';
+        mRelItems.innerHTML=data.related.map(r=>`<div class="math-related-item" onclick="window._mathRun('${r.replace(/'/g,"\\'")}')">${r}</div>`).join('');
+      }else{mRel.style.display='none';}
+      mRes.classList.add('show');
+    }catch(e){mErr.textContent='Error: '+e.message;mErr.style.display='block';mErr.classList.add('show');}
+    finally{mLoad.classList.remove('show');mBtn.classList.remove('loading');mBtn.disabled=false;}
+  };
+
+  function mRenderPod(pod){
+    const el=document.createElement('div');el.className='math-pod';
+    const bc=({'math':'math','plot':'plot','table':'table','comparison':'table','numberline':'math'})[pod.type]||'';
+    el.innerHTML=`<div class="math-pod-head" onclick="mTogglePod(this)"><span class="math-pod-badge ${bc}">${pod.type||'info'}</span><span class="math-pod-name">${mEscH(pod.title)}</span><span class="math-pod-toggle">▼</span></div>`;
+    const body=document.createElement('div');body.className='math-pod-body';
+    switch(pod.type){
+      case'math':body.innerHTML=mRMath(pod.content);break;
+      case'table':body.innerHTML=mRTable(pod.content);break;
+      case'list':body.innerHTML=mRList(pod.content);break;
+      case'properties':body.innerHTML=mRProps(pod.content);break;
+      case'steps':body.innerHTML=mRSteps(pod.content);break;
+      case'code':body.innerHTML=mRCode(pod.content);break;
+      case'conversion':body.innerHTML=mRConv(pod.content);break;
+      case'comparison':body.innerHTML=mRComp(pod.content);break;
+      case'numberline':mRenderNumLine(body,pod.content);break;
+      case'plot':
+        const canvas=document.createElement('canvas');canvas.className='mp-pod-plot';
+        body.appendChild(canvas);el.appendChild(body);mPods.appendChild(el);
+        setTimeout(()=>mDrawPlot(canvas,pod.content),30);return;
+      default:body.innerHTML=`<div class="mp-text">${mFmtText(typeof pod.content==='string'?pod.content:JSON.stringify(pod.content,null,2))}</div>`;
     }
+    el.appendChild(body);mPods.appendChild(el);
   }
 
-  function buildKeyboard(){
-    const kb=document.getElementById('aidleKeyboard');
-    if(!kb) return;
-    kb.innerHTML='';
-    const rows=[['Q','W','E','R','T','Y','U','I','O','P'],
-                ['A','S','D','F','G','H','J','K','L'],
-                ['ENTER','Z','X','C','V','B','N','M','\u232B']];
-    rows.forEach(row=>{
-      const rowEl=document.createElement('div');
-      rowEl.className='aidle-kb-row';
-      row.forEach(k=>{
-        const btn=document.createElement('button');
-        btn.className='aidle-key'+(k.length>1?' wide':'');
-        btn.textContent=k;
-        btn.setAttribute('data-key',k==='⌫'?'\u232B':k);
-        btn.onclick=()=>handleKey(k);
-        rowEl.appendChild(btn);
+  window.mTogglePod=function(head){
+    const body=head.nextElementSibling;const arrow=head.querySelector('.math-pod-toggle');
+    body.classList.toggle('collapsed');arrow.classList.toggle('collapsed');
+  };
+
+  function mRMath(c){
+    if(typeof c==='string')return`<div class="mp-math"><div class="mp-result">${mEscH(c)}</div></div>`;
+    return`<div class="mp-math">${c.expression?`<div class="mp-expr">${mEscH(c.expression)}</div>`:''}${c.result?`<div class="mp-result">${mEscH(c.result)}</div>`:''}</div>`;
+  }
+  function mRTable(c){
+    if(!c?.headers)return'<div class="mp-text">No data</div>';
+    return`<div style="overflow-x:auto"><table class="mp-table"><thead><tr>${c.headers.map(h=>`<th>${mEscH(h)}</th>`).join('')}</tr></thead><tbody>${(c.rows||[]).map(r=>`<tr>${r.map(d=>`<td>${mEscH(String(d))}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
+  }
+  function mRList(c){
+    if(!Array.isArray(c))return`<div class="mp-text">${mEscH(String(c))}</div>`;
+    return`<ul class="mp-list">${c.map(i=>`<li>${mFmtText(String(i))}</li>`).join('')}</ul>`;
+  }
+  function mRProps(c){
+    if(!c||typeof c!=='object')return'';
+    return`<div class="mp-props">${Object.entries(c).map(([k,v])=>`<div class="mp-pk">${mEscH(k)}</div><div class="mp-pv">${mEscH(String(v))}</div>`).join('')}</div>`;
+  }
+  function mRSteps(c){
+    if(!Array.isArray(c))return`<div class="mp-text">${mEscH(String(c))}</div>`;
+    return`<div class="mp-steps">${c.map((s,i)=>`<div class="mp-step"><div class="mp-step-n">${i+1}</div><div class="mp-step-t">${mFmtText(String(s).replace(/^Step\s*\d+[:.]\s*/i,''))}</div></div>`).join('')}</div>`;
+  }
+  function mRCode(c){
+    if(typeof c==='string')return`<div class="mp-code"><pre>${mEscH(c)}</pre></div>`;
+    return`<div class="mp-code"><pre>${mEscH(c.code||'')}</pre></div>`;
+  }
+  function mRConv(c){
+    return`<div class="mp-conv"><div class="mp-conv-from">${mEscH(c.from||'')}</div><div class="mp-conv-arrow">=</div><div class="mp-conv-to">${mEscH(c.to||'')}</div>${c.factor?`<div class="mp-conv-factor">${mEscH(c.factor)}</div>`:''}</div>`;
+  }
+  function mRComp(c){
+    if(!c?.items||!c.rows)return'';
+    return`<div style="overflow-x:auto"><table class="mp-comp-table"><thead><tr><th></th>${c.items.map(i=>`<th>${mEscH(i)}</th>`).join('')}</tr></thead><tbody>${c.rows.map(r=>`<tr><td>${mEscH(r.property)}</td>${r.values.map(v=>`<td>${mEscH(String(v))}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
+  }
+
+  function mRenderNumLine(container,data){
+    const div=document.createElement('div');div.className='mp-numline';
+    const canvas=document.createElement('canvas');div.appendChild(canvas);container.appendChild(div);
+    setTimeout(()=>{
+      const v=data.value;const dpr=window.devicePixelRatio||1;
+      const rect=canvas.getBoundingClientRect();const w=rect.width||700;const h=48;
+      canvas.width=w*dpr;canvas.height=h*dpr;canvas.style.width=w+'px';canvas.style.height=h+'px';
+      const ctx=canvas.getContext('2d');ctx.scale(dpr,dpr);
+      ctx.fillStyle='#fafaf7';ctx.fillRect(0,0,w,h);
+      let lo,hi;
+      if(v===0){lo=-10;hi=10;}
+      else if(Math.abs(v)<1){lo=Math.floor(v*2)/2-1;hi=Math.ceil(v*2)/2+1;}
+      else{const mag=Math.pow(10,Math.floor(Math.log10(Math.abs(v))));lo=Math.floor(v/mag-1)*mag;hi=Math.ceil(v/mag+1)*mag;}
+      if(lo===hi){lo-=1;hi+=1;}
+      const pad=30;const pw=w-pad*2;const toX=n=>pad+(n-lo)/(hi-lo)*pw;
+      ctx.strokeStyle='#ccc';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(pad,h/2);ctx.lineTo(w-pad,h/2);ctx.stroke();
+      const nTicks=8;const step=(hi-lo)/nTicks;
+      ctx.fillStyle='#999';ctx.font='9px Courier New';ctx.textAlign='center';
+      for(let i=0;i<=nTicks;i++){const val=lo+step*i;const x=toX(val);ctx.beginPath();ctx.moveTo(x,h/2-4);ctx.lineTo(x,h/2+4);ctx.stroke();ctx.fillText(val.toPrecision(3),x,h/2+16);}
+      if(lo<=0&&hi>=0){const zx=toX(0);ctx.strokeStyle='#aaa';ctx.beginPath();ctx.moveTo(zx,h/2-8);ctx.lineTo(zx,h/2+8);ctx.stroke();}
+      const vx=toX(v);ctx.fillStyle='#C0392B';ctx.beginPath();ctx.arc(vx,h/2,5,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle='#C0392B';ctx.font='bold 10px Courier New';ctx.textAlign='center';
+      ctx.fillText(typeof v==='number'&&Number.isFinite(v)?v.toPrecision(6):'',vx,h/2-10);
+    },30);
+  }
+
+  function mDrawPlot(canvas,pd){
+    if(!pd?.data?.length)return;
+    const ctx=canvas.getContext('2d');const dpr=window.devicePixelRatio||1;
+    const rect=canvas.getBoundingClientRect();const w=rect.width||700;const h=260;
+    canvas.width=w*dpr;canvas.height=h*dpr;canvas.style.height=h+'px';
+    ctx.scale(dpr,dpr);
+    const P={t:22,r:22,b:36,l:52};const pw=w-P.l-P.r;const ph=h-P.t-P.b;
+    ctx.fillStyle='#fafaf7';ctx.fillRect(0,0,w,h);
+    const data=pd.data;
+    if(pd.type==='bar'){
+      const max=Math.max(...data.map(d=>Math.abs(d.value)))*1.15;
+      const bw=pw/data.length*.65;const gap=pw/data.length*.35;
+      for(let i=0;i<=5;i++){const y=P.t+ph-(ph*i/5);ctx.strokeStyle='#eee';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(P.l,y);ctx.lineTo(w-P.r,y);ctx.stroke();ctx.fillStyle='#999';ctx.font='10px Courier New';ctx.textAlign='right';ctx.fillText((max*i/5).toFixed(1),P.l-6,y+3);}
+      data.forEach((d,i)=>{
+        const x=P.l+i*(bw+gap)+gap/2;const bh=(Math.abs(d.value)/max)*ph;const y=P.t+ph-bh;
+        const g=ctx.createLinearGradient(x,y,x,y+bh);g.addColorStop(0,'#C0392B');g.addColorStop(1,'#922B21');
+        ctx.fillStyle=g;ctx.fillRect(x,y,bw,bh);
+        ctx.fillStyle='#888';ctx.font='10px Courier New';ctx.textAlign='center';
+        ctx.save();ctx.translate(x+bw/2,h-P.b+14);if(data.length>4)ctx.rotate(-.4);ctx.fillText(d.label.slice(0,12),0,0);ctx.restore();
       });
-      kb.appendChild(rowEl);
-    });
-  }
-
-  function renderAll(){
-    guesses.forEach((g,ri)=>{
-      const result=scoreGuess(g);
-      for(let ci=0;ci<5;ci++){
-        const cell=document.getElementById(`acell_${ri}_${ci}`);
-        if(cell){cell.textContent=g[ci];cell.className='aidle-cell '+result[ci];}
-      }
-    });
-    const ri=guesses.length;
-    if(ri<6&&!gameOver){
-      for(let ci=0;ci<5;ci++){
-        const cell=document.getElementById(`acell_${ri}_${ci}`);
-        if(cell){cell.textContent=currentGuess[ci]||'';cell.className='aidle-cell'+(currentGuess[ci]?' filled':'');}
-      }
+      return;
     }
-    Object.entries(keyState).forEach(([k,s])=>{
-      const btn=document.querySelector(`.aidle-key[data-key="${k}"]`);
-      if(btn) btn.className='aidle-key'+((k.length>1)?' wide':'')+' '+s;
-    });
+    const xs=data.map(d=>d.x),ys=data.map(d=>d.y);
+    const xMin=Math.min(...xs),xMax=Math.max(...xs),yMin=Math.min(...ys),yMax=Math.max(...ys);
+    const xR=xMax-xMin||1,yR=yMax-yMin||1;
+    const tX=x=>P.l+((x-xMin)/xR)*pw;const tY=y=>P.t+ph-((y-yMin)/yR)*ph;
+    ctx.strokeStyle='#eee';ctx.lineWidth=1;
+    for(let i=0;i<=6;i++){const y=P.t+(ph*i/6);ctx.beginPath();ctx.moveTo(P.l,y);ctx.lineTo(w-P.r,y);ctx.stroke();ctx.fillStyle='#999';ctx.font='10px Courier New';ctx.textAlign='right';ctx.fillText((yMax-(yR*i/6)).toPrecision(3),P.l-6,y+3);}
+    for(let i=0;i<=6;i++){const x=P.l+(pw*i/6);ctx.beginPath();ctx.moveTo(x,P.t);ctx.lineTo(x,P.t+ph);ctx.stroke();ctx.fillStyle='#999';ctx.textAlign='center';ctx.fillText((xMin+xR*i/6).toPrecision(3),x,h-P.b+14);}
+    if(yMin<=0&&yMax>=0){ctx.strokeStyle='#ccc';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(P.l,tY(0));ctx.lineTo(w-P.r,tY(0));ctx.stroke();}
+    if(xMin<=0&&xMax>=0){ctx.strokeStyle='#ccc';ctx.beginPath();ctx.moveTo(tX(0),P.t);ctx.lineTo(tX(0),P.t+ph);ctx.stroke();}
+    ctx.strokeStyle='rgba(192,57,43,0.15)';ctx.lineWidth=6;ctx.beginPath();
+    let started=false;data.forEach(d=>{const cx=tX(d.x),cy=tY(d.y);if(!isFinite(cy)||cy<P.t-60||cy>P.t+ph+60){started=false;return;}if(!started){ctx.moveTo(cx,cy);started=true;}else ctx.lineTo(cx,cy);});ctx.stroke();
+    ctx.strokeStyle='#C0392B';ctx.lineWidth=2;ctx.beginPath();
+    started=false;data.forEach(d=>{const cx=tX(d.x),cy=tY(d.y);if(!isFinite(cy)||cy<P.t-60||cy>P.t+ph+60){started=false;return;}if(!started){ctx.moveTo(cx,cy);started=true;}else ctx.lineTo(cx,cy);});ctx.stroke();
+    if(pd.expression){ctx.fillStyle='#999';ctx.font='11px Courier New';ctx.textAlign='left';ctx.fillText('f(x) = '+pd.expression,P.l,P.t-6);}
   }
 
-  function scoreGuess(guess){
-    const result=Array(5).fill('absent');
-    const tArr=TARGET.split('');
-    const gArr=guess.split('');
-    gArr.forEach((l,i)=>{if(l===tArr[i]){result[i]='correct';tArr[i]=null;gArr[i]=null;}});
-    gArr.forEach((l,i)=>{
-      if(l===null) return;
-      const ti=tArr.indexOf(l);
-      if(ti!==-1){result[i]='present';tArr[ti]=null;}
-    });
-    return result;
-  }
+  function mFmtText(t){return mEscH(t).replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/`(.+?)`/g,'<code style="background:#f0f0ec;padding:1px 4px;border-radius:3px;font:400 11px Courier New,monospace;color:#C0392B">$1</code>').replace(/\n/g,'<br>');}
+  function mEscH(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
 
-  function handleKey(key){
-    if(gameOver) return;
-    if(key==='\u232B'||key==='BACKSPACE'){currentGuess=currentGuess.slice(0,-1);}
-    else if(key==='ENTER'){submitGuess();return;}
-    else if(key.length===1&&/[A-Z]/.test(key)&&currentGuess.length<5){currentGuess+=key;}
-    renderAll();
-  }
-
-  function submitGuess(){
-    if(currentGuess.length<5){showMsg('Not enough letters');return;}
-    if(!isValidGuess(currentGuess)){showMsg('Letters only, 5 chars');shakeRow(guesses.length);return;}
-    const result=scoreGuess(currentGuess);
-    const pri={correct:2,present:1,absent:0};
-    for(let i=0;i<5;i++){
-      const k=currentGuess[i];
-      if((pri[result[i]]??0)>(pri[keyState[k]]??-1)) keyState[k]=result[i];
-    }
-    const ri=guesses.length;
-    for(let ci=0;ci<5;ci++){
-      const cell=document.getElementById(`acell_${ri}_${ci}`);
-      if(cell) setTimeout(()=>{cell.textContent=currentGuess[ci];cell.className='aidle-cell reveal '+result[ci];},ci*120);
-    }
-    guesses.push(currentGuess);
-    currentGuess='';
-    const won=result.every(r=>r==='correct');
-    if(won||guesses.length>=6){gameOver=true;setTimeout(()=>showEndState(won),result.length*120+400);}
-    save();
-    setTimeout(checkHint,result.length*120+200);
-    setTimeout(renderAll,result.length*120+100);
-  }
-
-  function shakeRow(ri){
-    const row=document.getElementById(`arow_${ri}`);
-    if(!row) return;
-    row.classList.add('aidle-shake');
-    row.addEventListener('animationend',()=>row.classList.remove('aidle-shake'),{once:true});
-  }
-
-  function showMsg(msg,dur=1800){
-    const el=document.getElementById('aidleMsg');
-    if(!el) return;
-    el.textContent=msg;el.style.opacity='1';
-    setTimeout(()=>{el.style.opacity='0';},dur);
-  }
-
-  function showEndState(won){
-    const msgs=['Genius!','Magnificent!','Impressive!','Splendid!','Great!','Phew!'];
-    if(won) showMsg(msgs[Math.min(guesses.length-1,5)],4000);
-    else showMsg(`The word was: ${TARGET}`,6000);
-    const hint=document.getElementById('aidleHint');
-    if(hint) hint.textContent=won?`Solved in ${guesses.length}/6 — Today's AI word: ${TARGET}`:`Today's AI word was "${TARGET}"`;
-    const btn=document.getElementById('aidleShareBtn');
-    if(btn) btn.classList.add('visible');
-    const next=document.getElementById('aidleNext');
-    if(next){
-      const now=new Date(),tom=new Date(now.getFullYear(),now.getMonth(),now.getDate()+1);
-      const diff=tom-now,h=Math.floor(diff/3600000),m=Math.floor((diff%3600000)/60000);
-      next.textContent=`Next word in ${h}h ${m}m`;
-    }
-    updateStreak(won);
-  }
-
-  window.aidleShare=function(){
-    const em={'correct':'\uD83D\uDFE9','present':'\uD83D\uDFE8','absent':'\u2B1B'};
-    const lines=guesses.map(g=>scoreGuess(g).map(r=>em[r]).join(''));
-    const won=guesses.length&&scoreGuess(guesses[guesses.length-1]).every(r=>r==='correct');
-    const score=won?`${guesses.length}/6`:'X/6';
-    const text=`A\u00B7I\u00B7dle ${score}\n\n${lines.join('\n')}\n\nhttps://aliss.ai`;
-    navigator.clipboard.writeText(text).then(()=>showMsg('Copied!'));
-  };
-
-  function save(){localStorage.setItem(getTodayKey(),JSON.stringify({guesses,gameOver,keyState}));}
-
-  function updateStreak(lastWon){
-    const el=document.getElementById('aidleStreak');if(!el) return;
-    let s=JSON.parse(localStorage.getItem('aidle_streak')||'{"count":0}');
-    if(lastWon!==undefined){s.count=lastWon?s.count+1:0;localStorage.setItem('aidle_streak',JSON.stringify(s));}
-    if(s.count>0) el.textContent=`Streak: ${s.count}`;
-  }
-
-  document.addEventListener('keydown',e=>{
-    if(!document.getElementById('page-aidle')?.classList.contains('active')) return;
-    const k=e.key.toUpperCase();
-    if(k==='BACKSPACE') handleKey('\u232B');
-    else if(k==='ENTER') handleKey('ENTER');
-    else if(k.length===1&&/[A-Z]/.test(k)) handleKey(k);
-  });
-
-  // ── HINTS ─────────────────────────────────────────────
-  const WORD_HINTS={
-    'MODEL':'a trained system that maps inputs to outputs',
-    'TRAIN':'the process of optimising weights on data',
-    'TOKEN':'the smallest text unit an LLM processes',
-    'AGENT':'an AI that takes actions in an environment',
-    'LAYER':'a single transformation step in a neural net',
-    'LEARN':'what a model does when it updates its weights',
-    'SCALE':'making a model bigger, faster, or smarter',
-    'EPOCH':'one full pass through the training dataset',
-    'QUERY':'the Q in attention — what you're looking for',
-    'LLAMA':'Meta's open-source large language model',
-    'NODES':'individual neurons in a neural network',
-    'LOGIC':'rule-based reasoning, pre-deep-learning AI',
-    'BYTES':'raw binary data units',
-    'CLOUD':'remote compute infrastructure for AI training',
-    'INFER':'running a trained model to get predictions',
-    'LABEL':'the ground-truth answer in supervised learning',
-    'MASKS':'hiding tokens so the model learns to predict them',
-    'NOISE':'random perturbations added during training',
-    'BATCH':'a group of examples processed together',
-    'DENSE':'a fully connected neural network layer',
-    'EMBED':'mapping words/tokens to vectors in space',
-    'GRAPH':'a structure of nodes and edges used in GNNs',
-    'INDEX':'a searchable structure for fast retrieval',
-    'LOCAL':'running AI on your own hardware, not the cloud',
-    'VALID':'the held-out dataset used to tune hyperparams',
-    'BEAMS':'beam search: keeping top-k candidate sequences',
-    'TOOLS':'external functions an agent can call',
-    'INPUT':'data fed into a model',
-    'TRUST':'calibration — does the model know what it knows?',
-    'VALUE':'the V in attention — information to retrieve',
-    'ALIGN':'making AI behaviour match human intentions',
-    'SCORE':'a numerical measure of model performance',
-    'CHAIN':'chaining LLM calls, e.g. chain-of-thought',
-    'HEADS':'parallel attention mechanisms in a transformer',
-    'TASKS':'specific problems a model is trained or tested on',
-    'GRADS':'gradients — the direction to adjust weights',
-    'STATS':'statistical metrics used to evaluate models',
-    'FACTS':'grounded true statements, vs hallucinations',
-    'RISKS':'failure modes and harms from AI systems',
-    'FLOWS':'normalising flows — a type of generative model',
-    'GATES':'gating mechanisms in LSTMs and GRUs',
-    'PATHS':'execution routes through a computation graph',
-    'STEPS':'discrete increments in training or reasoning',
-    'REGEX':'pattern-matching syntax used in NLP pipelines',
-    'SCOPE':'the context window or reasoning boundary',
-    'LOOPS':'iterative cycles in training or agent execution',
-    'TREES':'tree-structured reasoning or decision models',
-    'LINES':'rows in a dataset or code',
-    'GOALS':'objectives an AI agent is trying to achieve',
-    'FORMS':'structured input/output schemas',
-    'TERMS':'vocabulary units or conditions in a contract',
-    'TYPES':'data types in a programming or type system',
-    'UNITS':'individual neurons or measurement quantities',
-    'ROUGE':'recall-based metric for summarisation quality',
-    'HUMAN':'human feedback used in RLHF training',
-    'BRAIN':'the biological inspiration for neural networks',
-    'ROBOT':'a physical agent that acts in the world',
-    'ALPHA':'a measure of excess return, or DeepMind's AlphaGo',
-    'SIGMA':'standard deviation — spread of a distribution',
-    'DELTA':'change or gradient update magnitude',
-    'THETA':'model parameters, often written as θ',
-    'OMEGA':'final layer or convergence in some contexts',
-    'GAMMA':'discount factor in reinforcement learning',
-    'VOCAB':'the set of all tokens a model can produce',
-    'PARSE':'breaking input text into structured components',
-    'HOOKS':'callbacks that intercept model forward passes',
-    'PIPES':'data pipeline stages in an ML workflow',
-    'CLIPS':'CLIP: contrastive image-language pretraining',
-    'TESTS':'evaluations used to measure model capability',
-    'LINKS':'connections between nodes, or hyperlinks',
-    'RANKS':'relative ordering of candidates or parameters',
-    'TEXTS':'raw string data used for language modelling',
-    'ULTRA':'prefix meaning extreme scale',
-    'MICRO':'prefix meaning very small, or fine-grained',
-    'SUPER':'prefix meaning beyond, as in superintelligence',
-    'WORDS':'sequences of characters forming meaning',
-    'CODES':'source code, or encoded representations',
-    'SPANS':'contiguous text ranges in NLP tasks',
-    'ITEMS':'individual elements in a dataset or list',
-    'LANES':'parallel processing streams'
-  };
-
-  function checkHint(){
-    const hintEl=document.getElementById('aidleHint');
-    if(!hintEl||gameOver) return;
-    const wrong=guesses.filter(g=>g!==TARGET).length;
-    if(wrong>=3){
-      const def=WORD_HINTS[TARGET]||'a term from AI and machine learning';
-      hintEl.innerHTML=wrong>=4
-        ?`<strong>Hint:</strong> ${def} &nbsp;·&nbsp; starts with <strong>${TARGET[0]}—</strong>`
-        :`<strong>Hint:</strong> ${def}`;
-    }
-  }
-
-  window._aidleInit=initGame;
-  // Auto-init if aidle page is already active (e.g. direct URL load)
-  if(document.getElementById('page-aidle')?.classList.contains('active')) initGame();
+  window._mathInit=initMath;
+  if(document.getElementById('page-math')?.classList.contains('active'))initMath();
 })();
 </script>
 
@@ -2936,7 +3104,7 @@ function submitAlissPlusCode(){}
   const LINES=[
     {key:'aliss',    val:'v2026.02', ok:true},
     {key:'db',       val:'supabase.connected', ok:true},
-    {key:'llm',      val:'claude-sonnet-4-6', ok:true},
+    {key:'llm',      val:'model.connected', ok:true},
     {key:'rag',      val:'retrieval.ready', ok:true},
     {key:'cron',     val:'articles.generating', ok:true},
     {key:'outlook',  val:'nyt/wsj/scmp/economist', ok:true},
@@ -3606,7 +3774,7 @@ initMathLab();
 /* ── DEFERRED PAGE INIT — ensures all pages init after all scripts loaded ── */
 (function(){
   const page=new URLSearchParams(window.location.search).get('page');
-  if(page==='aidle') window._aidleInit&&window._aidleInit();
+  if(page==='mathematics') window._mathInit&&window._mathInit();
   if(page==='chess') window._chessInit&&window._chessInit();
   if(page==='compute') window._computeRender&&window._computeRender();
 })();

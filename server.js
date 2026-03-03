@@ -1491,12 +1491,75 @@ Return ONLY a raw JSON object. Fields:
   return normalizeArticle(saved);
 }
 
+const MATHEMATICS_TOPICS = [
+  "Gradient descent: the optimization algorithm that teaches machines to learn from their mistakes",
+  "Backpropagation and the chain rule: how calculus makes deep learning possible",
+  "The softmax function: turning raw numbers into probabilities that sum to one",
+  "Attention is all you need — the linear algebra behind transformer self-attention",
+  "Eigenvalues and eigenvectors: why they matter for PCA, PageRank, and understanding high-dimensional data",
+  "The curse of dimensionality: what happens to distance, volume, and intuition in high dimensions",
+  "Cross-entropy loss: information theory meets machine learning in every classification model",
+  "Matrix multiplication: the single operation that consumes most of the world's GPU cycles",
+  "Bayes' theorem and the foundation of probabilistic reasoning in AI",
+  "Fourier transforms: from signal processing to positional encoding in transformers",
+  "The universal approximation theorem: why neural networks can theoretically learn anything",
+  "Regularization: L1, L2, dropout, and the art of preventing overfitting",
+  "Convolutions: the mathematical operation that taught machines to see",
+  "The KL divergence: measuring the distance between probability distributions",
+  "Stochastic gradient descent and the surprising power of noise in optimization",
+  "The vanishing gradient problem: why deep networks struggled and how residual connections fixed it",
+  "Information theory and entropy: Claude Shannon's framework that underpins all of modern AI",
+  "Linear algebra for transformers: projections, subspaces, and the geometry of meaning",
+  "The lottery ticket hypothesis: sparse networks, pruning, and why most parameters might be unnecessary",
+  "Floating-point arithmetic: how the precision of numbers shapes what AI can and cannot learn",
+];
+
+async function generateMathematicsArticle(topic) {
+  const system = `You are Aliss — writing the Mathematics </> section. Rigorous explanations of the mathematical concepts powering artificial intelligence, written for a technically curious audience that may not have a PhD.
+
+THE VOICE: A brilliant math professor who teaches by building intuition before formalism. You make the reader feel the shape of the idea before you hand them the equation. Every abstraction earns its way in with a concrete example. Think 3Blue1Brown's clarity meets the editorial voice of Quanta Magazine.
+
+RULES:
+- Start with the intuition, then the formalism. The reader should understand WHY before they see HOW.
+- Include the actual equations in clean HTML (use <code> for inline math, <pre> for display equations). Never skip the math — this section is for people who want to see it.
+- Ground every concept in real AI applications: not "this is useful in machine learning" but "GPT-4 computes this operation 96 times per layer, across 96 layers, for every token in a 128K context window."
+- Use concrete numerical examples. Walk through a small case (2×2 matrix, 3-element vector) so the reader can follow with pen and paper.
+- Historical context matters: who discovered this, when, and what problem they were trying to solve.
+- Connect to the interactive visualizations on the Aliss Mathematics page where relevant (gradient descent, activation functions, backprop, etc.).
+- Minimum 1200 words.
+
+Never use markdown. Only clean HTML.`;
+
+  const userMsg = `Write an original long-form Aliss Mathematics </> article about: ${topic}
+
+Return ONLY a raw JSON object. Fields:
+{
+  "title": "Precise, specific headline under 80 characters",
+  "subtitle": "One sentence that makes the mathematical concept feel urgent and relevant",
+  "summary": "2-3 sentences for card previews — make someone want to understand this",
+  "category": "Mathematics",
+  "tags": ["tag1", "tag2", "tag3", "tag4"],
+  "body": "Full article HTML: <p class=\\"drop-cap\\"> first paragraph; <h2> for 5+ section headers; at least 2 <div class=\\"pull-quote\\">quote<cite>— Attribution</cite></div>; include <code> for inline math and <pre> for display equations; no title tag; minimum 1200 words."
+}`;
+
+  const raw = await callClaude(system, userMsg, 4000);
+  const match = raw.match(/\{[\s\S]*\}/);
+  if (!match) throw new Error("No JSON");
+  const data = JSON.parse(match[0]);
+  const title = String(data.title || topic).trim();
+  const doc = { slug: slugify(title), title, subtitle: String(data.subtitle||"").trim(), content: "", summary: String(data.summary||"").trim(), body: String(data.body||"").trim(), tags: Array.isArray(data.tags)?data.tags.map(String):["Mathematics", "AI"], category: "Mathematics", source: "Aliss", is_external: false, is_generated: true, published_at: new Date().toISOString() };
+  if (!isDbReady()) return normalizeArticle(doc);
+  const { data: saved, error } = await supabase.from("aliss_articles").upsert(doc, { onConflict: "slug", ignoreDuplicates: true }).select().single();
+  if (error || !saved) { const { data: existing } = await supabase.from("aliss_articles").select("*").eq("slug", doc.slug).single(); return normalizeArticle(existing || doc); }
+  return normalizeArticle(saved);
+}
+
 let editorialSeeding = false;
 
 async function seedEditorialSections() {
   if (editorialSeeding || !isDbReady() || !ANTHROPIC_KEY) return;
   editorialSeeding = true;
-  console.log("Seeding Philosophy, Words, Culture, and Futures sections...");
+  console.log("Seeding Philosophy, Words, Culture, Futures, and Mathematics sections...");
 
   try {
     for (const [topics, generator, label] of [
@@ -1504,6 +1567,7 @@ async function seedEditorialSections() {
       [WORDS_TOPICS,      generateWordsArticle,      "Words"],
       [CULTURE_TOPICS,    generateCultureArticle,    "Culture"],
       [FUTURES_TOPICS,    generateFuturesArticle,    "Futures"],
+      [MATHEMATICS_TOPICS, generateMathematicsArticle, "Mathematics"],
     ]) {
       const { data: existing } = await supabase.from("aliss_articles")
         .select("title").eq("category", label).eq("is_generated", true);
@@ -1535,7 +1599,7 @@ async function seedEditorialSections() {
 }
 
 app.post("/api/seed-editorial", (req, res) => {
-  res.json({ msg: "Philosophy + Words seeding started", targets: { philosophy: PHILOSOPHY_TOPICS.length, words: WORDS_TOPICS.length } });
+  res.json({ msg: "Editorial seeding started", targets: { philosophy: PHILOSOPHY_TOPICS.length, words: WORDS_TOPICS.length, mathematics: MATHEMATICS_TOPICS.length } });
   seedEditorialSections().catch(e => console.error("editorial seed failed:", e.message));
 });
 
@@ -3677,6 +3741,341 @@ app.use(express.static(path.join(__dirname, "public")));
 
 app.get(["/", "/aliss"], (_req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
+});
+
+/* ======================
+   MATHEMATICS / COMPUTE ENGINE (computr.ai)
+====================== */
+
+const { create: mathCreate, all: mathAll } = require("mathjs");
+const mathEngine = mathCreate(mathAll);
+
+function cFmt(n, prec = 10) {
+  if (typeof n === "object" && n !== null && n.entries) return n.entries.map(e => mathEngine.format(e, { precision: prec }));
+  return mathEngine.format(n, { precision: prec });
+}
+function cFmtNum(n) {
+  if (Math.abs(n) >= 1e15 || (Math.abs(n) < 1e-6 && n !== 0)) return n.toExponential(8);
+  if (Number.isInteger(n)) return n.toLocaleString("en-US");
+  return parseFloat(n.toPrecision(10)).toString();
+}
+function cIsInt(n) { return Number.isFinite(n) && Math.floor(n) === n; }
+
+function cToRoman(n) {
+  if (n <= 0 || n > 3999) return null;
+  const vals = [1000,900,500,400,100,90,50,40,10,9,5,4,1];
+  const syms = ["M","CM","D","CD","C","XC","L","XL","X","IX","V","IV","I"];
+  let r = ""; for (let i = 0; i < vals.length; i++) { while (n >= vals[i]) { r += syms[i]; n -= vals[i]; } } return r;
+}
+function cToFraction(n, tol = 1e-9) {
+  if (Number.isInteger(n)) return `${n}/1`;
+  let sign = n < 0 ? "-" : ""; n = Math.abs(n);
+  let h1=1,h2=0,k1=0,k2=1,b=n;
+  for (let i = 0; i < 100; i++) {
+    let a=Math.floor(b); let aux=h1; h1=a*h1+h2; h2=aux; aux=k1; k1=a*k1+k2; k2=aux;
+    if (Math.abs(n - h1/k1) < tol) return k1 > 10000 ? null : `${sign}${h1}/${k1}`;
+    if (b - a < tol) break; b = 1 / (b - a);
+  }
+  return null;
+}
+
+function cIsPrime(n) { if(n<2)return false;if(n<4)return true;if(n%2===0||n%3===0)return false;for(let i=5;i*i<=n;i+=6)if(n%i===0||n%(i+2)===0)return false;return true; }
+function cNthPrime(n) { let count=0,num=1;while(count<n){num++;if(cIsPrime(num))count++;}return num; }
+function cPrimeFactors(n) { const f=[];let d=2;while(d*d<=n){while(n%d===0){f.push(d);n/=d;}d++;}if(n>1)f.push(n);return f; }
+function cGetDivisors(n) { const d=[];for(let i=1;i*i<=n;i++){if(n%i===0){d.push(i);if(i!==n/i)d.push(n/i);}}return d.sort((a,b)=>a-b); }
+function cOrdSuf(n) { const s=["th","st","nd","rd"];const v=n%100;return(s[(v-20)%10]||s[v]||s[0]); }
+
+function cBuildNumberPods(n, expression) {
+  const pods = [{ title:"Result",type:"math",content:{expression,result:cFmtNum(n)} },{ title:"Number Line",type:"numberline",content:{value:n} }];
+  if (cIsInt(n)&&Math.abs(n)<1e12&&Math.abs(n)>0) {
+    const absN=Math.abs(n); const reps={"Decimal":n.toLocaleString("en-US"),"Scientific":n.toExponential(6)};
+    if(absN<2**53){reps["Binary"]=(n<0?"-":"")+"0b"+absN.toString(2);reps["Octal"]=(n<0?"-":"")+"0o"+absN.toString(8);reps["Hexadecimal"]=(n<0?"-":"")+"0x"+absN.toString(16).toUpperCase();}
+    const roman=cToRoman(absN);if(roman)reps["Roman Numeral"]=(n<0?"-":"")+roman;
+    pods.push({title:"Number Representations",type:"properties",content:reps});
+    const props={};props["Even/Odd"]=n%2===0?"Even":"Odd";props["Sign"]=n>0?"Positive":n<0?"Negative":"Zero";
+    props["Prime"]=cIsPrime(absN)?"Yes":"No";
+    if(absN>1)props["Perfect Square"]=Number.isInteger(Math.sqrt(absN))?`Yes (${Math.sqrt(absN)}²)`:"No";
+    const dSum=String(absN).split("").reduce((s,d)=>s+parseInt(d),0);props["Digit Sum"]=String(dSum);props["Number of Digits"]=String(String(absN).length);
+    pods.push({title:"Number Properties",type:"properties",content:props});
+    if(absN>1&&absN<1e9){const f=cPrimeFactors(absN);const g={};f.forEach(x=>g[x]=(g[x]||0)+1);pods.push({title:"Prime Factorization",type:"math",content:{expression:`${absN} =`,result:Object.entries(g).map(([p,e])=>e>1?`${p}^${e}`:p).join(" × ")}});}
+    if(absN>0&&absN<1e6){const divs=cGetDivisors(absN);pods.push({title:"Divisors",type:"properties",content:{"Divisors":divs.join(", "),"Count":String(divs.length),"Sum":String(divs.reduce((a,b)=>a+b,0))}});}
+  } else if(typeof n==="number"&&!cIsInt(n)){
+    const reps={"Decimal":String(n),"Scientific":n.toExponential(10)};const frac=cToFraction(n);if(frac)reps["Fraction"]=frac;
+    reps["Floor"]=String(Math.floor(n));reps["Ceiling"]=String(Math.ceil(n));
+    pods.push({title:"Representations",type:"properties",content:reps});
+  }
+  return pods;
+}
+
+function cTryMathEval(query) {
+  try {
+    let c=query.replace(/[×]/g,"*").replace(/[÷]/g,"/").replace(/π/g,"pi").replace(/√\(([^)]+)\)/g,"sqrt($1)").replace(/√(\d+)/g,"sqrt($1)").replace(/(\d+)!/g,"factorial($1)").replace(/\bln\b/g,"log").replace(/\blog10\b/g,"log10").trim();
+    const result=mathEngine.evaluate(c);if(result===undefined||result===null)return null;
+    const numResult=typeof result==="number"?result:(typeof result.toNumber==="function"?result.toNumber():null);
+    return{success:true,raw:result,num:numResult,formatted:cFmt(result),expression:c};
+  } catch { return null; }
+}
+
+function cTryFunctionPlot(query) {
+  const plotMatch=query.match(/^(?:plot|graph|draw|sketch|visualize|chart)?\s*(?:y\s*=\s*)?(.+)$/i);
+  if(!plotMatch)return null;
+  let expr=plotMatch[1].trim();
+  if(!/\bx\b/.test(expr))return null;
+  if(/\b(what|who|how|when|where|why|is|are|was|the|convert|compare)\b/i.test(expr))return null;
+  try{const compiled=mathEngine.compile(expr);compiled.evaluate({x:1});}catch{return null;}
+  let xMin=-10,xMax=10;
+  if(/\b(log|ln)\b/.test(expr)){xMin=0.01;xMax=20;}
+  if(/\bsqrt\b/.test(expr)){xMin=0;xMax=20;}
+  if(/\bexp\b/.test(expr)||/e\^/.test(expr)){xMin=-5;xMax=5;}
+  const rangeMatch=query.match(/from\s*([-\d.]+)\s*to\s*([-\d.]+)/i);
+  if(rangeMatch){xMin=parseFloat(rangeMatch[1]);xMax=parseFloat(rangeMatch[2]);}
+  const compiled=mathEngine.compile(expr);const nPoints=400;const data=[];const step=(xMax-xMin)/nPoints;
+  for(let i=0;i<=nPoints;i++){const x=xMin+i*step;try{const y=compiled.evaluate({x});if(typeof y==="number"&&isFinite(y))data.push({x:parseFloat(x.toFixed(8)),y:parseFloat(y.toFixed(8))});}catch{}}
+  if(data.length<10)return null;
+  const pods=[{title:"Input Interpretation",type:"text",content:`Plot of f(x) = ${expr}`},{title:"Plot",type:"plot",content:{type:"function",data,xLabel:"x",yLabel:"f(x)",expression:expr,xRange:[xMin,xMax]}}];
+  const sp={};try{sp["f(0)"]=cFmtNum(compiled.evaluate({x:0}));}catch{}try{sp["f(1)"]=cFmtNum(compiled.evaluate({x:1}));}catch{}try{sp["f(-1)"]=cFmtNum(compiled.evaluate({x:-1}));}catch{}
+  pods.push({title:"Values at Key Points",type:"properties",content:sp});
+  const roots=[];for(let i=1;i<data.length;i++){if((data[i-1].y>0&&data[i].y<0)||(data[i-1].y<0&&data[i].y>0)){const x0=data[i-1].x,y0=data[i-1].y,x1=data[i].x,y1=data[i].y;roots.push(parseFloat((x0-y0*(x1-x0)/(y1-y0)).toFixed(6)));}}
+  if(roots.length>0&&roots.length<=20)pods.push({title:"Approximate Roots",type:"math",content:{expression:"f(x) = 0 at x ≈",result:roots.join(", ")}});
+  const derivData=[];const h=(xMax-xMin)/nPoints;
+  for(let i=1;i<data.length-1;i++){const dy=(data[i+1].y-data[i-1].y)/(2*h);if(isFinite(dy))derivData.push({x:data[i].x,y:parseFloat(dy.toFixed(8))});}
+  if(derivData.length>10)pods.push({title:"Numerical Derivative f'(x)",type:"plot",content:{type:"function",data:derivData,xLabel:"x",yLabel:"f'(x)",expression:`d/dx [${expr}]`,xRange:[xMin,xMax]}});
+  let minY=Infinity,maxY=-Infinity,minX=0,maxX=0;data.forEach(d=>{if(d.y<minY){minY=d.y;minX=d.x;}if(d.y>maxY){maxY=d.y;maxX=d.x;}});
+  pods.push({title:`Range Analysis [${xMin}, ${xMax}]`,type:"properties",content:{"Minimum":`f(${minX}) ≈ ${cFmtNum(minY)}`,"Maximum":`f(${maxX}) ≈ ${cFmtNum(maxY)}`,"Range":`[${cFmtNum(minY)}, ${cFmtNum(maxY)}]`,"Roots in Range":roots.length>0?roots.join(", "):"None found"}});
+  return{title:`Plot of f(x) = ${expr}`,input_interpretation:`Function plot: f(x) = ${expr}`,assuming:`Interpreting as a function of x over [${xMin}, ${xMax}]`,pods,related:[`derivative of ${expr}`,`integral of ${expr}`,`${expr} from -5 to 5`,`solve ${expr} = 0`]};
+}
+
+const COMPUTE_UNITS={
+  length:{meter:1,m:1,meters:1,kilometer:1000,km:1000,kilometers:1000,centimeter:0.01,cm:0.01,millimeter:0.001,mm:0.001,micrometer:1e-6,nanometer:1e-9,mile:1609.344,miles:1609.344,yard:0.9144,yards:0.9144,foot:0.3048,feet:0.3048,ft:0.3048,inch:0.0254,inches:0.0254,"nautical mile":1852,lightyear:9.461e15,"light year":9.461e15,parsec:3.086e16,angstrom:1e-10},
+  mass:{kilogram:1,kg:1,kilograms:1,gram:0.001,g:0.001,grams:0.001,milligram:1e-6,mg:1e-6,"metric ton":1000,tonne:1000,pound:0.453592,pounds:0.453592,lb:0.453592,lbs:0.453592,ounce:0.0283495,ounces:0.0283495,oz:0.0283495,stone:6.35029,carat:0.0002},
+  temperature:"special",
+  speed:{"meter per second":1,"meters per second":1,"m/s":1,"km/h":0.277778,kmh:0.277778,kph:0.277778,"kilometers per hour":0.277778,"mile per hour":0.44704,"miles per hour":0.44704,mph:0.44704,knot:0.514444,knots:0.514444,mach:343,"speed of light":299792458},
+  area:{"square meter":1,"sq m":1,m2:1,"square kilometer":1e6,km2:1e6,"square mile":2.59e6,"square foot":0.092903,"sq ft":0.092903,acre:4046.86,acres:4046.86,hectare:10000,hectares:10000},
+  volume:{liter:1,liters:1,l:1,milliliter:0.001,ml:0.001,gallon:3.78541,gallons:3.78541,gal:3.78541,quart:0.946353,pint:0.473176,cup:0.236588,cups:0.236588,"fluid ounce":0.0295735,"cubic meter":1000,"cubic foot":28.3168},
+  energy:{joule:1,j:1,joules:1,kilojoule:1000,kj:1000,calorie:4.184,kilocalorie:4184,kcal:4184,"electron volt":1.602e-19,ev:1.602e-19,"kilowatt hour":3.6e6,kwh:3.6e6,btu:1055.06},
+  pressure:{pascal:1,pa:1,kilopascal:1000,kpa:1000,atmosphere:101325,atm:101325,bar:100000,psi:6894.76,torr:133.322,mmhg:133.322},
+  time:{second:1,seconds:1,s:1,millisecond:0.001,ms:0.001,minute:60,minutes:60,min:60,hour:3600,hours:3600,hr:3600,day:86400,days:86400,week:604800,weeks:604800,year:3.154e7,years:3.154e7},
+  data:{bit:1,bits:1,byte:8,bytes:8,kilobyte:8000,kb:8000,megabyte:8e6,mb:8e6,gigabyte:8e9,gb:8e9,terabyte:8e12,tb:8e12,petabyte:8e15,pb:8e15},
+  frequency:{hertz:1,hz:1,kilohertz:1e3,khz:1e3,megahertz:1e6,mhz:1e6,gigahertz:1e9,ghz:1e9},
+  power:{watt:1,w:1,watts:1,kilowatt:1000,kw:1000,megawatt:1e6,mw:1e6,gigawatt:1e9,gw:1e9,horsepower:745.7,hp:745.7},
+  angle:{radian:1,rad:1,degree:Math.PI/180,degrees:Math.PI/180,deg:Math.PI/180}
+};
+
+function cTryConversion(query) {
+  const m=query.match(/(?:convert\s+)?([\d.e+-]+)\s+(.+?)\s+(?:to|in|into|as)\s+(.+)/i);if(!m)return null;
+  const value=parseFloat(m[1]);let fromStr=m[2].trim().toLowerCase();let toStr=m[3].trim().toLowerCase();
+  const tempNames={celsius:"celsius",fahrenheit:"fahrenheit",kelvin:"kelvin",c:"celsius",f:"fahrenheit",k:"kelvin","°c":"celsius","°f":"fahrenheit"};
+  if(tempNames[fromStr]&&tempNames[toStr]){
+    let celsius;if(tempNames[fromStr]==="celsius")celsius=value;else if(tempNames[fromStr]==="fahrenheit")celsius=(value-32)*5/9;else celsius=value-273.15;
+    const all={"Celsius":celsius,"Fahrenheit":celsius*9/5+32,"Kelvin":celsius+273.15};
+    let result;if(tempNames[toStr]==="celsius")result=celsius;else if(tempNames[toStr]==="fahrenheit")result=celsius*9/5+32;else result=celsius+273.15;
+    return{title:"Temperature Conversion",input_interpretation:`Convert ${value}° ${m[2].trim()} to ${m[3].trim()}`,assuming:"Temperature conversion",pods:[{title:"Result",type:"conversion",content:{from:`${value}° ${m[2].trim()}`,to:`${cFmtNum(result)}° ${m[3].trim()}`}},{title:"All Temperature Scales",type:"properties",content:Object.fromEntries(Object.entries(all).map(([k,v])=>[k,`${cFmtNum(v)}°`]))},{title:"Comparison",type:"plot",content:{type:"bar",data:Object.entries(all).map(([label,value])=>({label,value})),xLabel:"Scale",yLabel:"Degrees"}}]};
+  }
+  for(const[cat,units]of Object.entries(COMPUTE_UNITS)){
+    if(units==="special")continue;const ff=units[fromStr];const tf=units[toStr];
+    if(ff!==undefined&&tf!==undefined){
+      const result=value*ff/tf;const factor=ff/tf;
+      const pods=[{title:"Result",type:"conversion",content:{from:`${value} ${m[2].trim()}`,to:`${cFmtNum(result)} ${m[3].trim()}`,factor:`1 ${m[2].trim()} = ${cFmtNum(factor)} ${m[3].trim()}`}},{title:"Unit Details",type:"properties",content:{"Category":cat.charAt(0).toUpperCase()+cat.slice(1),"Input":`${value} ${m[2].trim()}`,"Output":`${cFmtNum(result)} ${m[3].trim()}`,"Conversion Factor":cFmtNum(factor)}},{title:"Visual Comparison",type:"plot",content:{type:"bar",data:[{label:m[2].trim(),value},{label:m[3].trim(),value:result}],xLabel:"",yLabel:"Value"}}];
+      return{title:"Unit Conversion",input_interpretation:`Convert ${value} ${m[2].trim()} to ${m[3].trim()}`,assuming:`Converting ${cat}: ${m[2].trim()} → ${m[3].trim()}`,pods};
+    }
+  }
+  return null;
+}
+
+const COMPUTE_CONSTANTS={
+  "speed of light":{value:"299,792,458 m/s",num:299792458,symbol:"c",desc:"Speed of light in vacuum",cat:"Fundamental"},
+  "planck constant":{value:"6.62607015 × 10⁻³⁴ J·s",num:6.62607015e-34,symbol:"h",desc:"Planck constant",cat:"Quantum"},
+  "reduced planck constant":{value:"1.054571817 × 10⁻³⁴ J·s",num:1.054571817e-34,symbol:"ℏ",desc:"Reduced Planck constant (h-bar)",cat:"Quantum"},
+  "boltzmann constant":{value:"1.380649 × 10⁻²³ J/K",num:1.380649e-23,symbol:"k_B",desc:"Boltzmann constant",cat:"Thermodynamics"},
+  "gravitational constant":{value:"6.67430 × 10⁻¹¹ m³/(kg·s²)",num:6.6743e-11,symbol:"G",desc:"Newtonian gravitational constant",cat:"Gravitation"},
+  "elementary charge":{value:"1.602176634 × 10⁻¹⁹ C",num:1.602176634e-19,symbol:"e",desc:"Elementary electric charge",cat:"Electromagnetic"},
+  "electron mass":{value:"9.1093837015 × 10⁻³¹ kg",num:9.1093837015e-31,symbol:"m_e",desc:"Electron rest mass",cat:"Particle Physics"},
+  "proton mass":{value:"1.67262192369 × 10⁻²⁷ kg",num:1.67262192369e-27,symbol:"m_p",desc:"Proton rest mass",cat:"Particle Physics"},
+  "avogadro number":{value:"6.02214076 × 10²³ mol⁻¹",num:6.02214076e23,symbol:"N_A",desc:"Avogadro constant",cat:"Chemistry"},
+  "gas constant":{value:"8.314462618 J/(mol·K)",num:8.314462618,symbol:"R",desc:"Ideal gas constant",cat:"Thermodynamics"},
+  "vacuum permittivity":{value:"8.8541878128 × 10⁻¹² F/m",num:8.8541878128e-12,symbol:"ε₀",desc:"Permittivity of free space",cat:"Electromagnetic"},
+  "vacuum permeability":{value:"1.25663706212 × 10⁻⁶ H/m",num:1.25663706212e-6,symbol:"μ₀",desc:"Permeability of free space",cat:"Electromagnetic"},
+  "stefan boltzmann constant":{value:"5.670374419 × 10⁻⁸ W/(m²·K⁴)",num:5.670374419e-8,symbol:"σ",desc:"Stefan-Boltzmann constant",cat:"Thermodynamics"},
+  "coulomb constant":{value:"8.9875517923 × 10⁹ N·m²/C²",num:8.9875517923e9,symbol:"k_e",desc:"Coulomb constant",cat:"Electromagnetic"},
+  "faraday constant":{value:"96,485.33212 C/mol",num:96485.33212,symbol:"F",desc:"Faraday constant",cat:"Chemistry"},
+  "fine structure constant":{value:"7.2973525693 × 10⁻³ (≈ 1/137.036)",num:7.2973525693e-3,symbol:"α",desc:"Fine-structure constant",cat:"Quantum"},
+  "rydberg constant":{value:"1.0973731568160 × 10⁷ m⁻¹",num:1.097373156816e7,symbol:"R∞",desc:"Rydberg constant",cat:"Atomic Physics"},
+  "bohr radius":{value:"5.29177210903 × 10⁻¹¹ m",num:5.29177210903e-11,symbol:"a₀",desc:"Bohr radius",cat:"Atomic Physics"},
+  "thermal voltage":{value:"25.85 mV (at 300K)",num:0.02585,symbol:"V_T",desc:"Thermal voltage at room temp (kT/q)",cat:"Semiconductor"},
+  "silicon bandgap":{value:"1.12 eV (at 300K)",num:1.12,symbol:"E_g(Si)",desc:"Silicon bandgap energy",cat:"Semiconductor"},
+  "standard gravity":{value:"9.80665 m/s²",num:9.80665,symbol:"g",desc:"Standard acceleration of gravity",cat:"Mechanics"},
+  "pi":{value:"3.14159265358979323846...",num:Math.PI,symbol:"π",desc:"Archimedes constant",cat:"Mathematical"},
+  "e":{value:"2.71828182845904523536...",num:Math.E,symbol:"e",desc:"Euler's number",cat:"Mathematical"},
+  "golden ratio":{value:"1.61803398874989484820...",num:(1+Math.sqrt(5))/2,symbol:"φ",desc:"Golden ratio",cat:"Mathematical"}
+};
+
+function cTryConstant(query) {
+  const q=query.toLowerCase().replace(/[''?]/g,"").replace(/^what is (the )?/i,"").replace(/^value of (the )?/i,"").trim();
+  const makeResult=(data)=>({title:data.desc,input_interpretation:`Physical/Mathematical constant: ${data.desc}`,assuming:"Interpreting as a named constant",pods:[{title:"Value",type:"math",content:{expression:`${data.symbol} =`,result:data.value}},{title:"Properties",type:"properties",content:{"Name":data.desc,"Symbol":data.symbol,"Numerical Value":data.value,"Category":data.cat}}]});
+  for(const[name,data]of Object.entries(COMPUTE_CONSTANTS)){
+    if(name.length<=2){if(q===name||q===`${name} constant`||q==="euler's number"&&name==="e"||q===`value of ${name}`)return makeResult(data);}
+    else{if(q===name||q.includes(name)||(name.length>=5&&name.includes(q)&&q.length>=4))return makeResult(data);}
+  }
+  return null;
+}
+
+function cTryNumberTheory(query) {
+  let m=query.match(/(\d+)\s*(?:st|nd|rd|th)\s+prime(?:\s+number)?/i);
+  if(m){const n=parseInt(m[1]);if(n>0&&n<=50000){const p=cNthPrime(n);return{title:`${n}${cOrdSuf(n)} Prime Number`,input_interpretation:`${n}${cOrdSuf(n)} prime number`,pods:[{title:"Result",type:"math",content:{expression:`p(${n}) =`,result:String(p)}},{title:"Number Line",type:"numberline",content:{value:p}},...cBuildNumberPods(p,String(p)).filter(pod=>pod.title!=="Result"&&pod.title!=="Number Line")]};};}
+  m=query.match(/is\s+(\d+)\s+(?:a\s+)?prime/i);
+  if(m){const num=parseInt(m[1]);const result=cIsPrime(num);const pods=[{title:"Result",type:"math",content:{expression:`isPrime(${num})`,result:result?"True — it is prime":"False — it is composite"}},{title:"Number Line",type:"numberline",content:{value:num}}];
+    if(!result&&num>1){const f=cPrimeFactors(num);const g={};f.forEach(x=>g[x]=(g[x]||0)+1);pods.push({title:"Prime Factorization",type:"math",content:{expression:`${num} =`,result:Object.entries(g).map(([p,e])=>e>1?`${p}^${e}`:p).join(" × ")}});}
+    return{title:`Primality Test: ${num}`,input_interpretation:`Is ${num} prime?`,pods};}
+  m=query.match(/(?:factor(?:ize)?|prime\s*factor(?:ization)?(?:\s+of)?)\s+(\d+)/i);
+  if(m){const num=parseInt(m[1]);if(num>1&&num<1e12)return{title:`Analysis of ${num}`,input_interpretation:`Factor and analyze ${num}`,pods:cBuildNumberPods(num,String(num))};}
+  m=query.match(/(\d+)\s*(?:st|nd|rd|th)\s+fibonacci/i);
+  if(m){const n=parseInt(m[1]);if(n>=0&&n<=1000){const fibs=[0n,1n];for(let i=2;i<=n+2;i++)fibs.push(fibs[i-1]+fibs[i-2]);
+    return{title:`${n}${cOrdSuf(n)} Fibonacci Number`,input_interpretation:`Fibonacci number F(${n})`,pods:[{title:"Result",type:"math",content:{expression:`F(${n}) =`,result:fibs[n].toString()}},{title:"Properties",type:"properties",content:{"Number of digits":fibs[n].toString().length.toString(),"Is even":fibs[n]%2n===0n?"Yes":"No","Formula":"F(n) = F(n-1) + F(n-2), F(0)=0, F(1)=1"}}]};}}
+  return null;
+}
+
+function cTryEquation(query) {
+  let m=query.match(/solve\s+([-+]?\d*\.?\d*)\s*x\s*\^?\s*2\s*([-+]\s*\d*\.?\d*)\s*x\s*([-+]\s*\d+\.?\d*)\s*=\s*0/i);
+  if(!m)m=query.match(/([-+]?\d*\.?\d*)\s*x\s*\^?\s*2\s*([-+]\s*\d*\.?\d*)\s*x\s*([-+]\s*\d+\.?\d*)\s*=\s*0/i);
+  if(!m)return null;
+  let a=m[1]===""||m[1]==="+"?1:m[1]==="-"?-1:parseFloat(m[1]);
+  let b=parseFloat(m[2].replace(/\s/g,""));let c=parseFloat(m[3].replace(/\s/g,""));
+  const disc=b*b-4*a*c;const pods=[{title:"Equation",type:"math",content:{expression:`${a}x² + ${b}x + ${c} = 0`,result:""}},{title:"Discriminant",type:"math",content:{expression:"Δ = b² - 4ac =",result:String(disc)}}];
+  if(disc>0){const x1=(-b+Math.sqrt(disc))/(2*a);const x2=(-b-Math.sqrt(disc))/(2*a);pods.push({title:"Real Solutions",type:"math",content:{expression:"x =",result:`${cFmtNum(x1)},  ${cFmtNum(x2)}`}});
+    pods.push({title:"Solution Steps",type:"steps",content:[`Identify: a = ${a}, b = ${b}, c = ${c}`,`Discriminant: Δ = (${b})² - 4(${a})(${c}) = ${disc}`,`Since Δ > 0, two distinct real roots`,`x₁ = ${cFmtNum(x1)}, x₂ = ${cFmtNum(x2)}`]});
+    const xMin=Math.min(x1,x2)-3,xMax=Math.max(x1,x2)+3;const data=[];for(let i=0;i<=200;i++){const x=xMin+(xMax-xMin)*i/200;data.push({x:parseFloat(x.toFixed(6)),y:parseFloat((a*x*x+b*x+c).toFixed(6))});}
+    pods.push({title:"Graph",type:"plot",content:{type:"function",data,xLabel:"x",yLabel:"y",expression:`${a}x² + ${b}x + ${c}`,xRange:[xMin,xMax]}});
+  }else if(disc===0){const x1=-b/(2*a);pods.push({title:"Repeated Root",type:"math",content:{expression:"x =",result:cFmtNum(x1)}});}
+  else{const re=-b/(2*a);const im=Math.sqrt(-disc)/(2*a);pods.push({title:"Complex Solutions",type:"math",content:{expression:"x =",result:`${cFmtNum(re)} ± ${cFmtNum(im)}i`}});}
+  return{title:"Quadratic Equation",input_interpretation:`Solve ${a}x² + ${b}x + ${c} = 0`,assuming:"Quadratic equation in standard form",pods};
+}
+
+function cTryStatistics(query) {
+  const m=query.match(/(?:statistics|stats|mean|average|median|std|deviation|variance)\s*(?:of|for|:)?\s*([\d,.\s]+)/i);if(!m)return null;
+  const nums=m[1].split(/[,\s]+/).map(Number).filter(n=>!isNaN(n));if(nums.length<2)return null;
+  const sorted=[...nums].sort((a,b)=>a-b);const n=nums.length;const sum=nums.reduce((a,b)=>a+b,0);const mean=sum/n;
+  const median=n%2===0?(sorted[n/2-1]+sorted[n/2])/2:sorted[Math.floor(n/2)];
+  const variance=nums.reduce((s,x)=>s+(x-mean)**2,0)/n;const stddev=Math.sqrt(variance);
+  return{title:"Statistical Analysis",input_interpretation:`Statistics for {${nums.join(", ")}}`,pods:[
+    {title:"Summary Statistics",type:"properties",content:{"Count":String(n),"Sum":cFmtNum(sum),"Mean":cFmtNum(mean),"Median":cFmtNum(median),"Min":cFmtNum(sorted[0]),"Max":cFmtNum(sorted[n-1]),"Range":cFmtNum(sorted[n-1]-sorted[0])}},
+    {title:"Dispersion",type:"properties",content:{"Population Variance (σ²)":cFmtNum(variance),"Population Std Dev (σ)":cFmtNum(stddev)}},
+    {title:"Data Distribution",type:"plot",content:{type:"bar",data:nums.map((v,i)=>({label:`x${i+1}`,value:v})),xLabel:"Index",yLabel:"Value"}}
+  ]};
+}
+
+const COMPUTE_KB={};
+COMPUTE_KB["mosfet"]={kw:["mosfet","mos fet","metal oxide semiconductor","field effect transistor","cmos transistor"],title:"MOSFET — Metal-Oxide-Semiconductor FET",pods:[
+  {title:"Definition",type:"text",content:"A MOSFET is a voltage-controlled semiconductor device — the most widely manufactured device in history. It uses an insulated gate to modulate current through a semiconductor channel."},
+  {title:"Operating Regions",type:"table",content:{headers:["Region","Condition","Behavior"],rows:[["Cutoff","V_GS < V_th","OFF"],["Linear","V_GS > V_th, V_DS < V_OV","Resistor"],["Saturation","V_GS > V_th, V_DS ≥ V_OV","Current source"]]}},
+  {title:"Key Parameters",type:"properties",content:{"Threshold Voltage (V_th)":"0.2–0.7 V","Transconductance (g_m)":"2I_D/(V_GS - V_th)","Unity Gain (f_T)":"g_m/(2πC_gs)","Subthreshold Swing":"~60 mV/decade (ideal at 300K)"}},
+  {title:"NMOS vs PMOS",type:"comparison",content:{items:["NMOS","PMOS"],rows:[{property:"Channel Carriers",values:["Electrons","Holes"]},{property:"Mobility",values:["~500 cm²/(V·s)","~180 cm²/(V·s)"]},{property:"Speed",values:["~2.5× faster","Baseline"]},{property:"CMOS Role",values:["Pull-down","Pull-up"]}]}},
+  {title:"Technology Scaling",type:"table",content:{headers:["Node","Year","Key Innovation"],rows:[["45 nm","2007","High-k/metal gate"],["22 nm","2012","FinFET"],["7 nm","2018","EUV lithography"],["3 nm","2022","Gate-All-Around"],["2 nm","2025","Nanosheet FET"]]}}
+],related:["BJT","CMOS inverter","FinFET","threshold voltage"]};
+
+COMPUTE_KB["bjt"]={kw:["bjt","bipolar junction transistor","bipolar transistor","ebers moll","npn transistor","pnp transistor"],title:"BJT — Bipolar Junction Transistor",pods:[
+  {title:"Definition",type:"text",content:"A BJT is a current-controlled three-terminal semiconductor device using both electrons and holes. It has three regions: Emitter, Base, and Collector."},
+  {title:"Operating Regions",type:"table",content:{headers:["Region","B-E","B-C","Use"],rows:[["Forward Active","Forward","Reverse","Amplification"],["Saturation","Forward","Forward","Switch ON"],["Cutoff","Reverse","Reverse","Switch OFF"]]}},
+  {title:"Ebers-Moll",type:"steps",content:["I_F = I_S [exp(V_BE/V_T) - 1]","I_C = α_F·I_F - I_R","V_T = kT/q ≈ 25.85 mV at 300K","β = α/(1-α)"]},
+  {title:"Key Parameters",type:"properties",content:{"Current Gain (β)":"50–500","V_BE (on)":"~0.7V (Si)","Transition Freq (f_T)":"1–300 GHz (SiGe HBT)","Early Voltage (V_A)":"50–200V"}}
+],related:["MOSFET","Darlington pair","thermal voltage"]};
+
+COMPUTE_KB["transformer"]={kw:["transformer","transformers","turns ratio","ideal transformer","power transformer"],title:"Transformer — Electromagnetic Energy Transfer",pods:[
+  {title:"Definition",type:"text",content:"A transformer transfers electrical energy between circuits through mutual induction. Essential for AC power transmission (95–99.7% efficiency)."},
+  {title:"Equations",type:"steps",content:["Turns ratio: a = N₁/N₂ = V₁/V₂ = I₂/I₁","Power: P₁ = P₂ (ideal)","Impedance: Z_in = a² × Z_load","Faraday: V = N × dΦ/dt"]},
+  {title:"Types",type:"table",content:{headers:["Type","Application","Rating"],rows:[["Power","Generation → transmission","10 MVA – 1 GVA"],["Distribution","Substation → consumer","10 kVA – 2.5 MVA"],["Flyback","SMPS energy storage","5–500W"],["RF","Impedance matching","kHz–GHz"]]}}
+],related:["Faraday's law","impedance matching","Maxwell's equations"]};
+
+COMPUTE_KB["maxwell"]={kw:["maxwell","maxwell's equations","maxwells equations","gauss law","faraday law","ampere law"],title:"Maxwell's Equations",pods:[
+  {title:"Overview",type:"text",content:"Four fundamental PDEs describing how electric and magnetic fields are generated by charges, currents, and changes in each other. Published by James Clerk Maxwell in 1865."},
+  {title:"Differential Form",type:"table",content:{headers:["Law","Equation","Meaning"],rows:[["Gauss (E)","∇·E = ρ/ε₀","Charges source E field"],["Gauss (B)","∇·B = 0","No magnetic monopoles"],["Faraday","∇×E = -∂B/∂t","Changing B creates E"],["Ampère-Maxwell","∇×B = μ₀J + μ₀ε₀∂E/∂t","Currents + changing E create B"]]}},
+  {title:"Key Consequences",type:"list",content:["EM waves travel at c = 1/√(μ₀ε₀)","Light is an EM wave","E and B perpendicular to each other and propagation direction","Energy flux: Poynting vector S = (1/μ₀)(E × B)"]}
+],related:["electromagnetic waves","Lorentz force","Poynting vector"]};
+
+COMPUTE_KB["fourier"]={kw:["fourier transform","fourier","fft","fast fourier","frequency domain","fourier series"],title:"Fourier Transform",pods:[
+  {title:"Definition",type:"text",content:"Decomposes a function of time into constituent frequencies. One of the most important tools in engineering and physics."},
+  {title:"Transforms",type:"steps",content:["Continuous: F(ω) = ∫ f(t) e^{-jωt} dt","Inverse: f(t) = (1/2π) ∫ F(ω) e^{jωt} dω","DFT: X[k] = Σ x[n] e^{-j2πkn/N}","FFT: O(N log N) algorithm (Cooley-Tukey, 1965)"]},
+  {title:"Properties",type:"table",content:{headers:["Property","Time","Frequency"],rows:[["Linearity","af+bg","aF+bG"],["Convolution","f*g","F·G"],["Differentiation","f'(t)","jωF(ω)"],["Parseval's","∫|f|²dt","(1/2π)∫|F|²dω"]]}}
+],related:["Laplace transform","Nyquist theorem","convolution"]};
+
+COMPUTE_KB["ohm"]={kw:["ohm's law","ohms law","v=ir","voltage current resistance"],title:"Ohm's Law — V = IR",pods:[
+  {title:"Statement",type:"math",content:{expression:"Ohm's Law:",result:"V = I × R"}},
+  {title:"All Forms",type:"table",content:{headers:["Solve For","Formula","Units"],rows:[["Voltage","V = I × R","Volts"],["Current","I = V / R","Amperes"],["Resistance","R = V / I","Ohms"],["Power","P = V × I = I²R = V²/R","Watts"]]}},
+  {title:"Key Points",type:"list",content:["Applies to ohmic (linear) materials","AC: V = I × Z (impedance)","Microscopic: J = σE"]}
+],related:["Kirchhoff's laws","resistors","power dissipation"]};
+
+COMPUTE_KB["kirchhoff"]={kw:["kirchhoff","kirchhoff's laws","kcl","kvl","kirchhoff current","kirchhoff voltage"],title:"Kirchhoff's Circuit Laws",pods:[
+  {title:"KCL",type:"text",content:"Sum of all currents entering/leaving any node = 0.\nΣ I_in = Σ I_out (conservation of charge)"},
+  {title:"KVL",type:"text",content:"Sum of all voltages around any closed loop = 0.\nΣ V_k = 0 (conservation of energy)"},
+  {title:"Applications",type:"list",content:["Nodal analysis — KCL at each node","Mesh analysis — KVL around each mesh","Foundation of SPICE circuit simulation"]}
+],related:["Ohm's law","Thevenin theorem","Norton theorem"]};
+
+COMPUTE_KB["navier"]={kw:["navier stokes","navier-stokes","fluid dynamics","reynolds number"],title:"Navier-Stokes Equations",pods:[
+  {title:"Equation",type:"steps",content:["ρ(∂v/∂t + (v·∇)v) = -∇p + μ∇²v + ρg","∇·v = 0 (incompressible)"]},
+  {title:"Dimensionless Numbers",type:"properties",content:{"Reynolds (Re)":"ρvL/μ — turbulence onset ≈ Re > 2300","Mach (Ma)":"v/c — compressibility","Prandtl (Pr)":"ν/α — momentum vs thermal"}},
+  {title:"Millennium Prize",type:"text",content:"Existence and smoothness of 3D solutions is one of seven $1M Millennium Prize Problems (unsolved)."}
+],related:["Reynolds number","Bernoulli's equation","CFD"]};
+
+COMPUTE_KB["shannon"]={kw:["shannon entropy","information entropy","information theory","channel capacity","shannon capacity"],title:"Shannon Information Theory",pods:[
+  {title:"Entropy",type:"steps",content:["H(X) = -Σ p(xᵢ) log₂ p(xᵢ) bits","Max entropy: H_max = log₂(N) (uniform)","H = 0 when outcome is certain"]},
+  {title:"Channel Capacity",type:"math",content:{expression:"Shannon-Hartley:",result:"C = B · log₂(1 + SNR) bits/s"}},
+  {title:"Key Results",type:"properties",content:{"Mutual Information":"I(X;Y) = H(X) - H(X|Y)","Source Coding":"Cannot compress below H bits/symbol","Channel Coding":"Reliable communication at rates ≤ C"}}
+],related:["Nyquist theorem","Huffman coding","error-correcting codes"]};
+
+function cTryKnowledge(query) {
+  const q=query.toLowerCase().replace(/[''?]/g,"").replace(/^(what is|what are|tell me about|explain|describe|how does|how do)\s+(a |an |the )?/i,"").trim();
+  for(const[key,entry]of Object.entries(COMPUTE_KB)){
+    if(entry.kw.some(kw=>q.includes(kw)||kw.includes(q)))return{title:entry.title,input_interpretation:entry.title,pods:entry.pods,related:entry.related||[]};
+  }
+  return null;
+}
+
+async function cTryWikipedia(query) {
+  const q=query.replace(/^(what is|what are|who is|who was|tell me about|explain|describe|define)\s+(a |an |the )?/i,"").replace(/\?$/,"").trim();
+  try{
+    const searchRes=await axios.get(`https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(q)}&format=json&srlimit=1`,{headers:{"User-Agent":"computr.ai/1.0"},timeout:5000});
+    if(!searchRes.data?.query?.search?.length)return null;
+    const title=searchRes.data.query.search[0].title;
+    const summaryRes=await axios.get(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title)}`,{headers:{"User-Agent":"computr.ai/1.0"},timeout:5000});
+    if(!summaryRes.data?.extract)return null;
+    const summary=summaryRes.data;
+    const pods=[];
+    if(summary.description)pods.push({title:"Classification",type:"text",content:summary.description.charAt(0).toUpperCase()+summary.description.slice(1)});
+    pods.push({title:"Summary",type:"text",content:summary.extract});
+    pods.push({title:"Source",type:"properties",content:{"Title":summary.title,"Source":"Wikipedia","URL":summary.content_urls?.desktop?.page||`https://en.wikipedia.org/wiki/${encodeURIComponent(title)}`}});
+    return{title:summary.title,input_interpretation:summary.title,assuming:"Wikipedia article lookup",pods};
+  }catch{return null;}
+}
+
+app.post("/api/compute", async (req, res) => {
+  const { query } = req.body;
+  if (!query?.trim()) return res.status(400).json({ error: "No query provided" });
+  const q = query.trim();
+  const conversion = cTryConversion(q); if (conversion) return res.json(conversion);
+  const numTheory = cTryNumberTheory(q); if (numTheory) return res.json(numTheory);
+  const equation = cTryEquation(q); if (equation) return res.json(equation);
+  const stats = cTryStatistics(q); if (stats) return res.json(stats);
+  const constant = cTryConstant(q); if (constant) return res.json(constant);
+  const knowledge = cTryKnowledge(q); if (knowledge) return res.json(knowledge);
+  const funcPlot = cTryFunctionPlot(q); if (funcPlot) return res.json(funcPlot);
+  const mathResult = cTryMathEval(q);
+  if (mathResult && mathResult.success) {
+    const n = mathResult.num;
+    const pods = cBuildNumberPods(n, mathResult.expression);
+    return res.json({ title: "Computation Result", input_interpretation: q, pods, related: [`${q} + 1`, `${q} * 2`, `sqrt(${mathResult.formatted})`] });
+  }
+  const wiki = await cTryWikipedia(q); if (wiki) return res.json(wiki);
+  res.json({ title: "No Results", input_interpretation: q, pods: [{ title: "computr.ai", type: "text", content: `No results found for "${q}". Try a math expression, unit conversion, constant lookup, or engineering topic.` }] });
+});
+
+app.get("/api/suggestions", (_req, res) => {
+  res.json([
+    { category: "Mathematics", icon: "∑", queries: ["sin(x) * exp(-x/5)", "sqrt(2) + e^3", "1000th prime number", "50th fibonacci number", "factorize 2520"] },
+    { category: "Transistors", icon: "⚡", queries: ["MOSFET", "BJT Ebers-Moll model", "thermal voltage"] },
+    { category: "Circuits & EM", icon: "🔌", queries: ["transformer", "Ohm's law", "Kirchhoff's laws", "Maxwell's equations"] },
+    { category: "Modeling", icon: "🧮", queries: ["Navier-Stokes equations", "Fourier transform", "Shannon information theory"] },
+    { category: "Constants", icon: "⚛", queries: ["speed of light", "planck constant", "fine structure constant", "golden ratio"] },
+    { category: "Conversions", icon: "📊", queries: ["convert 100 miles to km", "72 fahrenheit to celsius", "mean of 4, 8, 15, 16, 23, 42", "solve x^2 - 5x + 6 = 0"] }
+  ]);
 });
 
 /* ======================
